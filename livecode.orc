@@ -17,13 +17,19 @@ endop
 opcode hexbeat, i, Si
   Spat, ibeat xin
 
+  ;; 4 bits/beats per hex value
   ipatlen = strlen(Spat) * 4
+  ;; get beat within pattern length
   ibeat = ibeat % ipatlen
+  ;; figure which hex value to use from string
   ipatidx = int(ibeat / 4)
+  ;; figure out which bit from hex to use
   ibitidx = ibeat % 4 
   
+  ;; convert individual hex from string to decimal/binary
   ibeatPat = strtol(strcat("0x", strsub(Spat, ipatidx, ipatidx + 1))) 
 
+  ;; bit shift/mask to check onset from hex's bits
   xout (ibeatPat >> (3 - ibitidx)) & 1 
 
 endop
