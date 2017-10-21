@@ -1,0 +1,12 @@
+* { 
+	padding: 0; margin: 0; 
+}
+
+html, body {
+    min-height: 100% !important;
+    height: 100%;
+}
+
+.CodeMirror {
+	height:100%;
+}

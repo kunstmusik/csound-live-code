@@ -2,11 +2,30 @@
 
   <head>
     <title>Live Coding with Csound</title>
+    <link rel="stylesheet" href="web/codemirror.css">
+    <link rel="stylesheet" href="web/theme/monokai.css">
+    <link rel="stylesheet" href="web/cslivecode.css">
+    <script src="web/codemirror.js"></script>
+    <script src="web/cslivecode.js"></script>
   </head>
-  <body>
-    
-    Hello World. :) 
-  </body>
 
+  <body>
+
+    <textarea id="csoundCodeEditor">;; Hello.</textarea>
+
+
+  <script>
+    var editor = CodeMirror.fromTextArea(
+      document.getElementById("csoundCodeEditor"), 
+      {
+        lineNumbers: true,
+				theme: "monokai"
+      });
+		loadCSD(editor, "live0.csd");
+
+  </script> 
+
+
+  </body>
 
 </html>
