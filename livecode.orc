@@ -17,17 +17,16 @@ endop
 opcode hexbeat, i, Si
   Spat, ibeat xin
 
-  ibeatPat = strtol(strcat("0x", Spat)) 
   ipatlen = strlen(Spat) * 4
-  indx = (ibeat % ipatlen)
+  ibeat = ibeat % ipatlen
+  ipatidx = int(ibeat / 4)
+  ibitidx = ibeat % 4 
+  
+  ibeatPat = strtol(strcat("0x", strsub(Spat, ipatidx, ipatidx + 1))) 
 
-  xout (ibeatPat >> (ipatlen - indx - 1)) & 1 
+  xout (ibeatPat >> (3 - ibitidx)) & 1 
 
 endop
-
-instr P1
-  ibeat = p4
-endin
 
 instr Perform
   ibeat = p4
@@ -50,3 +49,4 @@ instr Clock ;; our clock
 endin
 
 schedule("Clock", 0, -1)
+
