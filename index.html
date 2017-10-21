@@ -6,6 +6,7 @@
 		<link rel="stylesheet" href="web/theme/monokai.css">
 		<link rel="stylesheet" href="web/cslivecode.css">
 		<script src="web/codemirror.js"></script>
+		<script src="web/mode/csound/csound.js"></script>
 		<script src="web/cslivecode.js"></script>
 		<script>
 			Module = {};
@@ -68,6 +69,7 @@ var editor = CodeMirror.fromTextArea(
 	{
 		lineNumbers: true,
 		theme: "monokai",
+    mode: "csound",
 		extraKeys: {
 			"Ctrl-E": evalCode,
 		},
