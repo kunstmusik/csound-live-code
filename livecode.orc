@@ -64,6 +64,62 @@ opcode beatphase, i, ii
 	xout (ibeat % imax) / imax
 endop
 
+
+;; Iterative Euclidean Beat Generator
+;; Returns string of 1 and 0's
+opcode euclidStr, S, ii
+  ihits, isteps xin
+
+  Sleft = "1"
+  Sright = "0"
+
+  ileft = ihits
+  iright = isteps - ileft
+
+  while iright > 1 do
+    if (iright > ileft) then
+      iright = iright - ileft 
+      Sleft = strcat(Sleft, Sright)
+    else
+      itemp = iright
+      iright = ileft - iright
+      ileft = itemp 
+      Stemp = Sleft
+      Sleft = strcat(Sleft, Sright)
+      Sright = Stemp
+    endif
+  od
+
+  Sout = ""
+  indx = 0 
+  while (indx < ileft) do
+    Sout = strcat(Sout, Sleft)
+    indx += 1
+  od
+  indx = 0 
+  while (indx < iright) do
+    Sout = strcat(Sout, Sright)
+    indx += 1
+  od
+
+  xout Sout
+endop
+
+opcode euclid, i, iii
+  ibeat, ihits, isteps xin
+  Sval = euclidStr(ihits, isteps)
+  indx = ibeat % strlen(Sval)
+  xout strtol(strsub(Sval, indx, indx + 1))
+endop
+
+opcode euclidplay, 0, iiiSiip
+	ihits, isteps, ibeat, Sinstr, idur, ifreq, iamp xin
+
+  if(euclid(ibeat, ihits, isteps) == 1) then
+    schedule(Sinstr, 0, idur, ifreq, iamp)
+  endif
+endop
+
 ;; Phase-based Oscillators 
 
 opcode xcos, i,i

@@ -37,6 +37,16 @@ instr P1
         xosc(beatphase(ibeat, 8), fillarray(0,7))),
       ampdbfs(-10))
 
+  euclidplay(17, 32, ibeat,
+      "S1", p3, 
+      inScale(72,xosc(beatphase(ibeat, 8), array(0,2,3,4))),
+      0.5)
+
+  euclidplay(13, 32, ibeat,
+      "S1", p3, 
+      inScale(72,xosc(beatphase(ibeat, 8), array(-2,-1,0,2))),
+      0.5)
+
 endin
 
 
