@@ -29,33 +29,28 @@
 instr Synth1
   asig = vco2(ampdbfs(-12), p4) 
   asig = zdf_ladder(asig, expon(10000, p3, 400), 5)
+  asig = declick(asig) * p5
   outc(asig, asig)
 endin
 
 instr P1 
   ibeat = p4
 
-  schedule("Synth1", 0, p3, inScale(67, ibeat % 8) )
-  schedule("Synth1", 0, p3, inScale(60, ibeat % 4) )
-  schedule("Synth1", 0, p3, inScale(48, ibeat % 32) )
+	hexplay("ff0d", ibeat,
+					"Synth1", p3, inScale(60,0), 0.25)
 
-  if(ibeat % 16 == 0) then
-    schedule("Synth1", 0, p3 * 8, inScale(72, 0) )
-  endif
-  if(ibeat % 32 == 0) then
-    schedule("Synth1", 0, p3, inScale(55, 0) )
-  endif
-  
+	hexplay("8", ibeat,
+					"Synth1", p3 * 3, inScale(36,0), ampdbfs(-20))
 
-  if(hexbeat("f0d0d0f0", ibeat % 64) == 1) then
-    schedule("Synth1", 0, p3, inScale(48, 0) )
-  endif
-  if(hexbeat("cadffdac", ibeat % 64) == 1) then
-    schedule("Synth1", 0, p3, inScale(72, 0) )
-  endif
-  if(hexbeat("a000a000", ibeat % 64) == 1) then
-    schedule("Synth1", 0, p3, inScale(96, 0) )
-  endif
+	hexplay("f0d0d0f0", ibeat, 
+					"Synth1", p3, inScale(48,0))
+
+	hexplay("fa", ibeat, 
+					"Synth1", p3, 
+					inScale(60, 
+									int(cosr(beatphase(ibeat, 64), 16, 0))),
+					ampdbfs(cosr(beatphase(ibeat, 64), 10, -10)))
+
 endin
 </textarea>
 		<script>
