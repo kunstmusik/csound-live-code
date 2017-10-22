@@ -64,11 +64,22 @@ opcode beatphase, i, ii
 	xout (ibeat % imax) / imax
 endop
 
-;; CURVES
+;; Phase-based Oscillators 
 
-opcode cosr, i,iii
-	iphase, iamp, ioffset xin
-	xout cos(2 * $M_PI * iphase) * iamp + ioffset
+opcode xcos, i,i
+	iphase  xin
+	xout cos(2 * $M_PI * iphase)
+endop
+
+opcode xsin, i,i
+	iphase  xin
+	xout cos(2 * $M_PI * iphase)
+endop
+
+opcode xosc, i, ik[]
+  iphase, kvals[]  xin
+  indx = int(lenarray:i(kvals) * (iphase % 1))  
+  xout i(kvals, indx)
 endop
 
 ;; SCALE/HARMONY (experimental)
@@ -77,9 +88,19 @@ gkscale[] = fillarray(0, 2, 3, 5, 7, 8, 10)
 
 opcode inScale, i, ii
   ibase, idegree xin
+
   idegrees = lenarray:i(gkscale)
-  ioct = int(idegree / idegrees)
-  xout cpsmidinn(ibase + (ioct * 12) + i(gkscale, idegree % idegrees)) 
+
+  if (idegree < 0) then
+    ioct = (1 + int(abs:i(idegree) / idegrees))
+    indx = idegree + (ioct * idegrees)
+    ioct *= -1
+  else 
+    ioct = int(idegree / idegrees)
+    indx = idegree % idegrees
+  endif
+
+  xout cpsmidinn(ibase + (ioct * 12) + i(gkscale, indx)) 
 endop
 
 ;; AUDIO

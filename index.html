@@ -26,30 +26,28 @@
 		<textarea id="csoundCodeEditor">
 ;; Select this code and press ctrl-e to evaluate	
 
-instr Synth1
+instr S1
   asig = vco2(ampdbfs(-12), p4) 
   asig = zdf_ladder(asig, expon(10000, p3, 400), 5)
   asig = declick(asig) * p5
   outc(asig, asig)
 endin
 
+
 instr P1 
   ibeat = p4
 
-	hexplay("ff0d", ibeat,
-					"Synth1", p3, inScale(60,0), 0.25)
+  hexplay("a8ad", ibeat, 
+      "S1", p3, 
+      inScale(48, 
+        xosc(beatphase(ibeat, 16), fillarray(0,0,-3,-1))),
+      ampdbfs(-10))
 
-	hexplay("8", ibeat,
-					"Synth1", p3 * 3, inScale(36,0), ampdbfs(-20))
-
-	hexplay("f0d0d0f0", ibeat, 
-					"Synth1", p3, inScale(48,0))
-
-	hexplay("fa", ibeat, 
-					"Synth1", p3, 
-					inScale(60, 
-									int(cosr(beatphase(ibeat, 64), 16, 0))),
-					ampdbfs(cosr(beatphase(ibeat, 64), 10, -10)))
+  hexplay("8", ibeat, 
+      "S1", p3, 
+      inScale(48, 
+        xosc(beatphase(ibeat, 8), fillarray(0,7))),
+      ampdbfs(-10))
 
 endin
 </textarea>
