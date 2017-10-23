@@ -1,25 +1,12 @@
-;; Live Coding Practice
-;; Steven Yi
-;; 2017.10.20
 
-<CsoundSynthesizer>
-<CsInstruments>
-
-sr	= 44100	
-ksmps	=	64
-nchnls	=	2
-0dbfs	=	1
-
-#include "livecode.orc"
-
-;; Select this code and press ctrl-e to evaluate  
+;; File to start in editor 
 
 instr S1
   asig = vco2(ampdbfs(-12), p4) 
   asig = zdf_ladder(asig, expon(10000, p3, 400), 5)
   asig = declick(asig) * p5
-outc(asig, asig)
-  endin
+	outc(asig, asig)
+endin
 
 
 instr P1 
@@ -48,8 +35,4 @@ instr P1
       0.5)
 
 endin
-
-
-</CsInstruments>
-</CsoundSynthesizer>
 

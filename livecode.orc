@@ -3,6 +3,15 @@
   Author: Steven Yi
 */ 
 
+instr S1
+  ifreq = p4
+  iamp = p5
+endin
+
+instr P1
+  ibeat = p4
+endin
+
 ;; TIME
 
 gktempo init 120 
