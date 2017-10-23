@@ -27,6 +27,8 @@ function onRuntimeInitialized() {
     cs.start();
     document.getElementById("loadDiv").remove();
     editor.refresh();
+    editor.focus();
+    editor.setCursor(0,0);
   }
   client.send();
 
