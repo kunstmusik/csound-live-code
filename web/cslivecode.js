@@ -25,6 +25,8 @@ function onRuntimeInitialized() {
     txt);
     //cs.compileCSD(editor.getValue());
     cs.start();
+    document.getElementById("loadDiv").remove();
+    editor.refresh();
   }
   client.send();
 

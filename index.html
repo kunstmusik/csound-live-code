@@ -16,13 +16,12 @@
 			Module['onRuntimeInitialized'] = onRuntimeInitialized;
 
 		</script>
-		<script src="web/wasm/libcsound.js"></script>
-		<script src="web/wasm/FileList.js"></script>
-		<script src="web/wasm/CsoundObj.js"></script>
 	</head>
 
 	<body>
-
+    <div id="loadDiv">
+      <code>... L O A D I N G &nbsp; C S O U N D ...</code>
+    </div>
 		<textarea id="csoundCodeEditor">
 ;; Select this code and press ctrl-e to evaluate	
 
@@ -84,6 +83,10 @@ var editor = CodeMirror.fromTextArea(
 	});
 
 		</script> 
+
+		<script src="web/wasm/libcsound.js"></script>
+		<script src="web/wasm/FileList.js"></script>
+		<script src="web/wasm/CsoundObj.js"></script>
 
 	</body>
 
