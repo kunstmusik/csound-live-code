@@ -11,7 +11,7 @@ endin
 
 instr P1 
   ibeat = p4
-
+  
   hexplay("a8ad", ibeat, 
       "S1", p3, 
       inScale(48, 
@@ -23,6 +23,12 @@ instr P1
       inScale(48, 
         xosc(beatphase(ibeat, 8), fillarray(0,7))),
       ampdbfs(-10))
+
+
+  ;;hexplay("f", ibeat, 
+  ;;    "S1", p3, 
+  ;;    inScale(48, int(xosci(beatphase(ibeat, 4), fillarray(0,7)))),
+  ;;    ampdbfs(xosci(beatphase(ibeat, 64), fillarray(-12, -6))))
 
   euclidplay(17, 32, ibeat,
       "S1", p3, 
