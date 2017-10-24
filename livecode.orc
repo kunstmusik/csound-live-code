@@ -193,3 +193,39 @@ endop
 
 schedule("Clock", 0, -1)
 
+
+;; DRUMS
+
+instr Clap
+  ifreq = p4 ;; ignore
+  iamp = p5
+
+  ;; Modified clap instrument by Istvan Varga (clap1.orc)
+  ibpfrq	=  1046.5				/* bandpass filter frequency */
+  kbpbwd =	port:k(ibpfrq*0.25, 0.03, ibpfrq*4.0)   /* bandpass filter bandwidth */
+  idec	=  0.5					/* decay time		     */
+
+  a1	=  1.0
+  a1_	delay1 a1
+  a1	=  a1 - a1_
+  a2	delay a1, 0.011
+  a3	delay a1, 0.023
+  a4	delay a1, 0.031
+
+  a1	tone a1, 60.0
+  a2	tone a2, 60.0
+  a3	tone a3, 60.0
+  a4	tone a4, 1.0 / idec
+
+  aenv1	=  a1 + a2 + a3 + a4*60.0*idec
+
+  a_	unirand 2.0
+  a_	=  aenv1 * (a_ - 1.0)
+  a_	butterbp a_, ibpfrq, kbpbwd
+
+  aout = a_	* 80 * iamp ;; 
+  al, ar pan2 aout, 0.7
+  outc(al, ar)
+
+endin
+

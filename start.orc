@@ -18,11 +18,10 @@ instr P1
         xosc(beatphase(ibeat, 16), fillarray(0,0,-3,-1))),
       ampdbfs(-10))
 
-  hexplay("8", ibeat, 
-      "S1", p3, 
-      inScale(48, 
-        xosc(beatphase(ibeat, 8), fillarray(0,7))),
-      ampdbfs(-10))
+  hexplay("0808080b", ibeat, 
+      "Clap", p3, 
+      0, 
+      ampdbfs(-3))
 
 
   ;;hexplay("f", ibeat, 
