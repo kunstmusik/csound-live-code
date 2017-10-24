@@ -194,6 +194,27 @@ endop
 schedule("Clock", 0, -1)
 
 
+;; Fades (Experimental)
+
+opcode fadeIn, i, ii
+  ident, inumbeats xin
+  Schan = sprintf("fade_chan_%d", ident)
+  ival = limit:i(chnget:i(Schan) + 1, 0, inumbeats) 
+  chnset(ival, Schan)
+
+  xout ival / inumbeats 
+endop
+
+opcode fadeOut, i, ii
+  ident, inumbeats xin
+  Schan = sprintf("fade_chan_%d", ident)
+  ival = limit:i(chnget:i(Schan) - 1, 0, inumbeats) 
+  chnset(ival, Schan)
+
+  xout ival / inumbeats 
+endop
+
+
 ;; DRUMS
 
 instr Clap

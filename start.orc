@@ -1,6 +1,4 @@
 
-;; File to start in editor 
-
 instr S1
   asig = vco2(ampdbfs(-12), p4) 
   asig = zdf_ladder(asig, expon(10000, p3, 400), 5)
@@ -16,13 +14,12 @@ instr P1
       "S1", p3, 
       inScale(48, 
         xosc(beatphase(ibeat, 16), fillarray(0,0,-3,-1))),
-      ampdbfs(-10))
+      ampdbfs(-10) * fadeIn(0, 128))
 
   hexplay("0808080b", ibeat, 
       "Clap", p3, 
       0, 
-      ampdbfs(-3))
-
+      ampdbfs(-3) * fadeIn(1, 128))
 
   ;;hexplay("f", ibeat, 
   ;;    "S1", p3, 
@@ -32,12 +29,12 @@ instr P1
   euclidplay(17, 32, ibeat,
       "S1", p3, 
       inScale(72,xosc(beatphase(ibeat, 8), array(0,2,3,4))),
-      0.5)
+      ampdbfs(-12) * fadeIn(2, 64))
 
   euclidplay(13, 32, ibeat,
       "S1", p3, 
       inScale(72,xosc(beatphase(ibeat, 8), array(-2,-1,0,2))),
-      0.5)
+      ampdbfs(-12) * fadeIn(3, 64))
 
 endin
 
