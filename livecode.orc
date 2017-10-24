@@ -188,10 +188,22 @@ opcode declick, a, a
  	xout ain * aenv
 endop
 
+;; KILLING INSTANCES
 
-;; INITIALIZATION OF SYSTEM
+instr KillImpl
+  Sinstr = p4 
+  ktrig init 0
 
-schedule("Clock", 0, -1)
+  if(ktrig == 0) then
+    turnoff2(Sinstr, 0, 0)
+    ktrig += 1
+  endif
+endin
+
+opcode kill, 0,S
+  Sinstr xin
+  schedule("KillImpl", 0, 0.01, Sinstr)
+endop
 
 
 ;; Fades (Experimental)
@@ -250,3 +262,9 @@ instr Clap
 
 endin
 
+
+
+
+;; INITIALIZATION OF SYSTEM
+
+schedule("Clock", 0, -1)
