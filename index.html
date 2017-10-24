@@ -7,15 +7,6 @@
 		<link rel="stylesheet" href="web/cslivecode.css">
 		<script src="web/codemirror.js"></script>
 		<script src="web/mode/csound/csound.js"></script>
-		<script src="web/cslivecode.js"></script>
-		<script>
-			Module = {};
-			Module['wasmBinaryFile'] = 'web/wasm/libcsound.wasm';
-			Module['print'] = console.log;
-			Module['printErr'] = console.log;
-			Module['onRuntimeInitialized'] = onRuntimeInitialized;
-
-		</script>
 	</head>
 
 	<body>
@@ -84,6 +75,15 @@ var editor = CodeMirror.fromTextArea(
 
 		</script> 
 
+		<script src="web/cslivecode.js"></script>
+		<script>
+			Module = {};
+			Module['wasmBinaryFile'] = 'web/wasm/libcsound.wasm';
+			Module['print'] = console.log;
+			Module['printErr'] = console.log;
+			Module['onRuntimeInitialized'] = onRuntimeInitialized;
+
+		</script>
 		<script src="web/wasm/libcsound.js"></script>
 		<script src="web/wasm/FileList.js"></script>
 		<script src="web/wasm/CsoundObj.js"></script>
