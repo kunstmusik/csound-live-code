@@ -8,7 +8,6 @@ instr S1
 	outc(asig, asig)
 endin
 
-
 instr P1 
   ibeat = p4
   
@@ -28,9 +27,8 @@ instr P1
       fadeIn(3, 128) * ampdbfs(-3))
 
   hexplay("8", ibeat, 
-      "Clap", p3, 
+      "BD", p3, 
       0,
       fadeIn(4, 128) * ampdbfs(-3))
 
 endin
-

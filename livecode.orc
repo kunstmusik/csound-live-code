@@ -268,6 +268,42 @@ instr Clap
 endin
 
 
+;; Bass Drum - From Iain's TR-808.csd
+
+chnset(1, "bd_level")
+chnset(0, "bd_tune")
+chnset(1, "bd_decay")
+chnset(0.5, "bd_pan")
+
+gi_bd_sine  ftgen 0,0,1024,10,1   ;A SINE WAVE
+gi_bd_cos ftgen 0,0,65536,9,1,1,90  ;A COSINE WAVE 
+
+instr	BD	;BASS DRUM
+	p3	=	2*chnget:i("bd_decay")							;NOTE DURATION. SCALED USING GUI 'Decay' KNOB
+
+  ilevel = chnget:i("bd_level")
+  itune = chnget:i("bd_tune")
+  ipan = chnget:i("bd_pan")
+
+	;SUSTAIN AND BODY OF THE SOUND
+	kmul	transeg	0.2,p3*0.5,-15,0.01, p3*0.5,0,0					;PARTIAL STRENGTHS MULTIPLIER USED BY GBUZZ. DECAYS FROM A SOUND WITH OVERTONES TO A SINE TONE.
+	kbend	transeg	0.5,1.2,-4, 0,1,0,0						;SLIGHT PITCH BEND AT THE START OF THE NOTE 
+	asig	gbuzz	0.5,50*octave(itune)*semitone(kbend),20,1,kmul,gi_bd_cos		;GBUZZ TONE
+	aenv	transeg	1,p3-0.004,-6,0							;AMPLITUDE ENVELOPE FOR SUSTAIN OF THE SOUND
+	aatt	linseg	0,0.004,1, .01, 1							;SOFT ATTACK
+	asig	=	asig*aenv*aatt
+
+	;HARD, SHORT ATTACK OF THE SOUND
+	aenv	linseg	1,0.07,0, .01, 0							;AMPLITUDE ENVELOPE (FAST DECAY)						
+	acps	expsega	400,0.07,0.001,1,0.001						;FREQUENCY OF THE ATTACK SOUND. QUICKLY GLISSES FROM 400 Hz TO SUB-AUDIO
+	aimp	oscili	aenv,acps*octave(itune*0.25),gi_bd_sine				;CREATE ATTACK SOUND
+	
+	amix	=	((asig*0.5)+(aimp*0.35))*ilevel*p5			;MIX SUSTAIN AND ATTACK SOUND ELEMENTS AND SCALE USING GUI 'Level' KNOB
+	
+	aL,aR	pan2	amix,ipan							;PAN THE MONOPHONIC SOUND
+	outc(aL,aR)							;SEND AUDIO TO OUTPUTS
+endin
+
 
 
 ;; INITIALIZATION OF SYSTEM
