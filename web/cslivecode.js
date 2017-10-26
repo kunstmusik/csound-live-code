@@ -38,8 +38,8 @@ let editor = CodeMirror.fromTextArea(
     //keyMap: "vim",
 		extraKeys: {
 			"Ctrl-E": evalCode,
-			"Ctrl-0": insertHexplay,
-			"Ctrl-9": insertEuclidplay,
+			"Ctrl-H": insertHexplay,
+			"Ctrl-J": insertEuclidplay,
 		},
 	});
 
@@ -47,6 +47,7 @@ fetch('start.orc').then(function(response) {
   return response.text().then(function(v) {
     editor.setValue(
       ";; Select this code and press ctrl-e to evaluate\n" + v);
+    editor.clearHistory()
   });
 });
 
