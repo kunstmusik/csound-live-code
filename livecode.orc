@@ -16,6 +16,11 @@ endin
 
 gktempo init 120 
 
+opcode set_tempo,0,i
+  itempo xin
+  gktempo init itempo
+endop
+
 instr Perform
   ibeat = p4
 

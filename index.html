@@ -7,6 +7,10 @@
 		<link rel="stylesheet" href="web/cslivecode.css">
 		<script src="web/codemirror.js"></script>
 		<script src="web/mode/csound/csound.js"></script>
+		<script src="web/addon/edit/matchbrackets.js"></script>
+		<script src="web/addon/edit/closebrackets.js"></script>
+		<script src="web/keymap/vim.js"></script>
+		<script src="web/keymap/emacs.js"></script>
 	</head>
 
 	<body>
@@ -16,41 +20,7 @@
 		<textarea id="csoundCodeEditor">
 ;; FETCHING start.orc code...
 </textarea>
-		<script>
-
-function evalCode() {
-	cs.compileOrc(editor.getSelection());
-}
-
-var editor = CodeMirror.fromTextArea(
-	document.getElementById("csoundCodeEditor"), 
-	{
-		lineNumbers: true,
-		theme: "monokai",
-    mode: "csound",
-		extraKeys: {
-			"Ctrl-E": evalCode,
-		},
-	});
-
-fetch('start.orc').then(function(response) {
-  return response.text().then(function(v) {
-    editor.setValue(
-      ";; Select this code and press ctrl-e to evaluate\n" + v);
-  });
-});
-
-		</script> 
-
 		<script src="web/cslivecode.js"></script>
-		<script>
-			Module = {};
-			Module['wasmBinaryFile'] = 'web/wasm/libcsound.wasm';
-			Module['print'] = console.log;
-			Module['printErr'] = console.log;
-			Module['onRuntimeInitialized'] = onRuntimeInitialized;
-
-		</script>
 		<script src="web/wasm/libcsound.js"></script>
 		<script src="web/wasm/FileList.js"></script>
 		<script src="web/wasm/CsoundObj.js"></script>
