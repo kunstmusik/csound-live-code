@@ -272,7 +272,7 @@ endin
 
 chnset(1, "bd_level")
 chnset(0, "bd_tune")
-chnset(1, "bd_decay")
+chnset(0.5, "bd_decay")
 chnset(0.5, "bd_pan")
 
 gi_bd_sine  ftgen 0,0,1024,10,1   ;A SINE WAVE
@@ -281,7 +281,7 @@ gi_bd_cos ftgen 0,0,65536,9,1,1,90  ;A COSINE WAVE
 instr	BD	;BASS DRUM
 	p3	=	2*chnget:i("bd_decay")							;NOTE DURATION. SCALED USING GUI 'Decay' KNOB
 
-  ilevel = chnget:i("bd_level")
+  ilevel = chnget:i("bd_level") * 2
   itune = chnget:i("bd_tune")
   ipan = chnget:i("bd_pan")
 
