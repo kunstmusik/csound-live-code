@@ -73,7 +73,8 @@ opcode hexplay, 0, SiSiip
   endif
 endop
 
-opcode beatphase, i, ii
+;; Beat Phase
+opcode bphs, i, ii
 	ibeat, imax xin
 	xout (ibeat % imax) / imax
 endop
@@ -162,6 +163,11 @@ opcode xosci, i, ik[]
   iv0 = i(kvals, ibase)  
   iv1 = i(kvals, (ibase + 1) % ilen) 
   xout iv0 + (iv1 - iv0) * ifrac
+endop
+
+opcode xlin, i, iii
+  iphase, istart, iend xin
+  xout istart + (iend - istart) * iphase
 endop
 
 ;; SCALE/HARMONY (experimental)
