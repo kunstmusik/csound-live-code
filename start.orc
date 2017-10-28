@@ -13,12 +13,12 @@ instr P1
   
   hexplay("fade", ibeat, 
       "S1", p3,
-      inScale(48, 5+ int(xosci(bphs(ibeat, 32), array(0,4,0,5,0,3,0,7)))),
-      fadeIn(1, 128) * ampdbfs(xosci(beatphase(ibeat, 64), array(-12, -6))))
+      inScale(48, 5 + int(xosci(bphs(ibeat, 32), array(0,4,0,5,0,3,0,7)))),
+      fadeIn(1, 128) * ampdbfs(xosci(bphs(ibeat, 64), array(-12, -6))))
 
   hexplay("fade", ibeat, 
       "S1", p3, 
-      inScale(48, 3+ int(xosci(bphs(ibeat, 32), array(0,4,0,5,0,3,0,7)))),
+      inScale(48, 3 + int(xosci(bphs(ibeat, 32), array(0,4,0,5,0,3,0,7)))),
       fadeIn(2, 128) * ampdbfs(xosci(bphs(ibeat, 64), array(-12, -6))))
 
   hexplay("0808080d", ibeat, 
@@ -32,3 +32,4 @@ instr P1
       fadeIn(4, 128) * ampdbfs(-3))
 
 endin
+
