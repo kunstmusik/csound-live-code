@@ -21,6 +21,21 @@ opcode set_tempo,0,i
   gktempo init itempo
 endop
 
+opcode go_tempo, 0, ii
+  inewtempo, incr xin
+
+  icurtempo = i(gktempo)
+  itemp init icurtempo 
+
+  if(inewtempo > icurtempo) ithen
+    itemp = min:i(inewtempo, icurtempo + abs(incr))
+    gktempo init itemp 
+  elseif (inewtempo < icurtempo) ithen
+    itemp = max:i(inewtempo, icurtempo - abs(incr))
+    gktempo init itemp 
+  endif
+endop
+
 instr Perform
   ibeat = p4
 
