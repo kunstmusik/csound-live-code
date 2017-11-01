@@ -198,8 +198,10 @@ endop
 */
 opcode xchan, i,Si
   SchanName, initVal xin
-    
-  if(chnget:i(SchanName) == 0) then
+   
+  Sinit = sprintf("%s_initialized", SchanName)
+  if(chnget:i(Sinit) == 0) then
+    chnset(1, Sinit)
     chnset(initVal, SchanName)
   endif
   xout chnget:i(SchanName)
@@ -208,7 +210,9 @@ endop
 opcode xchan, k,Si
   SchanName, initVal xin
     
+  Sinit = sprintf("%s_initialized", SchanName)
   if(chnget:i(SchanName) == 0) then
+    chnset(1, Sinit)
     chnset(initVal, SchanName)
   endif
   xout chnget:k(SchanName)
