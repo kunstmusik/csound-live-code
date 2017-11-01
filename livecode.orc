@@ -185,6 +185,35 @@ opcode xlin, i, iii
   xout istart + (iend - istart) * iphase
 endop
 
+;; Channel Helper
+
+/** xchan 
+  Initializes a channel with initial value if channel has default value of 0 and
+  then returns the current value from the channel. Useful in live coding to define
+  a dynamic point that will be automated or set outside of the instrument that is
+  using the channel. 
+
+  Opcode is overloaded to return i- or k- value. Be sure to use xchan:i or xchan:k
+  to specify which value to use. 
+*/
+opcode xchan, i,Si
+  SchanName, initVal xin
+    
+  if(chnget:i(SchanName) == 0) then
+    chnset(initVal, SchanName)
+  endif
+  xout chnget:i(SchanName)
+endop
+
+opcode xchan, k,Si
+  SchanName, initVal xin
+    
+  if(chnget:i(SchanName) == 0) then
+    chnset(initVal, SchanName)
+  endif
+  xout chnget:k(SchanName)
+endop
+
 ;; SCALE/HARMONY (experimental)
 
 gkscale[] = fillarray(0, 2, 3, 5, 7, 8, 10)
