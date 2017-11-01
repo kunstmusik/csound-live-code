@@ -10,6 +10,9 @@
 ;; code from livecode.orc.
 
 <CsoundSynthesizer>
+<CsOptions>
+--port=10000 -o dac -m0
+</CsOptions>
 <CsInstruments>
 
 sr	= 44100	
