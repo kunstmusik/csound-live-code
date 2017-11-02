@@ -324,20 +324,15 @@ endin
 
 ;; Bass Drum - From Iain's TR-808.csd
 
-chnset(1, "bd_level")
-chnset(0, "bd_tune")
-chnset(0.5, "bd_decay")
-chnset(0.5, "bd_pan")
-
 gi_bd_sine  ftgen 0,0,1024,10,1   ;A SINE WAVE
 gi_bd_cos ftgen 0,0,65536,9,1,1,90  ;A COSINE WAVE 
 
 instr	BD	;BASS DRUM
-	p3	=	2*chnget:i("bd_decay")							;NOTE DURATION. SCALED USING GUI 'Decay' KNOB
+	p3	=	2 * xchan("bd_decay", 0.5)							;NOTE DURATION. SCALED USING GUI 'Decay' KNOB
 
-  ilevel = chnget:i("bd_level") * 2
-  itune = chnget:i("bd_tune")
-  ipan = chnget:i("bd_pan")
+  ilevel = xchan("bd_level", 1) * 2
+  itune = xchan("bd_tune", 0)
+  ipan = xchan("bd_pan", 0.5)
 
 	;SUSTAIN AND BODY OF THE SOUND
 	kmul	transeg	0.2,p3*0.5,-15,0.01, p3*0.5,0,0					;PARTIAL STRENGTHS MULTIPLIER USED BY GBUZZ. DECAYS FROM A SOUND WITH OVERTONES TO A SINE TONE.
