@@ -19,33 +19,33 @@ instr P1
 
   hexplay("88a2228a", ibeat, 
       "S1", p3,
-      inScale(72, xlin(bphs(ibeat, 16), 0, 1)),
-      fadeIn(5, 128) * ampdbfs(xosci(bphs(ibeat, 64), array(-12, -6))))
+      in_scale(2, xlin(bphs(ibeat, 16), 0, 1)),
+      fade_in(5, 128) * ampdbfs(xosci(bphs(ibeat, 64), array(-12, -6))))
   
   hexplay("ffe0", ibeat, 
       "S1", p3,
-      inScale(36, 5 + int(xosc(bphs(ibeat, 8), array(0,0,0,0)))),
-      fadeIn(5, 128) * ampdbfs(xosci(bphs(ibeat, 64), array(-12, -6))))
+      in_scale(-2, 5 + int(xosc(bphs(ibeat, 8), array(0,0,0,0)))),
+      fade_in(5, 128) * ampdbfs(xosci(bphs(ibeat, 64), array(-12, -6))))
 
   hexplay("f8aeea8f", ibeat, 
       "S1", p3,
-      inScale(60, 5 + int(xlin(bphs(ibeat, 16), 0, 4) + xosc(bphs(ibeat, 4), array(0,3)))),
-      fadeIn(7, 128) * ampdbfs(xosci(bphs(ibeat, 64), array(-12, -6))))
+      in_scale(0, 5 + int(xlin(bphs(ibeat, 16), 0, 4) + xosc(bphs(ibeat, 4), array(0,3)))),
+      fade_in(7, 128) * ampdbfs(xosci(bphs(ibeat, 64), array(-12, -6))))
 
   hexplay("8000000000000000", ibeat, 
       "S2", p3 * 16,
       0,
-      fadeIn(6, 128) * ampdbfs(-12))
+      fade_in(6, 128) * ampdbfs(-12))
 
   hexplay("0808080d", ibeat, 
       "Clap", p3, 
       0,
-      fadeIn(3, 128) * ampdbfs(-3))
+      fade_in(3, 128) * ampdbfs(-3))
 
   hexplay("8", ibeat, 
       "BD", p3, 
       0,
-      fadeIn(4, 128) * ampdbfs(-3))
+      fade_in(4, 128) * ampdbfs(-3))
 
 endin
 

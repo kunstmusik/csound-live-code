@@ -10,26 +10,26 @@ endin
 
 instr P1 
   ibeat = p4
-  
+
   hexplay("fade", ibeat, 
       "S1", p3,
-      inScale(48, 5 + int(xosci(bphs(ibeat, 32), array(0,4,0,5,0,3,0,7)))),
-      fadeIn(1, 128) * ampdbfs(xosci(bphs(ibeat, 64), array(-12, -6))))
+      in_scale(-1, 5 + int(xosci(bphs(ibeat, 32), array(0,4,0,5,0,3,0,7)))),
+      fade_in(1, 128) * ampdbfs(xosci(bphs(ibeat, 64), array(-12, -6))))
 
   hexplay("fade", ibeat, 
       "S1", p3, 
-      inScale(48, 3 + int(xosci(bphs(ibeat, 32), array(0,4,0,5,0,3,0,7)))),
-      fadeIn(2, 128) * ampdbfs(xosci(bphs(ibeat, 64), array(-12, -6))))
+      in_scale(-1, 3 + int(xosci(bphs(ibeat, 32), array(0,4,0,5,0,3,0,7)))),
+      fade_in(2, 128) * ampdbfs(xosci(bphs(ibeat, 64), array(-12, -6))))
 
   hexplay("0808080d", ibeat, 
       "Clap", p3, 
       0,
-      fadeIn(3, 128) * ampdbfs(-3))
+      fade_in(3, 128) * ampdbfs(-3))
 
   hexplay("8", ibeat, 
       "BD", p3, 
       0,
-      fadeIn(4, 128) * ampdbfs(-3))
+      fade_in(4, 128) * ampdbfs(-3))
 
 endin
 

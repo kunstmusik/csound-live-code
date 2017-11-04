@@ -97,7 +97,7 @@ endop
 
 ;; Iterative Euclidean Beat Generator
 ;; Returns string of 1 and 0's
-opcode euclidStr, S, ii
+opcode euclid_str, S, ii
   ihits, isteps xin
 
   Sleft = "1"
@@ -137,7 +137,7 @@ endop
 
 opcode euclid, i, iii
   ibeat, ihits, isteps xin
-  Sval = euclidStr(ihits, isteps)
+  Sval = euclid_str(ihits, isteps)
   indx = ibeat % strlen(Sval)
   xout strtol(strsub(Sval, indx, indx + 1))
 endop
@@ -220,12 +220,28 @@ endop
 
 ;; SCALE/HARMONY (experimental)
 
-gkscale[] = fillarray(0, 2, 3, 5, 7, 8, 10)
+gi_scale_major[] = array(0, 2, 4, 5, 7, 9, 11) 
+gi_scale_minor[] = array(0, 2, 3, 5, 7, 8, 10)
 
-opcode inScale, i, ii
-  ibase, idegree xin
+gi_cur_scale[] = gi_scale_minor
+gi_scale_base = 60
+gi_chord_offset = 0
 
-  idegrees = lenarray:i(gkscale)
+opcode set_scale, 0,S
+  Scale xin
+  if(strcmp("maj", Scale) == 0) then
+    gi_cur_scale = gi_scale_major
+  else
+    gi_cur_scale = gi_scale_minor
+  endif
+endop
+
+opcode in_scale, i, ii
+  ioct, idegree xin
+
+  ibase = gi_scale_base + (ioct * 12)
+
+  idegrees = lenarray(gi_cur_scale)
 
   if (idegree < 0) then
     ioct = (1 + int(abs:i(idegree) / idegrees))
@@ -236,7 +252,7 @@ opcode inScale, i, ii
     indx = idegree % idegrees
   endif
 
-  xout cpsmidinn(ibase + (ioct * 12) + i(gkscale, indx)) 
+  xout cpsmidinn(ibase + (ioct * 12) + gi_cur_scale[indx]) 
 endop
 
 ;; AUDIO
@@ -267,7 +283,7 @@ endop
 
 ;; Fades (Experimental)
 
-opcode fadeIn, i, ii
+opcode fade_in, i, ii
   ident, inumbeats xin
   Schan = sprintf("fade_chan_%d", ident)
   ival = limit:i(chnget:i(Schan) + 1, 0, inumbeats) 
@@ -276,7 +292,7 @@ opcode fadeIn, i, ii
   xout ival / inumbeats 
 endop
 
-opcode fadeOut, i, ii
+opcode fade_out, i, ii
   ident, inumbeats xin
   Schan = sprintf("fade_chan_%d", ident)
   ival = limit:i(chnget:i(Schan) - 1, 0, inumbeats) 

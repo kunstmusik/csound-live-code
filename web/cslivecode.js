@@ -8,8 +8,8 @@ function evalCode() {
 function insertHexplay() {
   let hexCode = "hexplay(\"fade\", ibeat,\n" +
       "      \"S1\", p3,\n" +
-      "      inScale(48, 0),\n" +
-      "      fadeIn(" + fadeCounter + ", 128) * ampdbfs(-12))\n";
+      "      in_scale(-1, 0),\n" +
+      "      fade_in(" + fadeCounter + ", 128) * ampdbfs(-12))\n";
   fadeCounter += 1;
 
   var doc = editor.getDoc();
@@ -19,8 +19,8 @@ function insertHexplay() {
 function insertEuclidplay() {
   let hexCode = "euclidplay(13, 32, ibeat,\n" +
       "      \"S1\", p3,\n" +
-      "      inScale(48, 0),\n" +
-      "      fadeIn(" + fadeCounter + ", 128) * ampdbfs(-12))\n";
+      "      in_scale(-1, 0),\n" +
+      "      fade_in(" + fadeCounter + ", 128) * ampdbfs(-12))\n";
   fadeCounter += 1;
 
   var doc = editor.getDoc();

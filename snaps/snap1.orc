@@ -27,28 +27,28 @@ instr P1
   
   hexplay("2892", ibeat,
       "S1", p3,
-      inScale(48, 0),
-      fadeIn(10, 128) * ampdbfs(-12))
+      in_scale(-1, 0),
+      fade_in(10, 128) * ampdbfs(-12))
   
   hexplay("88a2222a", ibeat,
       "S2", p3 * 2,
-      inScale(36, xosci(bphs(ibeat, 16), array(0,7))),
-      fadeIn(9, 128) * ampdbfs(-12))
+      in_scale(-2, xosci(bphs(ibeat, 16), array(0,7))),
+      fade_in(9, 128) * ampdbfs(-12))
   
   hexplay("08", ibeat,
       "Clap", p3,
-      inScale(48, 0),
-      fadeIn(12, 128) * ampdbfs(-12))
+      in_scale(-1, 0),
+      fade_in(12, 128) * ampdbfs(-12))
 
   hexplay("8", ibeat, 
       "BD", p3, 
       0,
-      fadeIn(4, 128) * ampdbfs(-3))
+      fade_in(4, 128) * ampdbfs(-3))
 
   hexplay("0008000a0008000d", ibeat,
       "S1", p3 * 0.5,
-      inScale(84, 0),
-      fadeIn(13, 128) * ampdbfs(-15))
+      in_scale(2, 0),
+      fade_in(13, 128) * ampdbfs(-15))
 
   if(ibeat % 64 == 0) then
     schedule("S3", 0, 1, 0, ampdbfs(-3))
