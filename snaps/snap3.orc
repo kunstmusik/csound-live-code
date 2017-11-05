@@ -50,4 +50,5 @@ instr P1
 
 endin
 
+set_scale("maj")
 set_tempo(112) 
