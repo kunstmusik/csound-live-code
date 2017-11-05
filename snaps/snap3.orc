@@ -15,7 +15,7 @@ endin
 
 instr P1 
   ibeat = p4
-  
+
   if(hexbeat("888a888f", ibeat) == 1) then
     ipch = xosci(bphs(ibeat, 32), array(0, 5, 0, 4, 0, 7, 0, 11))
     ipch += xosc(bphs(ibeat, 64), array(0, 0, 2, 3))
@@ -46,7 +46,7 @@ instr P1
   hexplay("8", ibeat,
       "BD", p3,
       in_scale(-1, 0),
-      fade_in(9, 128) * ampdbfs(-3)) 
+      fade_in(9, 128) * ampdbfs(-9)) 
 
 endin
 
