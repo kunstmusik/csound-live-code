@@ -88,6 +88,35 @@ opcode hexplay, 0, SiSiip
   endif
 endop
 
+
+opcode octalbeat, i, Si
+  Spat, ibeat xin
+
+  ;; 3 bits/beats per octal value
+  ipatlen = strlen(Spat) * 4
+  ;; get beat within pattern length
+  ibeat = ibeat % ipatlen
+  ;; figure which octal value to use from string
+  ipatidx = int(ibeat / 3)
+  ;; figure out which bit from octal to use
+  ibitidx = ibeat % 3 
+  
+  ;; convert individual octal from string to decimal/binary
+  ibeatPat = strtol(strcat("0", strsub(Spat, ipatidx, ipatidx + 1))) 
+
+  ;; bit shift/mask to check onset from hex's bits
+  xout (ibeatPat >> (2 - ibitidx)) & 1 
+
+endop
+
+opcode octalplay, 0, SiSiip
+	Spat, ibeat, Sinstr, idur, ifreq, iamp xin
+
+  if(octalbeat(Spat, ibeat) == 1) then
+    schedule(Sinstr, 0, idur, ifreq, iamp )
+  endif
+endop
+
 ;; Beat Phase
 opcode bphs, i, ii
 	ibeat, imax xin
