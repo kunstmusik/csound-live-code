@@ -330,6 +330,38 @@ opcode fade_out, i, ii
   xout ival / inumbeats 
 endop
 
+;; SYNTHS
+
+/* Substractive Synth, 3osc */
+instr Sub1
+  asig = vco2(ampdbfs(-12), p4)
+  asig += vco2(ampdbfs(-12), p4 * 1.01, 10)
+  asig += vco2(ampdbfs(-12), p4 * 2, 10)
+  asig = zdf_ladder(asig, expon(10000, p3, 400), 5)
+  asig = declick(asig) * p5
+  outc(asig, asig)
+endin
+
+
+/* Subtractive Synth, two saws, fifth freq apart */
+instr Sub2
+  icut = xchan("Sub2.cut", sr / 3)
+  asig = vco2(ampdbfs(-12), p4) 
+  asig += vco2(ampdbfs(-12), p4 * 1.5) 
+  asig = zdf_ladder(asig, expon(icut, p3, 400), 5)
+  asig = declick(asig) * p5
+	outc(asig, asig)
+endin
+
+/* FM 3:1 C:M ratio, 2->0.025 index, nice for bass */
+instr FM1 
+  icar = xchan("FM1.car", 1)
+  imod = xchan("FM1.mod", 3)
+  asig = foscili(p5, p4, icar, imod, expon(2, 0.2, 0.025))
+  asig = declick(asig) * 0.5
+	outc(asig, asig)
+endin
+
 
 ;; DRUMS
 
@@ -369,8 +401,8 @@ endin
 
 ;; Bass Drum - From Iain's TR-808.csd
 
-gi_bd_sine  ftgen 0,0,1024,10,1   ;A SINE WAVE
-gi_bd_cos ftgen 0,0,65536,9,1,1,90  ;A COSINE WAVE 
+gi_808_sine  ftgen 0,0,1024,10,1   ;A SINE WAVE
+gi_808_cos ftgen 0,0,65536,9,1,1,90  ;A COSINE WAVE 
 
 instr	BD	;BASS DRUM
 	p3	=	2 * xchan("bd_decay", 0.5)							;NOTE DURATION. SCALED USING GUI 'Decay' KNOB
@@ -382,7 +414,7 @@ instr	BD	;BASS DRUM
 	;SUSTAIN AND BODY OF THE SOUND
 	kmul	transeg	0.2,p3*0.5,-15,0.01, p3*0.5,0,0					;PARTIAL STRENGTHS MULTIPLIER USED BY GBUZZ. DECAYS FROM A SOUND WITH OVERTONES TO A SINE TONE.
 	kbend	transeg	0.5,1.2,-4, 0,1,0,0						;SLIGHT PITCH BEND AT THE START OF THE NOTE 
-	asig	gbuzz	0.5,50*octave(itune)*semitone(kbend),20,1,kmul,gi_bd_cos		;GBUZZ TONE
+	asig	gbuzz	0.5,50*octave(itune)*semitone(kbend),20,1,kmul,gi_808_cos		;GBUZZ TONE
 	aenv	transeg	1,p3-0.004,-6,0							;AMPLITUDE ENVELOPE FOR SUSTAIN OF THE SOUND
 	aatt	linseg	0,0.004,1, .01, 1							;SOFT ATTACK
 	asig	=	asig*aenv*aatt
@@ -390,7 +422,7 @@ instr	BD	;BASS DRUM
 	;HARD, SHORT ATTACK OF THE SOUND
 	aenv	linseg	1,0.07,0, .01, 0							;AMPLITUDE ENVELOPE (FAST DECAY)						
 	acps	expsega	400,0.07,0.001,1,0.001						;FREQUENCY OF THE ATTACK SOUND. QUICKLY GLISSES FROM 400 Hz TO SUB-AUDIO
-	aimp	oscili	aenv,acps*octave(itune*0.25),gi_bd_sine				;CREATE ATTACK SOUND
+	aimp	oscili	aenv,acps*octave(itune*0.25),gi_808_sine				;CREATE ATTACK SOUND
 	
 	amix	=	((asig*0.5)+(aimp*0.35))*ilevel*p5			;MIX SUSTAIN AND ATTACK SOUND ELEMENTS AND SCALE USING GUI 'Level' KNOB
 	
@@ -398,6 +430,38 @@ instr	BD	;BASS DRUM
 	outc(aL,aR)							;SEND AUDIO TO OUTPUTS
 endin
 
+
+;; Snare Drum - From Iain's TR-808.csd
+instr	SD	;SNARE DRUM
+	
+	;SOUND CONSISTS OF TWO SINE TONES, AN OCTAVE APART AND A NOISE SIGNAL
+  idur = xchan("sd_decay", 1.0)	
+  ilevel = xchan("sd_level", 1) 
+  itune = xchan("sd_tune", 0)
+  ipan = xchan("sd_pan", 0.5)
+
+	ifrq  	=	342		;FREQUENCY OF THE TONES
+  iNseDur	=	0.3 * idur  ;DURATION OF THE NOISE COMPONENT
+	iPchDur	=	0.1 * idur	;DURATION OF THE SINE TONES COMPONENT
+	p3	=	iNseDur 	;p3 DURATION TAKEN FROM NOISE COMPONENT DURATION (ALWATS THE LONGEST COMPONENT)
+	
+	;SINE TONES COMPONENT
+	aenv1	expseg	1,iPchDur,0.0001,p3-iPchDur,0.0001		;AMPLITUDE ENVELOPE
+	apitch1	oscili	1,ifrq*octave(itune),gi_808_sine			;SINE TONE 1
+	apitch2	oscili	0.25,ifrq*0.5*octave(itune),gi_808_sine		;SINE TONE 2 (AN OCTAVE LOWER)
+	apitch	=	(apitch1+apitch2)*0.75				;MIX THE TWO SINE TONES
+
+	;NOISE COMPONENT
+	aenv2	expon	1,p3,0.0005					;AMPLITUDE ENVELOPE
+	anoise	noise	0.75,0						;CREATE SOME NOISE
+	anoise	butbp	anoise,10000*octave(itune),10000		;BANDPASS FILTER THE NOISE SIGNAL
+	anoise	buthp	anoise,1000					;HIGHPASS FILTER THE NOISE SIGNAL
+	kcf	expseg	5000,0.1,3000,p3-0.2,3000			;CUTOFF FREQUENCY FOR A LOWPASS FILTER
+	anoise	butlp	anoise,kcf					;LOWPASS FILTER THE NOISE SIGNAL
+	amix	=	((apitch*aenv1)+(anoise*aenv2))*ilevel*p5	;MIX AUDIO SIGNALS AND SCALE ACCORDING TO GUI 'Level' CONTROL
+	aL,aR	pan2	amix,ipan					;PAN THE MONOPHONIC AUDIO SIGNAL
+		outs	aL,aR						;SEND AUDIO TO OUTPUTS
+endin
 
 
 ;; INITIALIZATION OF SYSTEM
