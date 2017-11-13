@@ -515,6 +515,58 @@ instr	OHH	;OPEN HIGH HAT
 endin
 
 
+;; Closed High Hat - From Iain McCurdy's TR-808.csd
+instr	CHH	;CLOSED HIGH HAT
+  idur = xchan("CHH.decay", 1.0)	
+  ilevel = xchan("CHH.level", 1) 
+  itune = xchan("CHH.tune", 0)
+  ipan = xchan("CHH.pan", 0.5)
+  ioct = octave:i(itune)
+
+	kFrq1	=	296*ioct 	;FREQUENCIES OF THE 6 OSCILLATORS
+	kFrq2	=	285*ioct 	
+	kFrq3	=	365*ioct 	
+	kFrq4	=	348*ioct 	
+	kFrq5	=	420*ioct 	
+	kFrq6	=	835*ioct 	
+	idur	=	0.088*idur		;DURATION OF THE NOTE
+	p3	limit	idur,0.1,10		;LIMIT THE MINIMUM DURATION OF THE NOTE (VERY SHORT NOTES CAN RESULT IN THE INDICATOR LIGHT ON-OFF NOTE BEING TO0 SHORT)
+
+  iohh = nstrnum("OHH")
+	iactive	= active(iohh)			;SENSE ACTIVITY OF PREVIOUS INSTRUMENT (OPEN HIGH HAT) 
+	if iactive>0 then			;IF 'OPEN HIGH HAT' IS ACTIVE...
+	 turnoff2	iohh,0,0		;TURN IT OFF (CLOSED HIGH HAT TAKES PRESIDENCE)
+	endif
+
+	;PITCHED ELEMENT
+	aenv	expsega	1,idur,0.001,1,0.001		;AMPLITUDE ENVELOPE FOR THE PULSE OSCILLATORS
+	ipw	=	0.25				;PULSE WIDTH
+	a1	vco2	0.5,kFrq1,2,ipw			;PULSE OSCILLATORS...			
+	a2	vco2	0.5,kFrq2,2,ipw
+	a3	vco2	0.5,kFrq3,2,ipw
+	a4	vco2	0.5,kFrq4,2,ipw
+	a5	vco2	0.5,kFrq5,2,ipw
+	a6	vco2	0.5,kFrq6,2,ipw
+	amix	sum	a1,a2,a3,a4,a5,a6		;MIX THE PULSE OSCILLATORS
+	amix	reson	amix,5000*ioct,5000,1	;BANDPASS FILTER THE MIXTURE
+	amix	buthp	amix,5000			;HIGHPASS FILTER THE SOUND...
+	amix	buthp	amix,5000			;...AND AGAIN
+	amix	=	amix*aenv			;APPLY THE AMPLITUDE ENVELOPE
+	
+	;NOISE ELEMENT
+	anoise	noise	0.8,0				;GENERATE SOME WHITE NOISE
+	aenv	expsega	1,idur,0.001,1,0.001		;CREATE AN AMPLITUDE ENVELOPE
+	kcf	expseg	20000,0.7,9000,idur-0.1,9000	;CREATE A CUTOFF FREQ. ENVELOPE
+	anoise	butlp	anoise,kcf			;LOWPASS FILTER THE NOISE SIGNAL
+	anoise	buthp	anoise,8000			;HIGHPASS FILTER THE NOISE SIGNAL
+	anoise	=	anoise*aenv			;APPLY THE AMPLITUDE ENVELOPE
+	
+	;MIX PULSE OSCILLATOR AND NOISE COMPONENTS
+	amix	=	(amix+anoise)*ilevel*p5*0.55
+	aL,aR	pan2	amix,ipan			;PAN MONOPHONIC SIGNAL
+  outs	aL,aR				;SEND TO OUTPUTS
+endin
+
 ;; INITIALIZATION OF SYSTEM
 
 schedule("Clock", 0, -1)
