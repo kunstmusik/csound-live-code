@@ -406,11 +406,11 @@ gi_808_sine  ftgen 0,0,1024,10,1   ;A SINE WAVE
 gi_808_cos ftgen 0,0,65536,9,1,1,90  ;A COSINE WAVE 
 
 instr	BD	;BASS DRUM
-	p3	=	2 * xchan("bd_decay", 0.5)							;NOTE DURATION. SCALED USING GUI 'Decay' KNOB
+	p3	=	2 * xchan("BD.decay", 0.5)							;NOTE DURATION. SCALED USING GUI 'Decay' KNOB
 
-  ilevel = xchan("bd_level", 1) * 2
-  itune = xchan("bd_tune", 0)
-  ipan = xchan("bd_pan", 0.5)
+  ilevel = xchan("BD.level", 1) * 2
+  itune = xchan("BD.tune", 0)
+  ipan = xchan("BD.pan", 0.5)
 
 	;SUSTAIN AND BODY OF THE SOUND
 	kmul = transeg(0.2,p3*0.5,-15,0.01, p3*0.5,0,0)					;PARTIAL STRENGTHS MULTIPLIER USED BY GBUZZ. DECAYS FROM A SOUND WITH OVERTONES TO A SINE TONE.
@@ -436,10 +436,10 @@ endin
 instr	SD	;SNARE DRUM
 	
 	;SOUND CONSISTS OF TWO SINE TONES, AN OCTAVE APART AND A NOISE SIGNAL
-  idur = xchan("sd_decay", 1.0)	
-  ilevel = xchan("sd_level", 1) 
-  itune = xchan("sd_tune", 0)
-  ipan = xchan("sd_pan", 0.5)
+  idur = xchan("SD.decay", 1.0)	
+  ilevel = xchan("SD.level", 1) 
+  itune = xchan("SD.tune", 0)
+  ipan = xchan("SD.pan", 0.5)
 
 	ifrq  	=	342		;FREQUENCY OF THE TONES
   iNseDur	=	0.3 * idur  ;DURATION OF THE NOISE COMPONENT
@@ -463,6 +463,55 @@ instr	SD	;SNARE DRUM
 
   aL,aR	pan2	amix,ipan					;PAN THE MONOPHONIC AUDIO SIGNAL
   outs	aL,aR						;SEND AUDIO TO OUTPUTS
+endin
+
+
+;; Open High Hat - From Iain McCurdy's TR-808.csd
+instr	OHH	;OPEN HIGH HAT
+
+  idur = xchan("OHH.decay", 1.0)	
+  ilevel = xchan("OHH.level", 1) 
+  itune = xchan("OHH.tune", 0)
+  ipan = xchan("OHH.pan", 0.5)
+  ioct = octave:i(itune)
+
+
+	kFrq1	=	296*ioct 	;FREQUENCIES OF THE 6 OSCILLATORS
+	kFrq2	=	285*ioct 	
+	kFrq3	=	365*ioct 	
+	kFrq4	=	348*ioct	
+	kFrq5	=	420*ioct 	
+	kFrq6	=	835*ioct 	
+	p3	=	0.5*idur		;DURATION OF THE NOTE
+	
+	;SOUND CONSISTS OF 6 PULSE OSCILLATORS MIXED WITH A NOISE COMPONENT
+	;PITCHED ELEMENT
+	aenv	linseg	1,p3-0.05,0.1,0.05,0		;AMPLITUDE ENVELOPE FOR THE PULSE OSCILLATORS
+	ipw	=	0.25				;PULSE WIDTH
+	a1	vco2	0.5,kFrq1,2,ipw			;PULSE OSCILLATORS...
+	a2	vco2	0.5,kFrq2,2,ipw
+	a3	vco2	0.5,kFrq3,2,ipw
+	a4	vco2	0.5,kFrq4,2,ipw
+	a5	vco2	0.5,kFrq5,2,ipw
+	a6	vco2	0.5,kFrq6,2,ipw
+	amix	sum	a1,a2,a3,a4,a5,a6		;MIX THE PULSE OSCILLATORS
+	amix	reson	amix,5000*ioct,5000,1	;BANDPASS FILTER THE MIXTURE
+	amix	buthp	amix,5000			;HIGHPASS FILTER THE SOUND...
+	amix	buthp	amix,5000			;...AND AGAIN
+	amix	=	amix*aenv			;APPLY THE AMPLITUDE ENVELOPE
+	
+	;NOISE ELEMENT
+	anoise	noise	0.8,0				;GENERATE SOME WHITE NOISE
+	aenv	linseg	1,p3-0.05,0.1,0.05,0		;CREATE AN AMPLITUDE ENVELOPE
+	kcf	expseg	20000,0.7,9000,p3-0.1,9000	;CREATE A CUTOFF FREQ. ENVELOPE
+	anoise	butlp	anoise,kcf			;LOWPASS FILTER THE NOISE SIGNAL
+	anoise	buthp	anoise,8000			;HIGHPASS FILTER THE NOISE SIGNAL
+	anoise	=	anoise*aenv			;APPLY THE AMPLITUDE ENVELOPE
+	
+	;MIX PULSE OSCILLATOR AND NOISE COMPONENTS
+	amix	=	(amix+anoise)*ilevel*p5*0.55
+	aL,aR	pan2	amix,ipan			;PAN MONOPHONIC SIGNAL
+  outs	aL,aR				;SEND TO OUTPUTS
 endin
 
 
