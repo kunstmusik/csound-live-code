@@ -365,11 +365,12 @@ endin
 
 ;; DRUMS
 
+
+;; Modified clap instrument by Istvan Varga (clap1.orc)
 instr Clap
   ifreq = p4 ;; ignore
   iamp = p5
 
-  ;; Modified clap instrument by Istvan Varga (clap1.orc)
   ibpfrq	=  1046.5				/* bandpass filter frequency */
   kbpbwd =	port:k(ibpfrq*0.25, 0.03, ibpfrq*4.0)   /* bandpass filter bandwidth */
   idec	=  0.5					/* decay time		     */
@@ -399,7 +400,7 @@ instr Clap
 endin
 
 
-;; Bass Drum - From Iain's TR-808.csd
+;; Bass Drum - From Iain McCurdy's TR-808.csd
 
 gi_808_sine  ftgen 0,0,1024,10,1   ;A SINE WAVE
 gi_808_cos ftgen 0,0,65536,9,1,1,90  ;A COSINE WAVE 
@@ -412,17 +413,17 @@ instr	BD	;BASS DRUM
   ipan = xchan("bd_pan", 0.5)
 
 	;SUSTAIN AND BODY OF THE SOUND
-	kmul	transeg	0.2,p3*0.5,-15,0.01, p3*0.5,0,0					;PARTIAL STRENGTHS MULTIPLIER USED BY GBUZZ. DECAYS FROM A SOUND WITH OVERTONES TO A SINE TONE.
-	kbend	transeg	0.5,1.2,-4, 0,1,0,0						;SLIGHT PITCH BEND AT THE START OF THE NOTE 
-	asig	gbuzz	0.5,50*octave(itune)*semitone(kbend),20,1,kmul,gi_808_cos		;GBUZZ TONE
-	aenv	transeg	1,p3-0.004,-6,0							;AMPLITUDE ENVELOPE FOR SUSTAIN OF THE SOUND
-	aatt	linseg	0,0.004,1, .01, 1							;SOFT ATTACK
-	asig	=	asig*aenv*aatt
+	kmul = transeg(0.2,p3*0.5,-15,0.01, p3*0.5,0,0)					;PARTIAL STRENGTHS MULTIPLIER USED BY GBUZZ. DECAYS FROM A SOUND WITH OVERTONES TO A SINE TONE.
+	kbend = transeg(0.5,1.2,-4, 0,1,0,0)						;SLIGHT PITCH BEND AT THE START OF THE NOTE 
+	asig = gbuzz(0.5,50*octave(itune)*semitone(kbend),20,1,kmul,gi_808_cos)		;GBUZZ TONE
+	aenv = transeg:a(1,p3-0.004,-6,0)							;AMPLITUDE ENVELOPE FOR SUSTAIN OF THE SOUND
+	aatt = linseg:a(0,0.004,1, .01, 1)							;SOFT ATTACK
+	asig=	asig*aenv*aatt
 
 	;HARD, SHORT ATTACK OF THE SOUND
-	aenv	linseg	1,0.07,0, .01, 0							;AMPLITUDE ENVELOPE (FAST DECAY)						
-	acps	expsega	400,0.07,0.001,1,0.001						;FREQUENCY OF THE ATTACK SOUND. QUICKLY GLISSES FROM 400 Hz TO SUB-AUDIO
-	aimp	oscili	aenv,acps*octave(itune*0.25),gi_808_sine				;CREATE ATTACK SOUND
+	aenv	= linseg:a(1,0.07,0, .01, 0)							;AMPLITUDE ENVELOPE (FAST DECAY)						
+	acps = expsega(400,0.07,0.001,1,0.001)						;FREQUENCY OF THE ATTACK SOUND. QUICKLY GLISSES FROM 400 Hz TO SUB-AUDIO
+	aimp = oscili(aenv,acps*octave(itune*0.25),gi_808_sine)				;CREATE ATTACK SOUND
 	
 	amix	=	((asig*0.5)+(aimp*0.35))*ilevel*p5			;MIX SUSTAIN AND ATTACK SOUND ELEMENTS AND SCALE USING GUI 'Level' KNOB
 	
@@ -431,7 +432,7 @@ instr	BD	;BASS DRUM
 endin
 
 
-;; Snare Drum - From Iain's TR-808.csd
+;; Snare Drum - From Iain McCurdy's TR-808.csd
 instr	SD	;SNARE DRUM
 	
 	;SOUND CONSISTS OF TWO SINE TONES, AN OCTAVE APART AND A NOISE SIGNAL
@@ -446,21 +447,22 @@ instr	SD	;SNARE DRUM
 	p3	=	iNseDur 	;p3 DURATION TAKEN FROM NOISE COMPONENT DURATION (ALWATS THE LONGEST COMPONENT)
 	
 	;SINE TONES COMPONENT
-	aenv1	expseg	1,iPchDur,0.0001,p3-iPchDur,0.0001		;AMPLITUDE ENVELOPE
-	apitch1	oscili	1,ifrq*octave(itune),gi_808_sine			;SINE TONE 1
-	apitch2	oscili	0.25,ifrq*0.5*octave(itune),gi_808_sine		;SINE TONE 2 (AN OCTAVE LOWER)
+	aenv1	= expseg(1, iPchDur, 0.0001, p3-iPchDur, 0.0001)		;AMPLITUDE ENVELOPE
+	apitch1	= oscili(1, ifrq * octave(itune), gi_808_sine)			;SINE TONE 1
+	apitch2	= oscili(0.25, ifrq * 0.5 * octave(itune), gi_808_sine)		;SINE TONE 2 (AN OCTAVE LOWER)
 	apitch	=	(apitch1+apitch2)*0.75				;MIX THE TWO SINE TONES
 
 	;NOISE COMPONENT
-	aenv2	expon	1,p3,0.0005					;AMPLITUDE ENVELOPE
-	anoise	noise	0.75,0						;CREATE SOME NOISE
-	anoise	butbp	anoise,10000*octave(itune),10000		;BANDPASS FILTER THE NOISE SIGNAL
-	anoise	buthp	anoise,1000					;HIGHPASS FILTER THE NOISE SIGNAL
-	kcf	expseg	5000,0.1,3000,p3-0.2,3000			;CUTOFF FREQUENCY FOR A LOWPASS FILTER
-	anoise	butlp	anoise,kcf					;LOWPASS FILTER THE NOISE SIGNAL
+	aenv2	= expon(1,p3,0.0005)					;AMPLITUDE ENVELOPE
+	anoise = noise(0.75, 0)						;CREATE SOME NOISE
+	anoise = butbp(anoise, 10000*octave(itune), 10000)		;BANDPASS FILTER THE NOISE SIGNAL
+	anoise = buthp(anoise, 1000)					;HIGHPASS FILTER THE NOISE SIGNAL
+	kcf = expseg(5000, 0.1, 3000, p3-0.2, 3000)			;CUTOFF FREQUENCY FOR A LOWPASS FILTER
+	anoise = butlp(anoise,kcf)            					;LOWPASS FILTER THE NOISE SIGNAL
 	amix	=	((apitch*aenv1)+(anoise*aenv2))*ilevel*p5	;MIX AUDIO SIGNALS AND SCALE ACCORDING TO GUI 'Level' CONTROL
-	aL,aR	pan2	amix,ipan					;PAN THE MONOPHONIC AUDIO SIGNAL
-		outs	aL,aR						;SEND AUDIO TO OUTPUTS
+
+  aL,aR	pan2	amix,ipan					;PAN THE MONOPHONIC AUDIO SIGNAL
+  outs	aL,aR						;SEND AUDIO TO OUTPUTS
 endin
 
 
