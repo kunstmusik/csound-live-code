@@ -335,8 +335,12 @@ var Runtime = {
   },
   dynCall: function (sig, ptr, args) {
     if (args && args.length) {
+      assert(args.length == sig.length-1);
+      assert(('dynCall_' + sig) in Module, 'bad function pointer type - no table for sig \'' + sig + '\'');
       return Module['dynCall_' + sig].apply(null, [ptr].concat(args));
     } else {
+      assert(sig.length == 1);
+      assert(('dynCall_' + sig) in Module, 'bad function pointer type - no table for sig \'' + sig + '\'');
       return Module['dynCall_' + sig].call(null, ptr);
     }
   },
@@ -389,9 +393,9 @@ var Runtime = {
   getCompilerSetting: function (name) {
     throw 'You must build with -s RETAIN_COMPILER_SETTINGS=1 for Runtime.getCompilerSetting or emscripten_get_compiler_setting to work';
   },
-  stackAlloc: function (size) { var ret = STACKTOP;STACKTOP = (STACKTOP + size)|0;STACKTOP = (((STACKTOP)+15)&-16); return ret; },
-  staticAlloc: function (size) { var ret = STATICTOP;STATICTOP = (STATICTOP + size)|0;STATICTOP = (((STATICTOP)+15)&-16); return ret; },
-  dynamicAlloc: function (size) { var ret = HEAP32[DYNAMICTOP_PTR>>2];var end = (((ret + size + 15)|0) & -16);HEAP32[DYNAMICTOP_PTR>>2] = end;if (end >= TOTAL_MEMORY) {var success = enlargeMemory();if (!success) {HEAP32[DYNAMICTOP_PTR>>2] = ret;return 0;}}return ret;},
+  stackAlloc: function (size) { var ret = STACKTOP;STACKTOP = (STACKTOP + size)|0;STACKTOP = (((STACKTOP)+15)&-16);(assert((((STACKTOP|0) < (STACK_MAX|0))|0))|0); return ret; },
+  staticAlloc: function (size) { var ret = STATICTOP;STATICTOP = (STATICTOP + (assert(!staticSealed),size))|0;STATICTOP = (((STATICTOP)+15)&-16); return ret; },
+  dynamicAlloc: function (size) { assert(DYNAMICTOP_PTR);var ret = HEAP32[DYNAMICTOP_PTR>>2];var end = (((ret + size + 15)|0) & -16);HEAP32[DYNAMICTOP_PTR>>2] = end;if (end >= TOTAL_MEMORY) {var success = enlargeMemory();if (!success) {HEAP32[DYNAMICTOP_PTR>>2] = ret;return 0;}}return ret;},
   alignMemory: function (size,quantum) { var ret = size = Math.ceil((size)/(quantum ? quantum : 16))*(quantum ? quantum : 16); return ret; },
   makeBigInt: function (low,high,unsigned) { var ret = (unsigned ? ((+((low>>>0)))+((+((high>>>0)))*4294967296.0)) : ((+((low>>>0)))+((+((high|0)))*4294967296.0))); return ret; },
   GLOBAL_BASE: 1024,
@@ -468,6 +472,7 @@ var cwrap, ccall;
     var func = getCFunc(ident);
     var cArgs = [];
     var stack = 0;
+    assert(returnType !== 'array', 'Return type should not be "array".');
     if (args) {
       for (var i = 0; i < args.length; i++) {
         var converter = toC[argTypes[i]];
@@ -480,6 +485,10 @@ var cwrap, ccall;
       }
     }
     var ret = func.apply(null, cArgs);
+    if ((!opts || !opts.async) && typeof EmterpreterAsync === 'object') {
+      assert(!EmterpreterAsync.state, 'cannot start async op with normal JS calling ccall');
+    }
+    if (opts && opts.async) assert(!returnType, 'async ccalls cannot return values');
     if (returnType === 'string') ret = Pointer_stringify(ret);
     if (stack !== 0) {
       if (opts && opts.async) {
@@ -553,6 +562,7 @@ var cwrap, ccall;
       var strgfy = parseJSFunc(function(){return Pointer_stringify}).returnValue;
       funcstr += 'ret = ' + strgfy + '(ret);';
     }
+    funcstr += "if (typeof EmterpreterAsync === 'object') { assert(!EmterpreterAsync.state, 'cannot start async op with normal JS calling cwrap') }";
     if (!numericArgs) {
       // If we had a stack, restore it
       ensureJSsource();
@@ -680,6 +690,7 @@ function allocate(slab, types, allocator, ptr) {
       i++;
       continue;
     }
+    assert(type, 'Must know what type to store in allocate!');
 
     if (type == 'i64') type = 'i32'; // special case: we have one i32 here, and one i32 later
 
@@ -714,6 +725,7 @@ function Pointer_stringify(ptr, length) {
   var t;
   var i = 0;
   while (1) {
+    assert(ptr + i < TOTAL_MEMORY);
     t = HEAPU8[(((ptr)+(i))>>0)];
     hasUtf |= t;
     if (t == 0 && !length) break;
@@ -890,6 +902,7 @@ Module["stringToUTF8Array"] = stringToUTF8Array;
 // Returns the number of bytes written, EXCLUDING the null terminator.
 
 function stringToUTF8(str, outPtr, maxBytesToWrite) {
+  assert(typeof maxBytesToWrite == 'number', 'stringToUTF8(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!');
   return stringToUTF8Array(str, HEAPU8,outPtr, maxBytesToWrite);
 }
 Module["stringToUTF8"] = stringToUTF8;
@@ -926,6 +939,7 @@ Module["lengthBytesUTF8"] = lengthBytesUTF8;
 
 var UTF16Decoder = typeof TextDecoder !== 'undefined' ? new TextDecoder('utf-16le') : undefined;
 function UTF16ToString(ptr) {
+  assert(ptr % 2 == 0, 'Pointer passed to UTF16ToString must be aligned to two bytes!');
   var endPtr = ptr;
   // TextDecoder needs to know the byte length in advance, it doesn't stop on null terminator by itself.
   // Also, use the length info to avoid running tiny strings through TextDecoder, since .subarray() allocates garbage.
@@ -962,6 +976,8 @@ function UTF16ToString(ptr) {
 // Returns the number of bytes written, EXCLUDING the null terminator.
 
 function stringToUTF16(str, outPtr, maxBytesToWrite) {
+  assert(outPtr % 2 == 0, 'Pointer passed to stringToUTF16 must be aligned to two bytes!');
+  assert(typeof maxBytesToWrite == 'number', 'stringToUTF16(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!');
   // Backwards compatibility: if max bytes is not specified, assume unsafe unbounded write is allowed.
   if (maxBytesToWrite === undefined) {
     maxBytesToWrite = 0x7FFFFFFF;
@@ -990,6 +1006,7 @@ function lengthBytesUTF16(str) {
 
 
 function UTF32ToString(ptr) {
+  assert(ptr % 4 == 0, 'Pointer passed to UTF32ToString must be aligned to four bytes!');
   var i = 0;
 
   var str = '';
@@ -1022,6 +1039,8 @@ function UTF32ToString(ptr) {
 // Returns the number of bytes written, EXCLUDING the null terminator.
 
 function stringToUTF32(str, outPtr, maxBytesToWrite) {
+  assert(outPtr % 4 == 0, 'Pointer passed to stringToUTF32 must be aligned to four bytes!');
+  assert(typeof maxBytesToWrite == 'number', 'stringToUTF32(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!');
   // Backwards compatibility: if max bytes is not specified, assume unsafe unbounded write is allowed.
   if (maxBytesToWrite === undefined) {
     maxBytesToWrite = 0x7FFFFFFF;
@@ -1183,6 +1202,24 @@ var DYNAMIC_BASE, DYNAMICTOP_PTR; // dynamic area handled by sbrk
   staticSealed = false;
 
 
+// Initializes the stack cookie. Called at the startup of main and at the startup of each thread in pthreads mode.
+function writeStackCookie() {
+  assert((STACK_MAX & 3) == 0);
+  HEAPU32[(STACK_MAX >> 2)-1] = 0x02135467;
+  HEAPU32[(STACK_MAX >> 2)-2] = 0x89BACDFE;
+}
+
+function checkStackCookie() {
+  if (HEAPU32[(STACK_MAX >> 2)-1] != 0x02135467 || HEAPU32[(STACK_MAX >> 2)-2] != 0x89BACDFE) {
+    abort('Stack overflow! Stack cookie has been overwritten, expected hex dwords 0x89BACDFE and 0x02135467, but received 0x' + HEAPU32[(STACK_MAX >> 2)-2].toString(16) + ' ' + HEAPU32[(STACK_MAX >> 2)-1].toString(16));
+  }
+  // Also test the global address 0 for integrity. This check is not compatible with SAFE_SPLIT_MEMORY though, since that mode already tests all address 0 accesses on its own.
+  if (HEAP32[0] !== 0x63736d65 /* 'emsc' */) throw 'Runtime error: The application has corrupted its heap memory area (address zero)!';
+}
+
+function abortStackOverflow(allocSize) {
+  abort('Stack overflow! Attempted to allocate ' + allocSize + ' bytes on the stack, but stack has only ' + (STACK_MAX - Module['asm'].stackSave() + allocSize) + ' bytes available!');
+}
 
 function abortOnCannotGrowMemory() {
   abort('Cannot enlarge memory arrays. Either (1) compile with  -s TOTAL_MEMORY=X  with X higher than the current value ' + TOTAL_MEMORY + ', (2) compile with  -s ALLOW_MEMORY_GROWTH=1  which allows increasing the size at runtime, or (3) if you want malloc to return NULL (0) instead of this abort, compile with  -s ABORTING_MALLOC=0 ');
@@ -1209,12 +1246,14 @@ if (!Module['reallocBuffer']) Module['reallocBuffer'] = function(size) {
 
 function enlargeMemory() {
   // TOTAL_MEMORY is the current size of the actual array, and DYNAMICTOP is the new top.
+  assert(HEAP32[DYNAMICTOP_PTR>>2] > TOTAL_MEMORY); // This function should only ever be called after the ceiling of the dynamic heap has already been bumped to exceed the current total size of the asm.js heap.
 
 
   var PAGE_MULTIPLE = Module["usingWasm"] ? WASM_PAGE_SIZE : ASMJS_PAGE_SIZE; // In wasm, heap size must be a multiple of 64KB. In asm.js, they need to be multiples of 16MB.
   var LIMIT = 2147483648 - PAGE_MULTIPLE; // We can do one page short of 2GB as theoretical maximum.
 
   if (HEAP32[DYNAMICTOP_PTR>>2] > LIMIT) {
+    Module.printErr('Cannot enlarge memory, asked to go up to ' + HEAP32[DYNAMICTOP_PTR>>2] + ' bytes, but the limit is ' + LIMIT + ' bytes!');
     return false;
   }
 
@@ -1229,9 +1268,14 @@ function enlargeMemory() {
     }
   }
 
+  var start = Date.now();
 
   var replacement = Module['reallocBuffer'](TOTAL_MEMORY);
   if (!replacement || replacement.byteLength != TOTAL_MEMORY) {
+    Module.printErr('Failed to grow the heap from ' + OLD_TOTAL_MEMORY + ' bytes to ' + TOTAL_MEMORY + ' bytes, not enough memory!');
+    if (replacement) {
+      Module.printErr('Expected to get back a buffer of size ' + TOTAL_MEMORY + ' bytes, but instead got back a buffer of size ' + replacement.byteLength);
+    }
     return false;
   }
 
@@ -1240,7 +1284,11 @@ function enlargeMemory() {
   updateGlobalBuffer(replacement);
   updateGlobalBufferViews();
 
+  Module.printErr('enlarged memory arrays from ' + OLD_TOTAL_MEMORY + ' to ' + TOTAL_MEMORY + ', took ' + (Date.now() - start) + ' ms (has ArrayBuffer.transfer? ' + (!!ArrayBuffer.transfer) + ')');
 
+  if (!Module["usingWasm"]) {
+    Module.printErr('Warning: Enlarging memory arrays, this is not fast! ' + [OLD_TOTAL_MEMORY, TOTAL_MEMORY]);
+  }
 
 
   return true;
@@ -1259,21 +1307,27 @@ var TOTAL_MEMORY = Module['TOTAL_MEMORY'] || 268435456;
 if (TOTAL_MEMORY < TOTAL_STACK) Module.printErr('TOTAL_MEMORY should be larger than TOTAL_STACK, was ' + TOTAL_MEMORY + '! (TOTAL_STACK=' + TOTAL_STACK + ')');
 
 // Initialize the runtime's memory
+// check for full engine support (use string 'subarray' to avoid closure compiler confusion)
+assert(typeof Int32Array !== 'undefined' && typeof Float64Array !== 'undefined' && Int32Array.prototype.subarray !== undefined && Int32Array.prototype.set !== undefined,
+       'JS engine does not provide full typed array support');
 
 
 
 // Use a provided buffer, if there is one, or else allocate a new one
 if (Module['buffer']) {
   buffer = Module['buffer'];
+  assert(buffer.byteLength === TOTAL_MEMORY, 'provided buffer should be ' + TOTAL_MEMORY + ' bytes, but it is ' + buffer.byteLength);
 } else {
   // Use a WebAssembly memory where available
   if (typeof WebAssembly === 'object' && typeof WebAssembly.Memory === 'function') {
+    assert(TOTAL_MEMORY % WASM_PAGE_SIZE === 0);
     Module['wasmMemory'] = new WebAssembly.Memory({ 'initial': TOTAL_MEMORY / WASM_PAGE_SIZE });
     buffer = Module['wasmMemory'].buffer;
   } else
   {
     buffer = new ArrayBuffer(TOTAL_MEMORY);
   }
+  assert(buffer.byteLength === TOTAL_MEMORY);
 }
 updateGlobalBufferViews();
 
@@ -1340,21 +1394,25 @@ function preRun() {
 }
 
 function ensureInitRuntime() {
+  checkStackCookie();
   if (runtimeInitialized) return;
   runtimeInitialized = true;
   callRuntimeCallbacks(__ATINIT__);
 }
 
 function preMain() {
+  checkStackCookie();
   callRuntimeCallbacks(__ATMAIN__);
 }
 
 function exitRuntime() {
+  checkStackCookie();
   callRuntimeCallbacks(__ATEXIT__);
   runtimeExited = true;
 }
 
 function postRun() {
+  checkStackCookie();
   // compatibility - merge in anything from Module['postRun'] at this time
   if (Module['postRun']) {
     if (typeof Module['postRun'] == 'function') Module['postRun'] = [Module['postRun']];
@@ -1407,6 +1465,7 @@ function intArrayToString(array) {
   for (var i = 0; i < array.length; i++) {
     var chr = array[i];
     if (chr > 0xFF) {
+      assert(false, 'Character code ' + chr + ' (' + String.fromCharCode(chr) + ')  at offset ' + i + ' not in 0x00-0xFF.');
       chr &= 0xFF;
     }
     ret.push(String.fromCharCode(chr));
@@ -1437,12 +1496,14 @@ function writeStringToMemory(string, buffer, dontAddNull) {
 Module["writeStringToMemory"] = writeStringToMemory;
 
 function writeArrayToMemory(array, buffer) {
+  assert(array.length >= 0, 'writeArrayToMemory array must have a length (should be an array or typed array)')
   HEAP8.set(array, buffer);
 }
 Module["writeArrayToMemory"] = writeArrayToMemory;
 
 function writeAsciiToMemory(str, buffer, dontAddNull) {
   for (var i = 0; i < str.length; ++i) {
+    assert(str.charCodeAt(i) === str.charCodeAt(i)&0xff);
     HEAP8[((buffer++)>>0)]=str.charCodeAt(i);
   }
   // Null-terminate the pointer to the HEAP.
@@ -1533,8 +1594,14 @@ var Math_trunc = Math.trunc;
 var runDependencies = 0;
 var runDependencyWatcher = null;
 var dependenciesFulfilled = null; // overridden to take different actions when all run dependencies are fulfilled
+var runDependencyTracking = {};
 
 function getUniqueRunDependency(id) {
+  var orig = id;
+  while (1) {
+    if (!runDependencyTracking[id]) return id;
+    id = orig + Math.random();
+  }
   return id;
 }
 
@@ -1543,6 +1610,33 @@ function addRunDependency(id) {
   if (Module['monitorRunDependencies']) {
     Module['monitorRunDependencies'](runDependencies);
   }
+  if (id) {
+    assert(!runDependencyTracking[id]);
+    runDependencyTracking[id] = 1;
+    if (runDependencyWatcher === null && typeof setInterval !== 'undefined') {
+      // Check for missing dependencies every few seconds
+      runDependencyWatcher = setInterval(function() {
+        if (ABORT) {
+          clearInterval(runDependencyWatcher);
+          runDependencyWatcher = null;
+          return;
+        }
+        var shown = false;
+        for (var dep in runDependencyTracking) {
+          if (!shown) {
+            shown = true;
+            Module.printErr('still waiting on run dependencies:');
+          }
+          Module.printErr('dependency: ' + dep);
+        }
+        if (shown) {
+          Module.printErr('(end of list)');
+        }
+      }, 10000);
+    }
+  } else {
+    Module.printErr('warning: run dependency added without ID');
+  }
 }
 Module["addRunDependency"] = addRunDependency;
 
@@ -1550,6 +1644,12 @@ function removeRunDependency(id) {
   runDependencies--;
   if (Module['monitorRunDependencies']) {
     Module['monitorRunDependencies'](runDependencies);
+  }
+  if (id) {
+    assert(runDependencyTracking[id]);
+    delete runDependencyTracking[id];
+  } else {
+    Module.printErr('warning: run dependency removed without ID');
   }
   if (runDependencies == 0) {
     if (runDependencyWatcher !== null) {
@@ -1887,6 +1987,7 @@ function integrateWasmJS(Module) {
           return null;
         }
       } catch(e) {
+        console.error('Module.reallocBuffer: Attempted to grow from ' + oldSize  + ' bytes to ' + size + ' bytes, but got error: ' + e);
         return null;
       }
     } else {
@@ -1968,7 +2069,7 @@ var ASM_CONSTS = [];
 
 STATIC_BASE = Runtime.GLOBAL_BASE;
 
-STATICTOP = STATIC_BASE + 568576;
+STATICTOP = STATIC_BASE + 570160;
 /* global initializers */  __ATINIT__.push({ func: function() { __GLOBAL__I_000101() } }, { func: function() { __GLOBAL__sub_I_iostream_cpp() } });
 
 
@@ -1977,12 +2078,14 @@ memoryInitializer = Module["wasmJSMethod"].indexOf("asmjs") >= 0 || Module["wasm
 
 
 
-var STATIC_BUMP = 568576;
+var STATIC_BUMP = 570160;
 Module["STATIC_BASE"] = STATIC_BASE;
 Module["STATIC_BUMP"] = STATIC_BUMP;
 
 /* no memory initializer */
 var tempDoublePtr = STATICTOP; STATICTOP += 16;
+
+assert(tempDoublePtr % 8 == 0);
 
 function copyTempFloat(ptr) { // functions, because inlining this code increases code size too much
 
@@ -2023,6 +2126,7 @@ function copyTempDouble(ptr) {
   
   function ___setErrNo(value) {
       if (Module['___errno_location']) HEAP32[((Module['___errno_location']())>>2)]=value;
+      else Module.printErr('failed to set errno from JS');
       return value;
     }
   
@@ -2599,6 +2703,7 @@ function copyTempDouble(ptr) {
   
           if (buffer.subarray && (!node.contents || node.contents.subarray)) { // This write is from a typed array to a typed array?
             if (canOwn) {
+              assert(position === 0, 'canOwn must imply no weird position inside the file');
               node.contents = buffer.subarray(offset, offset + length);
               node.usedBytes = length;
               return length;
@@ -4500,6 +4605,7 @@ function copyTempDouble(ptr) {
           };
           this.setErrno(errno);
           this.message = ERRNO_MESSAGES[errno];
+          if (this.stack) this.stack = demangleAll(this.stack);
         };
         FS.ErrnoError.prototype = new Error();
         FS.ErrnoError.prototype.constructor = FS.ErrnoError;
@@ -5633,2242 +5739,6 @@ function copyTempDouble(ptr) {
   function _pthread_setcancelstate() { return 0; }
 
   
-  
-  
-  
-  function _emscripten_set_main_loop_timing(mode, value) {
-      Browser.mainLoop.timingMode = mode;
-      Browser.mainLoop.timingValue = value;
-  
-      if (!Browser.mainLoop.func) {
-        return 1; // Return non-zero on failure, can't set timing mode when there is no main loop.
-      }
-  
-      if (mode == 0 /*EM_TIMING_SETTIMEOUT*/) {
-        Browser.mainLoop.scheduler = function Browser_mainLoop_scheduler_setTimeout() {
-          var timeUntilNextTick = Math.max(0, Browser.mainLoop.tickStartTime + value - _emscripten_get_now())|0;
-          setTimeout(Browser.mainLoop.runner, timeUntilNextTick); // doing this each time means that on exception, we stop
-        };
-        Browser.mainLoop.method = 'timeout';
-      } else if (mode == 1 /*EM_TIMING_RAF*/) {
-        Browser.mainLoop.scheduler = function Browser_mainLoop_scheduler_rAF() {
-          Browser.requestAnimationFrame(Browser.mainLoop.runner);
-        };
-        Browser.mainLoop.method = 'rAF';
-      } else if (mode == 2 /*EM_TIMING_SETIMMEDIATE*/) {
-        if (!window['setImmediate']) {
-          // Emulate setImmediate. (note: not a complete polyfill, we don't emulate clearImmediate() to keep code size to minimum, since not needed)
-          var setImmediates = [];
-          var emscriptenMainLoopMessageId = 'setimmediate';
-          function Browser_setImmediate_messageHandler(event) {
-            if (event.source === window && event.data === emscriptenMainLoopMessageId) {
-              event.stopPropagation();
-              setImmediates.shift()();
-            }
-          }
-          window.addEventListener("message", Browser_setImmediate_messageHandler, true);
-          window['setImmediate'] = function Browser_emulated_setImmediate(func) {
-            setImmediates.push(func);
-            if (ENVIRONMENT_IS_WORKER) {
-              if (Module['setImmediates'] === undefined) Module['setImmediates'] = [];
-              Module['setImmediates'].push(func);
-              window.postMessage({target: emscriptenMainLoopMessageId}); // In --proxy-to-worker, route the message via proxyClient.js
-            } else window.postMessage(emscriptenMainLoopMessageId, "*"); // On the main thread, can just send the message to itself.
-          }
-        }
-        Browser.mainLoop.scheduler = function Browser_mainLoop_scheduler_setImmediate() {
-          window['setImmediate'](Browser.mainLoop.runner);
-        };
-        Browser.mainLoop.method = 'immediate';
-      }
-      return 0;
-    }
-  
-  function _emscripten_get_now() { abort() }function _emscripten_set_main_loop(func, fps, simulateInfiniteLoop, arg, noSetTiming) {
-      Module['noExitRuntime'] = true;
-  
-      assert(!Browser.mainLoop.func, 'emscripten_set_main_loop: there can only be one main loop function at once: call emscripten_cancel_main_loop to cancel the previous one before setting a new one with different parameters.');
-  
-      Browser.mainLoop.func = func;
-      Browser.mainLoop.arg = arg;
-  
-      var browserIterationFunc;
-      if (typeof arg !== 'undefined') {
-        browserIterationFunc = function() {
-          Module['dynCall_vi'](func, arg);
-        };
-      } else {
-        browserIterationFunc = function() {
-          Module['dynCall_v'](func);
-        };
-      }
-  
-      var thisMainLoopId = Browser.mainLoop.currentlyRunningMainloop;
-  
-      Browser.mainLoop.runner = function Browser_mainLoop_runner() {
-        if (ABORT) return;
-        if (Browser.mainLoop.queue.length > 0) {
-          var start = Date.now();
-          var blocker = Browser.mainLoop.queue.shift();
-          blocker.func(blocker.arg);
-          if (Browser.mainLoop.remainingBlockers) {
-            var remaining = Browser.mainLoop.remainingBlockers;
-            var next = remaining%1 == 0 ? remaining-1 : Math.floor(remaining);
-            if (blocker.counted) {
-              Browser.mainLoop.remainingBlockers = next;
-            } else {
-              // not counted, but move the progress along a tiny bit
-              next = next + 0.5; // do not steal all the next one's progress
-              Browser.mainLoop.remainingBlockers = (8*remaining + next)/9;
-            }
-          }
-          console.log('main loop blocker "' + blocker.name + '" took ' + (Date.now() - start) + ' ms'); //, left: ' + Browser.mainLoop.remainingBlockers);
-          Browser.mainLoop.updateStatus();
-          
-          // catches pause/resume main loop from blocker execution
-          if (thisMainLoopId < Browser.mainLoop.currentlyRunningMainloop) return;
-          
-          setTimeout(Browser.mainLoop.runner, 0);
-          return;
-        }
-  
-        // catch pauses from non-main loop sources
-        if (thisMainLoopId < Browser.mainLoop.currentlyRunningMainloop) return;
-  
-        // Implement very basic swap interval control
-        Browser.mainLoop.currentFrameNumber = Browser.mainLoop.currentFrameNumber + 1 | 0;
-        if (Browser.mainLoop.timingMode == 1/*EM_TIMING_RAF*/ && Browser.mainLoop.timingValue > 1 && Browser.mainLoop.currentFrameNumber % Browser.mainLoop.timingValue != 0) {
-          // Not the scheduled time to render this frame - skip.
-          Browser.mainLoop.scheduler();
-          return;
-        } else if (Browser.mainLoop.timingMode == 0/*EM_TIMING_SETTIMEOUT*/) {
-          Browser.mainLoop.tickStartTime = _emscripten_get_now();
-        }
-  
-        // Signal GL rendering layer that processing of a new frame is about to start. This helps it optimize
-        // VBO double-buffering and reduce GPU stalls.
-  
-  
-        if (Browser.mainLoop.method === 'timeout' && Module.ctx) {
-          Module.printErr('Looks like you are rendering without using requestAnimationFrame for the main loop. You should use 0 for the frame rate in emscripten_set_main_loop in order to use requestAnimationFrame, as that can greatly improve your frame rates!');
-          Browser.mainLoop.method = ''; // just warn once per call to set main loop
-        }
-  
-        Browser.mainLoop.runIter(browserIterationFunc);
-  
-  
-        // catch pauses from the main loop itself
-        if (thisMainLoopId < Browser.mainLoop.currentlyRunningMainloop) return;
-  
-        // Queue new audio data. This is important to be right after the main loop invocation, so that we will immediately be able
-        // to queue the newest produced audio samples.
-        // TODO: Consider adding pre- and post- rAF callbacks so that GL.newRenderingFrameStarted() and SDL.audio.queueNewAudioData()
-        //       do not need to be hardcoded into this function, but can be more generic.
-        if (typeof SDL === 'object' && SDL.audio && SDL.audio.queueNewAudioData) SDL.audio.queueNewAudioData();
-  
-        Browser.mainLoop.scheduler();
-      }
-  
-      if (!noSetTiming) {
-        if (fps && fps > 0) _emscripten_set_main_loop_timing(0/*EM_TIMING_SETTIMEOUT*/, 1000.0 / fps);
-        else _emscripten_set_main_loop_timing(1/*EM_TIMING_RAF*/, 1); // Do rAF by rendering each frame (no decimating)
-  
-        Browser.mainLoop.scheduler();
-      }
-  
-      if (simulateInfiniteLoop) {
-        throw 'SimulateInfiniteLoop';
-      }
-    }var Browser={mainLoop:{scheduler:null,method:"",currentlyRunningMainloop:0,func:null,arg:0,timingMode:0,timingValue:0,currentFrameNumber:0,queue:[],pause:function () {
-          Browser.mainLoop.scheduler = null;
-          Browser.mainLoop.currentlyRunningMainloop++; // Incrementing this signals the previous main loop that it's now become old, and it must return.
-        },resume:function () {
-          Browser.mainLoop.currentlyRunningMainloop++;
-          var timingMode = Browser.mainLoop.timingMode;
-          var timingValue = Browser.mainLoop.timingValue;
-          var func = Browser.mainLoop.func;
-          Browser.mainLoop.func = null;
-          _emscripten_set_main_loop(func, 0, false, Browser.mainLoop.arg, true /* do not set timing and call scheduler, we will do it on the next lines */);
-          _emscripten_set_main_loop_timing(timingMode, timingValue);
-          Browser.mainLoop.scheduler();
-        },updateStatus:function () {
-          if (Module['setStatus']) {
-            var message = Module['statusMessage'] || 'Please wait...';
-            var remaining = Browser.mainLoop.remainingBlockers;
-            var expected = Browser.mainLoop.expectedBlockers;
-            if (remaining) {
-              if (remaining < expected) {
-                Module['setStatus'](message + ' (' + (expected - remaining) + '/' + expected + ')');
-              } else {
-                Module['setStatus'](message);
-              }
-            } else {
-              Module['setStatus']('');
-            }
-          }
-        },runIter:function (func) {
-          if (ABORT) return;
-          if (Module['preMainLoop']) {
-            var preRet = Module['preMainLoop']();
-            if (preRet === false) {
-              return; // |return false| skips a frame
-            }
-          }
-          try {
-            func();
-          } catch (e) {
-            if (e instanceof ExitStatus) {
-              return;
-            } else {
-              if (e && typeof e === 'object' && e.stack) Module.printErr('exception thrown: ' + [e, e.stack]);
-              throw e;
-            }
-          }
-          if (Module['postMainLoop']) Module['postMainLoop']();
-        }},isFullscreen:false,pointerLock:false,moduleContextCreatedCallbacks:[],workers:[],init:function () {
-        if (!Module["preloadPlugins"]) Module["preloadPlugins"] = []; // needs to exist even in workers
-  
-        if (Browser.initted) return;
-        Browser.initted = true;
-  
-        try {
-          new Blob();
-          Browser.hasBlobConstructor = true;
-        } catch(e) {
-          Browser.hasBlobConstructor = false;
-          console.log("warning: no blob constructor, cannot create blobs with mimetypes");
-        }
-        Browser.BlobBuilder = typeof MozBlobBuilder != "undefined" ? MozBlobBuilder : (typeof WebKitBlobBuilder != "undefined" ? WebKitBlobBuilder : (!Browser.hasBlobConstructor ? console.log("warning: no BlobBuilder") : null));
-        Browser.URLObject = typeof window != "undefined" ? (window.URL ? window.URL : window.webkitURL) : undefined;
-        if (!Module.noImageDecoding && typeof Browser.URLObject === 'undefined') {
-          console.log("warning: Browser does not support creating object URLs. Built-in browser image decoding will not be available.");
-          Module.noImageDecoding = true;
-        }
-  
-        // Support for plugins that can process preloaded files. You can add more of these to
-        // your app by creating and appending to Module.preloadPlugins.
-        //
-        // Each plugin is asked if it can handle a file based on the file's name. If it can,
-        // it is given the file's raw data. When it is done, it calls a callback with the file's
-        // (possibly modified) data. For example, a plugin might decompress a file, or it
-        // might create some side data structure for use later (like an Image element, etc.).
-  
-        var imagePlugin = {};
-        imagePlugin['canHandle'] = function imagePlugin_canHandle(name) {
-          return !Module.noImageDecoding && /\.(jpg|jpeg|png|bmp)$/i.test(name);
-        };
-        imagePlugin['handle'] = function imagePlugin_handle(byteArray, name, onload, onerror) {
-          var b = null;
-          if (Browser.hasBlobConstructor) {
-            try {
-              b = new Blob([byteArray], { type: Browser.getMimetype(name) });
-              if (b.size !== byteArray.length) { // Safari bug #118630
-                // Safari's Blob can only take an ArrayBuffer
-                b = new Blob([(new Uint8Array(byteArray)).buffer], { type: Browser.getMimetype(name) });
-              }
-            } catch(e) {
-              Runtime.warnOnce('Blob constructor present but fails: ' + e + '; falling back to blob builder');
-            }
-          }
-          if (!b) {
-            var bb = new Browser.BlobBuilder();
-            bb.append((new Uint8Array(byteArray)).buffer); // we need to pass a buffer, and must copy the array to get the right data range
-            b = bb.getBlob();
-          }
-          var url = Browser.URLObject.createObjectURL(b);
-          var img = new Image();
-          img.onload = function img_onload() {
-            assert(img.complete, 'Image ' + name + ' could not be decoded');
-            var canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            var ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            Module["preloadedImages"][name] = canvas;
-            Browser.URLObject.revokeObjectURL(url);
-            if (onload) onload(byteArray);
-          };
-          img.onerror = function img_onerror(event) {
-            console.log('Image ' + url + ' could not be decoded');
-            if (onerror) onerror();
-          };
-          img.src = url;
-        };
-        Module['preloadPlugins'].push(imagePlugin);
-  
-        var audioPlugin = {};
-        audioPlugin['canHandle'] = function audioPlugin_canHandle(name) {
-          return !Module.noAudioDecoding && name.substr(-4) in { '.ogg': 1, '.wav': 1, '.mp3': 1 };
-        };
-        audioPlugin['handle'] = function audioPlugin_handle(byteArray, name, onload, onerror) {
-          var done = false;
-          function finish(audio) {
-            if (done) return;
-            done = true;
-            Module["preloadedAudios"][name] = audio;
-            if (onload) onload(byteArray);
-          }
-          function fail() {
-            if (done) return;
-            done = true;
-            Module["preloadedAudios"][name] = new Audio(); // empty shim
-            if (onerror) onerror();
-          }
-          if (Browser.hasBlobConstructor) {
-            try {
-              var b = new Blob([byteArray], { type: Browser.getMimetype(name) });
-            } catch(e) {
-              return fail();
-            }
-            var url = Browser.URLObject.createObjectURL(b); // XXX we never revoke this!
-            var audio = new Audio();
-            audio.addEventListener('canplaythrough', function() { finish(audio) }, false); // use addEventListener due to chromium bug 124926
-            audio.onerror = function audio_onerror(event) {
-              if (done) return;
-              console.log('warning: browser could not fully decode audio ' + name + ', trying slower base64 approach');
-              function encode64(data) {
-                var BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-                var PAD = '=';
-                var ret = '';
-                var leftchar = 0;
-                var leftbits = 0;
-                for (var i = 0; i < data.length; i++) {
-                  leftchar = (leftchar << 8) | data[i];
-                  leftbits += 8;
-                  while (leftbits >= 6) {
-                    var curr = (leftchar >> (leftbits-6)) & 0x3f;
-                    leftbits -= 6;
-                    ret += BASE[curr];
-                  }
-                }
-                if (leftbits == 2) {
-                  ret += BASE[(leftchar&3) << 4];
-                  ret += PAD + PAD;
-                } else if (leftbits == 4) {
-                  ret += BASE[(leftchar&0xf) << 2];
-                  ret += PAD;
-                }
-                return ret;
-              }
-              audio.src = 'data:audio/x-' + name.substr(-3) + ';base64,' + encode64(byteArray);
-              finish(audio); // we don't wait for confirmation this worked - but it's worth trying
-            };
-            audio.src = url;
-            // workaround for chrome bug 124926 - we do not always get oncanplaythrough or onerror
-            Browser.safeSetTimeout(function() {
-              finish(audio); // try to use it even though it is not necessarily ready to play
-            }, 10000);
-          } else {
-            return fail();
-          }
-        };
-        Module['preloadPlugins'].push(audioPlugin);
-  
-        // Canvas event setup
-  
-        function pointerLockChange() {
-          Browser.pointerLock = document['pointerLockElement'] === Module['canvas'] ||
-                                document['mozPointerLockElement'] === Module['canvas'] ||
-                                document['webkitPointerLockElement'] === Module['canvas'] ||
-                                document['msPointerLockElement'] === Module['canvas'];
-        }
-        var canvas = Module['canvas'];
-        if (canvas) {
-          // forced aspect ratio can be enabled by defining 'forcedAspectRatio' on Module
-          // Module['forcedAspectRatio'] = 4 / 3;
-          
-          canvas.requestPointerLock = canvas['requestPointerLock'] ||
-                                      canvas['mozRequestPointerLock'] ||
-                                      canvas['webkitRequestPointerLock'] ||
-                                      canvas['msRequestPointerLock'] ||
-                                      function(){};
-          canvas.exitPointerLock = document['exitPointerLock'] ||
-                                   document['mozExitPointerLock'] ||
-                                   document['webkitExitPointerLock'] ||
-                                   document['msExitPointerLock'] ||
-                                   function(){}; // no-op if function does not exist
-          canvas.exitPointerLock = canvas.exitPointerLock.bind(document);
-  
-          document.addEventListener('pointerlockchange', pointerLockChange, false);
-          document.addEventListener('mozpointerlockchange', pointerLockChange, false);
-          document.addEventListener('webkitpointerlockchange', pointerLockChange, false);
-          document.addEventListener('mspointerlockchange', pointerLockChange, false);
-  
-          if (Module['elementPointerLock']) {
-            canvas.addEventListener("click", function(ev) {
-              if (!Browser.pointerLock && Module['canvas'].requestPointerLock) {
-                Module['canvas'].requestPointerLock();
-                ev.preventDefault();
-              }
-            }, false);
-          }
-        }
-      },createContext:function (canvas, useWebGL, setInModule, webGLContextAttributes) {
-        if (useWebGL && Module.ctx && canvas == Module.canvas) return Module.ctx; // no need to recreate GL context if it's already been created for this canvas.
-  
-        var ctx;
-        var contextHandle;
-        if (useWebGL) {
-          // For GLES2/desktop GL compatibility, adjust a few defaults to be different to WebGL defaults, so that they align better with the desktop defaults.
-          var contextAttributes = {
-            antialias: false,
-            alpha: false
-          };
-  
-          if (webGLContextAttributes) {
-            for (var attribute in webGLContextAttributes) {
-              contextAttributes[attribute] = webGLContextAttributes[attribute];
-            }
-          }
-  
-          contextHandle = GL.createContext(canvas, contextAttributes);
-          if (contextHandle) {
-            ctx = GL.getContext(contextHandle).GLctx;
-          }
-        } else {
-          ctx = canvas.getContext('2d');
-        }
-  
-        if (!ctx) return null;
-  
-        if (setInModule) {
-          if (!useWebGL) assert(typeof GLctx === 'undefined', 'cannot set in module if GLctx is used, but we are a non-GL context that would replace it');
-  
-          Module.ctx = ctx;
-          if (useWebGL) GL.makeContextCurrent(contextHandle);
-          Module.useWebGL = useWebGL;
-          Browser.moduleContextCreatedCallbacks.forEach(function(callback) { callback() });
-          Browser.init();
-        }
-        return ctx;
-      },destroyContext:function (canvas, useWebGL, setInModule) {},fullscreenHandlersInstalled:false,lockPointer:undefined,resizeCanvas:undefined,requestFullscreen:function (lockPointer, resizeCanvas, vrDevice) {
-        Browser.lockPointer = lockPointer;
-        Browser.resizeCanvas = resizeCanvas;
-        Browser.vrDevice = vrDevice;
-        if (typeof Browser.lockPointer === 'undefined') Browser.lockPointer = true;
-        if (typeof Browser.resizeCanvas === 'undefined') Browser.resizeCanvas = false;
-        if (typeof Browser.vrDevice === 'undefined') Browser.vrDevice = null;
-  
-        var canvas = Module['canvas'];
-        function fullscreenChange() {
-          Browser.isFullscreen = false;
-          var canvasContainer = canvas.parentNode;
-          if ((document['fullscreenElement'] || document['mozFullScreenElement'] ||
-               document['msFullscreenElement'] || document['webkitFullscreenElement'] ||
-               document['webkitCurrentFullScreenElement']) === canvasContainer) {
-            canvas.exitFullscreen = document['exitFullscreen'] ||
-                                    document['cancelFullScreen'] ||
-                                    document['mozCancelFullScreen'] ||
-                                    document['msExitFullscreen'] ||
-                                    document['webkitCancelFullScreen'] ||
-                                    function() {};
-            canvas.exitFullscreen = canvas.exitFullscreen.bind(document);
-            if (Browser.lockPointer) canvas.requestPointerLock();
-            Browser.isFullscreen = true;
-            if (Browser.resizeCanvas) Browser.setFullscreenCanvasSize();
-          } else {
-            
-            // remove the full screen specific parent of the canvas again to restore the HTML structure from before going full screen
-            canvasContainer.parentNode.insertBefore(canvas, canvasContainer);
-            canvasContainer.parentNode.removeChild(canvasContainer);
-            
-            if (Browser.resizeCanvas) Browser.setWindowedCanvasSize();
-          }
-          if (Module['onFullScreen']) Module['onFullScreen'](Browser.isFullscreen);
-          if (Module['onFullscreen']) Module['onFullscreen'](Browser.isFullscreen);
-          Browser.updateCanvasDimensions(canvas);
-        }
-  
-        if (!Browser.fullscreenHandlersInstalled) {
-          Browser.fullscreenHandlersInstalled = true;
-          document.addEventListener('fullscreenchange', fullscreenChange, false);
-          document.addEventListener('mozfullscreenchange', fullscreenChange, false);
-          document.addEventListener('webkitfullscreenchange', fullscreenChange, false);
-          document.addEventListener('MSFullscreenChange', fullscreenChange, false);
-        }
-  
-        // create a new parent to ensure the canvas has no siblings. this allows browsers to optimize full screen performance when its parent is the full screen root
-        var canvasContainer = document.createElement("div");
-        canvas.parentNode.insertBefore(canvasContainer, canvas);
-        canvasContainer.appendChild(canvas);
-  
-        // use parent of canvas as full screen root to allow aspect ratio correction (Firefox stretches the root to screen size)
-        canvasContainer.requestFullscreen = canvasContainer['requestFullscreen'] ||
-                                            canvasContainer['mozRequestFullScreen'] ||
-                                            canvasContainer['msRequestFullscreen'] ||
-                                           (canvasContainer['webkitRequestFullscreen'] ? function() { canvasContainer['webkitRequestFullscreen'](Element['ALLOW_KEYBOARD_INPUT']) } : null) ||
-                                           (canvasContainer['webkitRequestFullScreen'] ? function() { canvasContainer['webkitRequestFullScreen'](Element['ALLOW_KEYBOARD_INPUT']) } : null);
-  
-        if (vrDevice) {
-          canvasContainer.requestFullscreen({ vrDisplay: vrDevice });
-        } else {
-          canvasContainer.requestFullscreen();
-        }
-      },requestFullScreen:function (lockPointer, resizeCanvas, vrDevice) {
-          Module.printErr('Browser.requestFullScreen() is deprecated. Please call Browser.requestFullscreen instead.');
-          Browser.requestFullScreen = function(lockPointer, resizeCanvas, vrDevice) {
-            return Browser.requestFullscreen(lockPointer, resizeCanvas, vrDevice);
-          }
-          return Browser.requestFullscreen(lockPointer, resizeCanvas, vrDevice);
-      },nextRAF:0,fakeRequestAnimationFrame:function (func) {
-        // try to keep 60fps between calls to here
-        var now = Date.now();
-        if (Browser.nextRAF === 0) {
-          Browser.nextRAF = now + 1000/60;
-        } else {
-          while (now + 2 >= Browser.nextRAF) { // fudge a little, to avoid timer jitter causing us to do lots of delay:0
-            Browser.nextRAF += 1000/60;
-          }
-        }
-        var delay = Math.max(Browser.nextRAF - now, 0);
-        setTimeout(func, delay);
-      },requestAnimationFrame:function requestAnimationFrame(func) {
-        if (typeof window === 'undefined') { // Provide fallback to setTimeout if window is undefined (e.g. in Node.js)
-          Browser.fakeRequestAnimationFrame(func);
-        } else {
-          if (!window.requestAnimationFrame) {
-            window.requestAnimationFrame = window['requestAnimationFrame'] ||
-                                           window['mozRequestAnimationFrame'] ||
-                                           window['webkitRequestAnimationFrame'] ||
-                                           window['msRequestAnimationFrame'] ||
-                                           window['oRequestAnimationFrame'] ||
-                                           Browser.fakeRequestAnimationFrame;
-          }
-          window.requestAnimationFrame(func);
-        }
-      },safeCallback:function (func) {
-        return function() {
-          if (!ABORT) return func.apply(null, arguments);
-        };
-      },allowAsyncCallbacks:true,queuedAsyncCallbacks:[],pauseAsyncCallbacks:function () {
-        Browser.allowAsyncCallbacks = false;
-      },resumeAsyncCallbacks:function () { // marks future callbacks as ok to execute, and synchronously runs any remaining ones right now
-        Browser.allowAsyncCallbacks = true;
-        if (Browser.queuedAsyncCallbacks.length > 0) {
-          var callbacks = Browser.queuedAsyncCallbacks;
-          Browser.queuedAsyncCallbacks = [];
-          callbacks.forEach(function(func) {
-            func();
-          });
-        }
-      },safeRequestAnimationFrame:function (func) {
-        return Browser.requestAnimationFrame(function() {
-          if (ABORT) return;
-          if (Browser.allowAsyncCallbacks) {
-            func();
-          } else {
-            Browser.queuedAsyncCallbacks.push(func);
-          }
-        });
-      },safeSetTimeout:function (func, timeout) {
-        Module['noExitRuntime'] = true;
-        return setTimeout(function() {
-          if (ABORT) return;
-          if (Browser.allowAsyncCallbacks) {
-            func();
-          } else {
-            Browser.queuedAsyncCallbacks.push(func);
-          }
-        }, timeout);
-      },safeSetInterval:function (func, timeout) {
-        Module['noExitRuntime'] = true;
-        return setInterval(function() {
-          if (ABORT) return;
-          if (Browser.allowAsyncCallbacks) {
-            func();
-          } // drop it on the floor otherwise, next interval will kick in
-        }, timeout);
-      },getMimetype:function (name) {
-        return {
-          'jpg': 'image/jpeg',
-          'jpeg': 'image/jpeg',
-          'png': 'image/png',
-          'bmp': 'image/bmp',
-          'ogg': 'audio/ogg',
-          'wav': 'audio/wav',
-          'mp3': 'audio/mpeg'
-        }[name.substr(name.lastIndexOf('.')+1)];
-      },getUserMedia:function (func) {
-        if(!window.getUserMedia) {
-          window.getUserMedia = navigator['getUserMedia'] ||
-                                navigator['mozGetUserMedia'];
-        }
-        window.getUserMedia(func);
-      },getMovementX:function (event) {
-        return event['movementX'] ||
-               event['mozMovementX'] ||
-               event['webkitMovementX'] ||
-               0;
-      },getMovementY:function (event) {
-        return event['movementY'] ||
-               event['mozMovementY'] ||
-               event['webkitMovementY'] ||
-               0;
-      },getMouseWheelDelta:function (event) {
-        var delta = 0;
-        switch (event.type) {
-          case 'DOMMouseScroll': 
-            delta = event.detail;
-            break;
-          case 'mousewheel': 
-            delta = event.wheelDelta;
-            break;
-          case 'wheel': 
-            delta = event['deltaY'];
-            break;
-          default:
-            throw 'unrecognized mouse wheel event: ' + event.type;
-        }
-        return delta;
-      },mouseX:0,mouseY:0,mouseMovementX:0,mouseMovementY:0,touches:{},lastTouches:{},calculateMouseEvent:function (event) { // event should be mousemove, mousedown or mouseup
-        if (Browser.pointerLock) {
-          // When the pointer is locked, calculate the coordinates
-          // based on the movement of the mouse.
-          // Workaround for Firefox bug 764498
-          if (event.type != 'mousemove' &&
-              ('mozMovementX' in event)) {
-            Browser.mouseMovementX = Browser.mouseMovementY = 0;
-          } else {
-            Browser.mouseMovementX = Browser.getMovementX(event);
-            Browser.mouseMovementY = Browser.getMovementY(event);
-          }
-          
-          // check if SDL is available
-          if (typeof SDL != "undefined") {
-          	Browser.mouseX = SDL.mouseX + Browser.mouseMovementX;
-          	Browser.mouseY = SDL.mouseY + Browser.mouseMovementY;
-          } else {
-          	// just add the mouse delta to the current absolut mouse position
-          	// FIXME: ideally this should be clamped against the canvas size and zero
-          	Browser.mouseX += Browser.mouseMovementX;
-          	Browser.mouseY += Browser.mouseMovementY;
-          }        
-        } else {
-          // Otherwise, calculate the movement based on the changes
-          // in the coordinates.
-          var rect = Module["canvas"].getBoundingClientRect();
-          var cw = Module["canvas"].width;
-          var ch = Module["canvas"].height;
-  
-          // Neither .scrollX or .pageXOffset are defined in a spec, but
-          // we prefer .scrollX because it is currently in a spec draft.
-          // (see: http://www.w3.org/TR/2013/WD-cssom-view-20131217/)
-          var scrollX = ((typeof window.scrollX !== 'undefined') ? window.scrollX : window.pageXOffset);
-          var scrollY = ((typeof window.scrollY !== 'undefined') ? window.scrollY : window.pageYOffset);
-  
-          if (event.type === 'touchstart' || event.type === 'touchend' || event.type === 'touchmove') {
-            var touch = event.touch;
-            if (touch === undefined) {
-              return; // the "touch" property is only defined in SDL
-  
-            }
-            var adjustedX = touch.pageX - (scrollX + rect.left);
-            var adjustedY = touch.pageY - (scrollY + rect.top);
-  
-            adjustedX = adjustedX * (cw / rect.width);
-            adjustedY = adjustedY * (ch / rect.height);
-  
-            var coords = { x: adjustedX, y: adjustedY };
-            
-            if (event.type === 'touchstart') {
-              Browser.lastTouches[touch.identifier] = coords;
-              Browser.touches[touch.identifier] = coords;
-            } else if (event.type === 'touchend' || event.type === 'touchmove') {
-              var last = Browser.touches[touch.identifier];
-              if (!last) last = coords;
-              Browser.lastTouches[touch.identifier] = last;
-              Browser.touches[touch.identifier] = coords;
-            } 
-            return;
-          }
-  
-          var x = event.pageX - (scrollX + rect.left);
-          var y = event.pageY - (scrollY + rect.top);
-  
-          // the canvas might be CSS-scaled compared to its backbuffer;
-          // SDL-using content will want mouse coordinates in terms
-          // of backbuffer units.
-          x = x * (cw / rect.width);
-          y = y * (ch / rect.height);
-  
-          Browser.mouseMovementX = x - Browser.mouseX;
-          Browser.mouseMovementY = y - Browser.mouseY;
-          Browser.mouseX = x;
-          Browser.mouseY = y;
-        }
-      },asyncLoad:function (url, onload, onerror, noRunDep) {
-        var dep = !noRunDep ? getUniqueRunDependency('al ' + url) : '';
-        Module['readAsync'](url, function(arrayBuffer) {
-          assert(arrayBuffer, 'Loading data file "' + url + '" failed (no arrayBuffer).');
-          onload(new Uint8Array(arrayBuffer));
-          if (dep) removeRunDependency(dep);
-        }, function(event) {
-          if (onerror) {
-            onerror();
-          } else {
-            throw 'Loading data file "' + url + '" failed.';
-          }
-        });
-        if (dep) addRunDependency(dep);
-      },resizeListeners:[],updateResizeListeners:function () {
-        var canvas = Module['canvas'];
-        Browser.resizeListeners.forEach(function(listener) {
-          listener(canvas.width, canvas.height);
-        });
-      },setCanvasSize:function (width, height, noUpdates) {
-        var canvas = Module['canvas'];
-        Browser.updateCanvasDimensions(canvas, width, height);
-        if (!noUpdates) Browser.updateResizeListeners();
-      },windowedWidth:0,windowedHeight:0,setFullscreenCanvasSize:function () {
-        // check if SDL is available   
-        if (typeof SDL != "undefined") {
-        	var flags = HEAPU32[((SDL.screen+Runtime.QUANTUM_SIZE*0)>>2)];
-        	flags = flags | 0x00800000; // set SDL_FULLSCREEN flag
-        	HEAP32[((SDL.screen+Runtime.QUANTUM_SIZE*0)>>2)]=flags
-        }
-        Browser.updateResizeListeners();
-      },setWindowedCanvasSize:function () {
-        // check if SDL is available       
-        if (typeof SDL != "undefined") {
-        	var flags = HEAPU32[((SDL.screen+Runtime.QUANTUM_SIZE*0)>>2)];
-        	flags = flags & ~0x00800000; // clear SDL_FULLSCREEN flag
-        	HEAP32[((SDL.screen+Runtime.QUANTUM_SIZE*0)>>2)]=flags
-        }
-        Browser.updateResizeListeners();
-      },updateCanvasDimensions:function (canvas, wNative, hNative) {
-        if (wNative && hNative) {
-          canvas.widthNative = wNative;
-          canvas.heightNative = hNative;
-        } else {
-          wNative = canvas.widthNative;
-          hNative = canvas.heightNative;
-        }
-        var w = wNative;
-        var h = hNative;
-        if (Module['forcedAspectRatio'] && Module['forcedAspectRatio'] > 0) {
-          if (w/h < Module['forcedAspectRatio']) {
-            w = Math.round(h * Module['forcedAspectRatio']);
-          } else {
-            h = Math.round(w / Module['forcedAspectRatio']);
-          }
-        }
-        if (((document['fullscreenElement'] || document['mozFullScreenElement'] ||
-             document['msFullscreenElement'] || document['webkitFullscreenElement'] ||
-             document['webkitCurrentFullScreenElement']) === canvas.parentNode) && (typeof screen != 'undefined')) {
-           var factor = Math.min(screen.width / w, screen.height / h);
-           w = Math.round(w * factor);
-           h = Math.round(h * factor);
-        }
-        if (Browser.resizeCanvas) {
-          if (canvas.width  != w) canvas.width  = w;
-          if (canvas.height != h) canvas.height = h;
-          if (typeof canvas.style != 'undefined') {
-            canvas.style.removeProperty( "width");
-            canvas.style.removeProperty("height");
-          }
-        } else {
-          if (canvas.width  != wNative) canvas.width  = wNative;
-          if (canvas.height != hNative) canvas.height = hNative;
-          if (typeof canvas.style != 'undefined') {
-            if (w != wNative || h != hNative) {
-              canvas.style.setProperty( "width", w + "px", "important");
-              canvas.style.setProperty("height", h + "px", "important");
-            } else {
-              canvas.style.removeProperty( "width");
-              canvas.style.removeProperty("height");
-            }
-          }
-        }
-      },wgetRequests:{},nextWgetRequestHandle:0,getNextWgetRequestHandle:function () {
-        var handle = Browser.nextWgetRequestHandle;
-        Browser.nextWgetRequestHandle++;
-        return handle;
-      }};
-  
-  
-  function _malloc(bytes) {
-      /* Over-allocate to make sure it is byte-aligned by 8.
-       * This will leak memory, but this is only the dummy
-       * implementation (replaced by dlmalloc normally) so
-       * not an issue.
-       */
-      var ptr = Runtime.dynamicAlloc(bytes + 8);
-      return (ptr+8) & 0xFFFFFFF8;
-    }
-  Module["_malloc"] = _malloc;
-  
-  function _free() {
-  }
-  Module["_free"] = _free;
-  
-  
-  
-  
-  
-  
-  function _SDL_CloseAudio() {
-      if (SDL.audio) {
-        _SDL_PauseAudio(1);
-        _free(SDL.audio.buffer);
-        SDL.audio = null;
-        SDL.allocateChannels(0);
-      }
-    }
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  var _environ=STATICTOP; STATICTOP += 16;;var ___environ=_environ;function ___buildEnvironment(env) {
-      // WARNING: Arbitrary limit!
-      var MAX_ENV_VALUES = 64;
-      var TOTAL_ENV_SIZE = 1024;
-  
-      // Statically allocate memory for the environment.
-      var poolPtr;
-      var envPtr;
-      if (!___buildEnvironment.called) {
-        ___buildEnvironment.called = true;
-        // Set default values. Use string keys for Closure Compiler compatibility.
-        ENV['USER'] = ENV['LOGNAME'] = 'web_user';
-        ENV['PATH'] = '/';
-        ENV['PWD'] = '/';
-        ENV['HOME'] = '/home/web_user';
-        ENV['LANG'] = 'C';
-        ENV['_'] = Module['thisProgram'];
-        // Allocate memory.
-        poolPtr = allocate(TOTAL_ENV_SIZE, 'i8', ALLOC_STATIC);
-        envPtr = allocate(MAX_ENV_VALUES * 4,
-                          'i8*', ALLOC_STATIC);
-        HEAP32[((envPtr)>>2)]=poolPtr;
-        HEAP32[((_environ)>>2)]=envPtr;
-      } else {
-        envPtr = HEAP32[((_environ)>>2)];
-        poolPtr = HEAP32[((envPtr)>>2)];
-      }
-  
-      // Collect key=value lines.
-      var strings = [];
-      var totalSize = 0;
-      for (var key in env) {
-        if (typeof env[key] === 'string') {
-          var line = key + '=' + env[key];
-          strings.push(line);
-          totalSize += line.length;
-        }
-      }
-      if (totalSize > TOTAL_ENV_SIZE) {
-        throw new Error('Environment size exceeded TOTAL_ENV_SIZE!');
-      }
-  
-      // Make new.
-      var ptrSize = 4;
-      for (var i = 0; i < strings.length; i++) {
-        var line = strings[i];
-        writeAsciiToMemory(line, poolPtr);
-        HEAP32[(((envPtr)+(i * ptrSize))>>2)]=poolPtr;
-        poolPtr += line.length + 1;
-      }
-      HEAP32[(((envPtr)+(strings.length * ptrSize))>>2)]=0;
-    }var ENV={};function _getenv(name) {
-      // char *getenv(const char *name);
-      // http://pubs.opengroup.org/onlinepubs/009695399/functions/getenv.html
-      if (name === 0) return 0;
-      name = Pointer_stringify(name);
-      if (!ENV.hasOwnProperty(name)) return 0;
-  
-      if (_getenv.ret) _free(_getenv.ret);
-      _getenv.ret = allocate(intArrayFromString(ENV[name]), 'i8', ALLOC_NORMAL);
-      return _getenv.ret;
-    }
-  
-  function _putenv(string) {
-      // int putenv(char *string);
-      // http://pubs.opengroup.org/onlinepubs/009695399/functions/putenv.html
-      // WARNING: According to the standard (and the glibc implementation), the
-      //          string is taken by reference so future changes are reflected.
-      //          We copy it instead, possibly breaking some uses.
-      if (string === 0) {
-        ___setErrNo(ERRNO_CODES.EINVAL);
-        return -1;
-      }
-      string = Pointer_stringify(string);
-      var splitPoint = string.indexOf('=')
-      if (string === '' || string.indexOf('=') === -1) {
-        ___setErrNo(ERRNO_CODES.EINVAL);
-        return -1;
-      }
-      var name = string.slice(0, splitPoint);
-      var value = string.slice(splitPoint + 1);
-      if (!(name in ENV) || ENV[name] !== value) {
-        ENV[name] = value;
-        ___buildEnvironment(ENV);
-      }
-      return 0;
-    }
-  
-  function _SDL_RWFromConstMem(mem, size) {
-      var id = SDL.rwops.length; // TODO: recycle ids when they are null
-      SDL.rwops.push({ bytes: mem, count: size });
-      return id;
-    }function _TTF_FontHeight(font) {
-      var fontData = SDL.fonts[font];
-      return fontData.size;
-    }function _TTF_SizeText(font, text, w, h) {
-      var fontData = SDL.fonts[font];
-      if (w) {
-        HEAP32[((w)>>2)]=SDL.estimateTextWidth(fontData, Pointer_stringify(text));
-      }
-      if (h) {
-        HEAP32[((h)>>2)]=fontData.size;
-      }
-      return 0;
-    }function _TTF_RenderText_Solid(font, text, color) {
-      // XXX the font and color are ignored
-      text = Pointer_stringify(text) || ' '; // if given an empty string, still return a valid surface
-      var fontData = SDL.fonts[font];
-      var w = SDL.estimateTextWidth(fontData, text);
-      var h = fontData.size;
-      var color = SDL.loadColorToCSSRGB(color); // XXX alpha breaks fonts?
-      var fontString = h + 'px ' + fontData.name;
-      var surf = SDL.makeSurface(w, h, 0, false, 'text:' + text); // bogus numbers..
-      var surfData = SDL.surfaces[surf];
-      surfData.ctx.save();
-      surfData.ctx.fillStyle = color;
-      surfData.ctx.font = fontString;
-      surfData.ctx.textBaseline = 'top';
-      surfData.ctx.fillText(text, 0, 0);
-      surfData.ctx.restore();
-      return surf;
-    }function _Mix_HaltMusic() {
-      var audio = SDL.music.audio;
-      if (audio) {
-        audio.src = audio.src; // rewind <media> element
-        audio.currentPosition = 0; // rewind Web Audio graph playback.
-        audio.pause();
-      }
-      SDL.music.audio = null;
-      if (SDL.hookMusicFinished) {
-        Module['dynCall_v'](SDL.hookMusicFinished);
-      }
-      return 0;
-    }function _Mix_PlayMusic(id, loops) {
-      // Pause old music if it exists.
-      if (SDL.music.audio) {
-        if (!SDL.music.audio.paused) Module.printErr('Music is already playing. ' + SDL.music.source);
-        SDL.music.audio.pause();
-      }
-      var info = SDL.audios[id];
-      var audio;
-      if (info.webAudio) { // Play via Web Audio API
-        // Create an instance of the WebAudio object.
-        audio = {};
-        audio.resource = info; // This new webAudio object is an instance that refers to this existing resource.
-        audio.paused = false;
-        audio.currentPosition = 0;
-        audio.play = function() { SDL.playWebAudio(this); }
-        audio.pause = function() { SDL.pauseWebAudio(this); }
-      } else if (info.audio) { // Play via the <audio> element
-        audio = info.audio;
-      }
-      audio['onended'] = function() { if (SDL.music.audio == this) _Mix_HaltMusic(); } // will send callback
-      audio.loop = loops != 0; // TODO: handle N loops for finite N
-      audio.volume = SDL.music.volume;
-      SDL.music.audio = audio;
-      audio.play();
-      return 0;
-    }function _Mix_FreeChunk(id) {
-      SDL.audios[id] = null;
-    }function _Mix_LoadWAV_RW(rwopsID, freesrc) {
-      var rwops = SDL.rwops[rwopsID];
-  
-  
-      if (rwops === undefined)
-        return 0;
-  
-      var filename = '';
-      var audio;
-      var webAudio;
-      var bytes;
-  
-      if (rwops.filename !== undefined) {
-        filename = PATH.resolve(rwops.filename);
-        var raw = Module["preloadedAudios"][filename];
-        if (!raw) {
-          if (raw === null) Module.printErr('Trying to reuse preloaded audio, but freePreloadedMediaOnUse is set!');
-          if (!Module.noAudioDecoding) Runtime.warnOnce('Cannot find preloaded audio ' + filename);
-  
-          // see if we can read the file-contents from the in-memory FS
-          try {
-            bytes = FS.readFile(filename);
-          } catch (e) {
-            Module.printErr('Couldn\'t find file for: ' + filename);
-            return 0;
-          }
-        }
-        if (Module['freePreloadedMediaOnUse']) {
-          Module["preloadedAudios"][filename] = null;
-        }
-        audio = raw;
-      }
-      else if (rwops.bytes !== undefined) {
-        // For Web Audio context buffer decoding, we must make a clone of the audio data, but for <media> element,
-        // a view to existing data is sufficient.
-        if (SDL.webAudioAvailable()) bytes = HEAPU8.buffer.slice(rwops.bytes, rwops.bytes + rwops.count);
-        else bytes = HEAPU8.subarray(rwops.bytes, rwops.bytes + rwops.count);
-      }
-      else {
-        return 0;
-      }
-  
-      var arrayBuffer = bytes ? bytes.buffer || bytes : bytes;
-  
-      // To allow user code to work around browser bugs with audio playback on <audio> elements an Web Audio, enable
-      // the user code to hook in a callback to decide on a file basis whether each file should use Web Audio or <audio> for decoding and playback.
-      // In particular, see https://bugzilla.mozilla.org/show_bug.cgi?id=654787 and ?id=1012801 for tradeoffs.
-      var canPlayWithWebAudio = Module['SDL_canPlayWithWebAudio'] === undefined || Module['SDL_canPlayWithWebAudio'](filename, arrayBuffer);
-  
-      if (bytes !== undefined && SDL.webAudioAvailable() && canPlayWithWebAudio) {
-        audio = undefined;
-        webAudio = {};
-        // The audio decoding process is asynchronous, which gives trouble if user code plays the audio data back immediately
-        // after loading. Therefore prepare an array of callback handlers to run when this audio decoding is complete, which
-        // will then start the playback (with some delay).
-        webAudio.onDecodeComplete = []; // While this member array exists, decoding hasn't finished yet.
-        function onDecodeComplete(data) {
-          webAudio.decodedBuffer = data;
-          // Call all handlers that were waiting for this decode to finish, and clear the handler list.
-          webAudio.onDecodeComplete.forEach(function(e) { e(); });
-          webAudio.onDecodeComplete = undefined; // Don't allow more callback handlers since audio has finished decoding.
-        }
-  
-        SDL.audioContext['decodeAudioData'](arrayBuffer, onDecodeComplete);
-      } else if (audio === undefined && bytes) {
-        // Here, we didn't find a preloaded audio but we either were passed a filepath for
-        // which we loaded bytes, or we were passed some bytes
-        var blob = new Blob([bytes], {type: rwops.mimetype});
-        var url = URL.createObjectURL(blob);
-        audio = new Audio();
-        audio.src = url;
-        audio.mozAudioChannelType = 'content'; // bugzilla 910340
-      }
-  
-      var id = SDL.audios.length;
-      // Keep the loaded audio in the audio arrays, ready for playback
-      SDL.audios.push({
-        source: filename,
-        audio: audio, // Points to the <audio> element, if loaded
-        webAudio: webAudio // Points to a Web Audio -specific resource object, if loaded
-      });
-      return id;
-    }function _Mix_PlayChannel(channel, id, loops) {
-      // TODO: handle fixed amount of N loops. Currently loops either 0 or infinite times.
-  
-      // Get the audio element associated with the ID
-      var info = SDL.audios[id];
-      if (!info) return -1;
-      if (!info.audio && !info.webAudio) return -1;
-  
-      // If the user asks us to allocate a channel automatically, get the first
-      // free one.
-      if (channel == -1) {
-        for (var i = SDL.channelMinimumNumber; i < SDL.numChannels; i++) {
-          if (!SDL.channels[i].audio) {
-            channel = i;
-            break;
-          }
-        }
-        if (channel == -1) {
-          Module.printErr('All ' + SDL.numChannels + ' channels in use!');
-          return -1;
-        }
-      }
-      var channelInfo = SDL.channels[channel];
-      var audio;
-      if (info.webAudio) {
-        // Create an instance of the WebAudio object.
-        audio = {};
-        audio.resource = info; // This new object is an instance that refers to this existing resource.
-        audio.paused = false;
-        audio.currentPosition = 0;
-        // Make our instance look similar to the instance of a <media> to make api simple.
-        audio.play = function() { SDL.playWebAudio(this); }
-        audio.pause = function() { SDL.pauseWebAudio(this); }
-      } else {
-        // We clone the audio node to utilize the preloaded audio buffer, since
-        // the browser has already preloaded the audio file.
-        audio = info.audio.cloneNode(true);
-        audio.numChannels = info.audio.numChannels;
-        audio.frequency = info.audio.frequency;
-      }
-      audio['onended'] = function SDL_audio_onended() { // TODO: cache these
-        if (channelInfo.audio == this) { channelInfo.audio.paused = true; channelInfo.audio = null; }
-        if (SDL.channelFinished) Runtime.getFuncWrapper(SDL.channelFinished, 'vi')(channel);
-      }
-      channelInfo.audio = audio;
-      // TODO: handle N loops. Behavior matches Mix_PlayMusic
-      audio.loop = loops != 0;
-      audio.volume = channelInfo.volume;
-      audio.play();
-      return channel;
-    }function _SDL_LockSurface(surf) {
-      var surfData = SDL.surfaces[surf];
-  
-      surfData.locked++;
-      if (surfData.locked > 1) return 0;
-  
-      if (!surfData.buffer) {
-        surfData.buffer = _malloc(surfData.width * surfData.height * 4);
-        HEAP32[(((surf)+(20))>>2)]=surfData.buffer;
-      }
-  
-      // Mark in C/C++-accessible SDL structure
-      // SDL_Surface has the following fields: Uint32 flags, SDL_PixelFormat *format; int w, h; Uint16 pitch; void *pixels; ...
-      // So we have fields all of the same size, and 5 of them before us.
-      // TODO: Use macros like in library.js
-      HEAP32[(((surf)+(20))>>2)]=surfData.buffer;
-  
-      if (surf == SDL.screen && Module.screenIsReadOnly && surfData.image) return 0;
-  
-      if (SDL.defaults.discardOnLock) {
-        if (!surfData.image) {
-          surfData.image = surfData.ctx.createImageData(surfData.width, surfData.height);
-        }
-        if (!SDL.defaults.opaqueFrontBuffer) return;
-      } else {
-        surfData.image = surfData.ctx.getImageData(0, 0, surfData.width, surfData.height);
-      }
-  
-      // Emulate desktop behavior and kill alpha values on the locked surface. (very costly!) Set SDL.defaults.opaqueFrontBuffer = false
-      // if you don't want this.
-      if (surf == SDL.screen && SDL.defaults.opaqueFrontBuffer) {
-        var data = surfData.image.data;
-        var num = data.length;
-        for (var i = 0; i < num/4; i++) {
-          data[i*4+3] = 255; // opacity, as canvases blend alpha
-        }
-      }
-  
-      if (SDL.defaults.copyOnLock && !SDL.defaults.discardOnLock) {
-        // Copy pixel data to somewhere accessible to 'C/C++'
-        if (surfData.isFlagSet(0x00200000 /* SDL_HWPALETTE */)) {
-          // If this is neaded then
-          // we should compact the data from 32bpp to 8bpp index.
-          // I think best way to implement this is use
-          // additional colorMap hash (color->index).
-          // Something like this:
-          //
-          // var size = surfData.width * surfData.height;
-          // var data = '';
-          // for (var i = 0; i<size; i++) {
-          //   var color = SDL.translateRGBAToColor(
-          //     surfData.image.data[i*4   ], 
-          //     surfData.image.data[i*4 +1], 
-          //     surfData.image.data[i*4 +2], 
-          //     255);
-          //   var index = surfData.colorMap[color];
-          //   HEAP8[(((surfData.buffer)+(i))>>0)]=index;
-          // }
-          throw 'CopyOnLock is not supported for SDL_LockSurface with SDL_HWPALETTE flag set' + new Error().stack;
-        } else {
-          HEAPU8.set(surfData.image.data, surfData.buffer);
-        }
-      }
-  
-      return 0;
-    }
-  
-  function _SDL_FreeRW(rwopsID) {
-      SDL.rwops[rwopsID] = null;
-      while (SDL.rwops.length > 0 && SDL.rwops[SDL.rwops.length-1] === null) {
-        SDL.rwops.pop();
-      }
-    }function _IMG_Load_RW(rwopsID, freeSrc) {
-      try {
-        // stb_image integration support
-        var cleanup = function() {
-          if (rwops && freeSrc) _SDL_FreeRW(rwopsID);
-        }
-        var addCleanup = function(func) {
-          var old = cleanup;
-          cleanup = function added_cleanup() {
-            old();
-            func();
-          }
-        }
-        var callStbImage = function(func, params) {
-          var x = Module['_malloc'](4);
-          var y = Module['_malloc'](4);
-          var comp = Module['_malloc'](4);
-          addCleanup(function() {
-            Module['_free'](x);
-            Module['_free'](y);
-            Module['_free'](comp);
-            if (data) Module['_stbi_image_free'](data);
-          });
-          var data = Module['_' + func].apply(null, params.concat([x, y, comp, 0]));
-          if (!data) return null;
-          return {
-            rawData: true,
-            data: data,
-            width: HEAP32[((x)>>2)],
-            height: HEAP32[((y)>>2)],
-            size: HEAP32[((x)>>2)] * HEAP32[((y)>>2)] * HEAP32[((comp)>>2)],
-            bpp: HEAP32[((comp)>>2)]
-          };
-        }
-  
-        var rwops = SDL.rwops[rwopsID];
-        if (rwops === undefined) {
-          return 0;
-        }
-  
-        var filename = rwops.filename;
-        if (filename === undefined) {
-          Runtime.warnOnce('Only file names that have been preloaded are supported for IMG_Load_RW. Consider using STB_IMAGE=1 if you want synchronous image decoding (see settings.js), or package files with --use-preload-plugins');
-          return 0;
-        }
-  
-        if (!raw) {
-          filename = PATH.resolve(filename);
-          var raw = Module["preloadedImages"][filename];
-          if (!raw) {
-            if (raw === null) Module.printErr('Trying to reuse preloaded image, but freePreloadedMediaOnUse is set!');
-            Runtime.warnOnce('Cannot find preloaded image ' + filename);
-            Runtime.warnOnce('Cannot find preloaded image ' + filename + '. Consider using STB_IMAGE=1 if you want synchronous image decoding (see settings.js), or package files with --use-preload-plugins');
-            return 0;
-          } else if (Module['freePreloadedMediaOnUse']) {
-            Module["preloadedImages"][filename] = null;
-          }
-        }
-  
-        var surf = SDL.makeSurface(raw.width, raw.height, 0, false, 'load:' + filename);
-        var surfData = SDL.surfaces[surf];
-        surfData.ctx.globalCompositeOperation = "copy";
-        if (!raw.rawData) {
-          surfData.ctx.drawImage(raw, 0, 0, raw.width, raw.height, 0, 0, raw.width, raw.height);
-        } else {
-          var imageData = surfData.ctx.getImageData(0, 0, surfData.width, surfData.height);
-          if (raw.bpp == 4) {
-            // rgba
-            imageData.data.set(HEAPU8.subarray((raw.data),(raw.data+raw.size)));
-          } else if (raw.bpp == 3) {
-            // rgb
-            var pixels = raw.size/3;
-            var data = imageData.data;
-            var sourcePtr = raw.data;
-            var destPtr = 0;
-            for (var i = 0; i < pixels; i++) {
-              data[destPtr++] = HEAPU8[((sourcePtr++)>>0)];
-              data[destPtr++] = HEAPU8[((sourcePtr++)>>0)];
-              data[destPtr++] = HEAPU8[((sourcePtr++)>>0)];
-              data[destPtr++] = 255;
-            }
-          } else if (raw.bpp == 2) {
-            // grayscale + alpha
-            var pixels = raw.size;
-            var data = imageData.data;
-            var sourcePtr = raw.data;
-            var destPtr = 0;
-            for (var i = 0; i < pixels; i++) {
-              var gray = HEAPU8[((sourcePtr++)>>0)];
-              var alpha = HEAPU8[((sourcePtr++)>>0)];
-              data[destPtr++] = gray;
-              data[destPtr++] = gray;
-              data[destPtr++] = gray;
-              data[destPtr++] = alpha;
-            }
-          } else if (raw.bpp == 1) {
-            // grayscale
-            var pixels = raw.size;
-            var data = imageData.data;
-            var sourcePtr = raw.data;
-            var destPtr = 0;
-            for (var i = 0; i < pixels; i++) {
-              var value = HEAPU8[((sourcePtr++)>>0)];
-              data[destPtr++] = value;
-              data[destPtr++] = value;
-              data[destPtr++] = value;
-              data[destPtr++] = 255;
-            }
-          } else {
-            Module.printErr('cannot handle bpp ' + raw.bpp);
-            return 0;
-          }
-          surfData.ctx.putImageData(imageData, 0, 0);
-        }
-        surfData.ctx.globalCompositeOperation = "source-over";
-        // XXX SDL does not specify that loaded images must have available pixel data, in fact
-        //     there are cases where you just want to blit them, so you just need the hardware
-        //     accelerated version. However, code everywhere seems to assume that the pixels
-        //     are in fact available, so we retrieve it here. This does add overhead though.
-        _SDL_LockSurface(surf);
-        surfData.locked--; // The surface is not actually locked in this hack
-        if (SDL.GL) {
-          // After getting the pixel data, we can free the canvas and context if we do not need to do 2D canvas blitting
-          surfData.canvas = surfData.ctx = null;
-        }
-        return surf;
-      } finally {
-        cleanup();
-      }
-    }
-  
-  function _SDL_RWFromFile(_name, mode) {
-      var id = SDL.rwops.length; // TODO: recycle ids when they are null
-      var name = Pointer_stringify(_name)
-      SDL.rwops.push({ filename: name, mimetype: Browser.getMimetype(name) });
-      return id;
-    }function _IMG_Load(filename){
-      var rwops = _SDL_RWFromFile(filename);
-      var result = _IMG_Load_RW(rwops, 1);
-      return result;
-    }function _SDL_UpperBlitScaled(src, srcrect, dst, dstrect) {
-      return SDL.blitSurface(src, srcrect, dst, dstrect, true);
-    }function _SDL_UpperBlit(src, srcrect, dst, dstrect) {
-      return SDL.blitSurface(src, srcrect, dst, dstrect, false);
-    }function _SDL_GetTicks() {
-      return (Date.now() - SDL.startTime)|0;
-    }var SDL={defaults:{width:320,height:200,copyOnLock:true,discardOnLock:false,opaqueFrontBuffer:true},version:null,surfaces:{},canvasPool:[],events:[],fonts:[null],audios:[null],rwops:[null],music:{audio:null,volume:1},mixerFrequency:22050,mixerFormat:32784,mixerNumChannels:2,mixerChunkSize:1024,channelMinimumNumber:0,GL:false,glAttributes:{0:3,1:3,2:2,3:0,4:0,5:1,6:16,7:0,8:0,9:0,10:0,11:0,12:0,13:0,14:0,15:1,16:0,17:0,18:0},keyboardState:null,keyboardMap:{},canRequestFullscreen:false,isRequestingFullscreen:false,textInput:false,startTime:null,initFlags:0,buttonState:0,modState:0,DOMButtons:[0,0,0],DOMEventToSDLEvent:{},TOUCH_DEFAULT_ID:0,eventHandler:null,eventHandlerContext:null,eventHandlerTemp:0,keyCodes:{16:1249,17:1248,18:1250,20:1081,33:1099,34:1102,35:1101,36:1098,37:1104,38:1106,39:1103,40:1105,44:316,45:1097,46:127,91:1251,93:1125,96:1122,97:1113,98:1114,99:1115,100:1116,101:1117,102:1118,103:1119,104:1120,105:1121,106:1109,107:1111,109:1110,110:1123,111:1108,112:1082,113:1083,114:1084,115:1085,116:1086,117:1087,118:1088,119:1089,120:1090,121:1091,122:1092,123:1093,124:1128,125:1129,126:1130,127:1131,128:1132,129:1133,130:1134,131:1135,132:1136,133:1137,134:1138,135:1139,144:1107,160:94,161:33,162:34,163:35,164:36,165:37,166:38,167:95,168:40,169:41,170:42,171:43,172:124,173:45,174:123,175:125,176:126,181:127,182:129,183:128,188:44,190:46,191:47,192:96,219:91,220:92,221:93,222:39,224:1251},scanCodes:{8:42,9:43,13:40,27:41,32:44,35:204,39:53,44:54,46:55,47:56,48:39,49:30,50:31,51:32,52:33,53:34,54:35,55:36,56:37,57:38,58:203,59:51,61:46,91:47,92:49,93:48,96:52,97:4,98:5,99:6,100:7,101:8,102:9,103:10,104:11,105:12,106:13,107:14,108:15,109:16,110:17,111:18,112:19,113:20,114:21,115:22,116:23,117:24,118:25,119:26,120:27,121:28,122:29,127:76,305:224,308:226,316:70},loadRect:function (rect) {
-        return {
-          x: HEAP32[((rect + 0)>>2)],
-          y: HEAP32[((rect + 4)>>2)],
-          w: HEAP32[((rect + 8)>>2)],
-          h: HEAP32[((rect + 12)>>2)]
-        };
-      },updateRect:function (rect, r) {
-        HEAP32[((rect)>>2)]=r.x;
-        HEAP32[(((rect)+(4))>>2)]=r.y;
-        HEAP32[(((rect)+(8))>>2)]=r.w;
-        HEAP32[(((rect)+(12))>>2)]=r.h;
-      },intersectionOfRects:function (first, second) {
-        var leftX = Math.max(first.x, second.x);
-        var leftY = Math.max(first.y, second.y);
-        var rightX = Math.min(first.x + first.w, second.x + second.w);
-        var rightY = Math.min(first.y + first.h, second.y + second.h);
-  
-        return {
-          x: leftX,
-          y: leftY,
-          w: Math.max(leftX, rightX) - leftX,
-          h: Math.max(leftY, rightY) - leftY
-        }
-      },checkPixelFormat:function (fmt) {
-      },loadColorToCSSRGB:function (color) {
-        var rgba = HEAP32[((color)>>2)];
-        return 'rgb(' + (rgba&255) + ',' + ((rgba >> 8)&255) + ',' + ((rgba >> 16)&255) + ')';
-      },loadColorToCSSRGBA:function (color) {
-        var rgba = HEAP32[((color)>>2)];
-        return 'rgba(' + (rgba&255) + ',' + ((rgba >> 8)&255) + ',' + ((rgba >> 16)&255) + ',' + (((rgba >> 24)&255)/255) + ')';
-      },translateColorToCSSRGBA:function (rgba) {
-        return 'rgba(' + (rgba&0xff) + ',' + (rgba>>8 & 0xff) + ',' + (rgba>>16 & 0xff) + ',' + (rgba>>>24)/0xff + ')';
-      },translateRGBAToCSSRGBA:function (r, g, b, a) {
-        return 'rgba(' + (r&0xff) + ',' + (g&0xff) + ',' + (b&0xff) + ',' + (a&0xff)/255 + ')';
-      },translateRGBAToColor:function (r, g, b, a) {
-        return r | g << 8 | b << 16 | a << 24;
-      },makeSurface:function (width, height, flags, usePageCanvas, source, rmask, gmask, bmask, amask) {
-        flags = flags || 0;
-        var is_SDL_HWSURFACE = flags & 0x00000001;
-        var is_SDL_HWPALETTE = flags & 0x00200000;
-        var is_SDL_OPENGL = flags & 0x04000000;
-  
-        var surf = _malloc(60);
-        var pixelFormat = _malloc(44);
-        //surface with SDL_HWPALETTE flag is 8bpp surface (1 byte)
-        var bpp = is_SDL_HWPALETTE ? 1 : 4;
-        var buffer = 0;
-  
-        // preemptively initialize this for software surfaces,
-        // otherwise it will be lazily initialized inside of SDL_LockSurface
-        if (!is_SDL_HWSURFACE && !is_SDL_OPENGL) {
-          buffer = _malloc(width * height * 4);
-        }
-  
-        HEAP32[((surf)>>2)]=flags;
-        HEAP32[(((surf)+(4))>>2)]=pixelFormat;
-        HEAP32[(((surf)+(8))>>2)]=width;
-        HEAP32[(((surf)+(12))>>2)]=height;
-        HEAP32[(((surf)+(16))>>2)]=width * bpp;  // assuming RGBA or indexed for now,
-                                                                                          // since that is what ImageData gives us in browsers
-        HEAP32[(((surf)+(20))>>2)]=buffer;
-  
-        HEAP32[(((surf)+(36))>>2)]=0;
-        HEAP32[(((surf)+(40))>>2)]=0;
-        HEAP32[(((surf)+(44))>>2)]=Module["canvas"].width;
-        HEAP32[(((surf)+(48))>>2)]=Module["canvas"].height;
-  
-        HEAP32[(((surf)+(56))>>2)]=1;
-  
-        HEAP32[((pixelFormat)>>2)]=-2042224636;
-        HEAP32[(((pixelFormat)+(4))>>2)]=0;// TODO
-        HEAP8[(((pixelFormat)+(8))>>0)]=bpp * 8;
-        HEAP8[(((pixelFormat)+(9))>>0)]=bpp;
-  
-        HEAP32[(((pixelFormat)+(12))>>2)]=rmask || 0x000000ff;
-        HEAP32[(((pixelFormat)+(16))>>2)]=gmask || 0x0000ff00;
-        HEAP32[(((pixelFormat)+(20))>>2)]=bmask || 0x00ff0000;
-        HEAP32[(((pixelFormat)+(24))>>2)]=amask || 0xff000000;
-  
-        // Decide if we want to use WebGL or not
-        SDL.GL = SDL.GL || is_SDL_OPENGL;
-        var canvas;
-        if (!usePageCanvas) {
-          if (SDL.canvasPool.length > 0) {
-            canvas = SDL.canvasPool.pop();
-          } else {
-            canvas = document.createElement('canvas');
-          }
-          canvas.width = width;
-          canvas.height = height;
-        } else {
-          canvas = Module['canvas'];
-        }
-  
-        var webGLContextAttributes = {
-          antialias: ((SDL.glAttributes[13 /*SDL_GL_MULTISAMPLEBUFFERS*/] != 0) && (SDL.glAttributes[14 /*SDL_GL_MULTISAMPLESAMPLES*/] > 1)),
-          depth: (SDL.glAttributes[6 /*SDL_GL_DEPTH_SIZE*/] > 0),
-          stencil: (SDL.glAttributes[7 /*SDL_GL_STENCIL_SIZE*/] > 0),
-          alpha: (SDL.glAttributes[3 /*SDL_GL_ALPHA_SIZE*/] > 0)
-        };
-        
-        var ctx = Browser.createContext(canvas, is_SDL_OPENGL, usePageCanvas, webGLContextAttributes);
-              
-        SDL.surfaces[surf] = {
-          width: width,
-          height: height,
-          canvas: canvas,
-          ctx: ctx,
-          surf: surf,
-          buffer: buffer,
-          pixelFormat: pixelFormat,
-          alpha: 255,
-          flags: flags,
-          locked: 0,
-          usePageCanvas: usePageCanvas,
-          source: source,
-  
-          isFlagSet: function(flag) {
-            return flags & flag;
-          }
-        };
-  
-        return surf;
-      },copyIndexedColorData:function (surfData, rX, rY, rW, rH) {
-        // HWPALETTE works with palette
-        // setted by SDL_SetColors
-        if (!surfData.colors) {
-          return;
-        }
-        
-        var fullWidth  = Module['canvas'].width;
-        var fullHeight = Module['canvas'].height;
-  
-        var startX  = rX || 0;
-        var startY  = rY || 0;
-        var endX    = (rW || (fullWidth - startX)) + startX;
-        var endY    = (rH || (fullHeight - startY)) + startY;
-        
-        var buffer  = surfData.buffer;
-  
-        if (!surfData.image.data32) {
-          surfData.image.data32 = new Uint32Array(surfData.image.data.buffer);
-        }
-        var data32   = surfData.image.data32;
-  
-        var colors32 = surfData.colors32;
-  
-        for (var y = startY; y < endY; ++y) {
-          var base = y * fullWidth;
-          for (var x = startX; x < endX; ++x) {
-            data32[base + x] = colors32[HEAPU8[((buffer + base + x)>>0)]];
-          }
-        }
-      },freeSurface:function (surf) {
-        var refcountPointer = surf + 56;
-        var refcount = HEAP32[((refcountPointer)>>2)];
-        if (refcount > 1) {
-          HEAP32[((refcountPointer)>>2)]=refcount - 1;
-          return;
-        }
-  
-        var info = SDL.surfaces[surf];
-        if (!info.usePageCanvas && info.canvas) SDL.canvasPool.push(info.canvas);
-        if (info.buffer) _free(info.buffer);
-        _free(info.pixelFormat);
-        _free(surf);
-        SDL.surfaces[surf] = null;
-  
-        if (surf === SDL.screen) {
-          SDL.screen = null;
-        }
-      },blitSurface__deps:["SDL_LockSurface"],blitSurface:function (src, srcrect, dst, dstrect, scale) {
-        var srcData = SDL.surfaces[src];
-        var dstData = SDL.surfaces[dst];
-        var sr, dr;
-        if (srcrect) {
-          sr = SDL.loadRect(srcrect);
-        } else {
-          sr = { x: 0, y: 0, w: srcData.width, h: srcData.height };
-        }
-        if (dstrect) {
-          dr = SDL.loadRect(dstrect);
-        } else {
-          dr = { x: 0, y: 0, w: srcData.width, h: srcData.height };
-        }
-        if (dstData.clipRect) {
-          var widthScale = (!scale || sr.w === 0) ? 1 : sr.w / dr.w;
-          var heightScale = (!scale || sr.h === 0) ? 1 : sr.h / dr.h;
-          
-          dr = SDL.intersectionOfRects(dstData.clipRect, dr);
-          
-          sr.w = dr.w * widthScale;
-          sr.h = dr.h * heightScale;
-          
-          if (dstrect) {
-            SDL.updateRect(dstrect, dr);
-          }
-        }
-        var blitw, blith;
-        if (scale) {
-          blitw = dr.w; blith = dr.h;
-        } else {
-          blitw = sr.w; blith = sr.h;
-        }
-        if (sr.w === 0 || sr.h === 0 || blitw === 0 || blith === 0) {
-          return 0;
-        }
-        var oldAlpha = dstData.ctx.globalAlpha;
-        dstData.ctx.globalAlpha = srcData.alpha/255;
-        dstData.ctx.drawImage(srcData.canvas, sr.x, sr.y, sr.w, sr.h, dr.x, dr.y, blitw, blith);
-        dstData.ctx.globalAlpha = oldAlpha;
-        if (dst != SDL.screen) {
-          // XXX As in IMG_Load, for compatibility we write out |pixels|
-          Runtime.warnOnce('WARNING: copying canvas data to memory for compatibility');
-          _SDL_LockSurface(dst);
-          dstData.locked--; // The surface is not actually locked in this hack
-        }
-        return 0;
-      },downFingers:{},savedKeydown:null,receiveEvent:function (event) {
-        function unpressAllPressedKeys() {
-          // Un-press all pressed keys: TODO
-          for (var code in SDL.keyboardMap) {
-            SDL.events.push({
-              type: 'keyup',
-              keyCode: SDL.keyboardMap[code]
-            });
-          }
-        };
-        switch(event.type) {
-          case 'touchstart': case 'touchmove': {
-            event.preventDefault();
-  
-            var touches = [];
-            
-            // Clear out any touchstart events that we've already processed
-            if (event.type === 'touchstart') {
-              for (var i = 0; i < event.touches.length; i++) {
-                var touch = event.touches[i];
-                if (SDL.downFingers[touch.identifier] != true) {
-                  SDL.downFingers[touch.identifier] = true;
-                  touches.push(touch);
-                }
-              }
-            } else {
-              touches = event.touches;
-            }
-            
-            var firstTouch = touches[0];
-            if (event.type == 'touchstart') {
-              SDL.DOMButtons[0] = 1;
-            }
-            var mouseEventType;
-            switch(event.type) {
-              case 'touchstart': mouseEventType = 'mousedown'; break;
-              case 'touchmove': mouseEventType = 'mousemove'; break;
-            }
-            var mouseEvent = {
-              type: mouseEventType,
-              button: 0,
-              pageX: firstTouch.clientX,
-              pageY: firstTouch.clientY
-            };
-            SDL.events.push(mouseEvent);
-  
-            for (var i = 0; i < touches.length; i++) {
-              var touch = touches[i];
-              SDL.events.push({
-                type: event.type,
-                touch: touch
-              });
-            };
-            break;
-          }
-          case 'touchend': {
-            event.preventDefault();
-            
-            // Remove the entry in the SDL.downFingers hash
-            // because the finger is no longer down.
-            for(var i = 0; i < event.changedTouches.length; i++) {
-              var touch = event.changedTouches[i];
-              if (SDL.downFingers[touch.identifier] === true) {
-                delete SDL.downFingers[touch.identifier];
-              }
-            }
-  
-            var mouseEvent = {
-              type: 'mouseup',
-              button: 0,
-              pageX: event.changedTouches[0].clientX,
-              pageY: event.changedTouches[0].clientY
-            };
-            SDL.DOMButtons[0] = 0;
-            SDL.events.push(mouseEvent);
-            
-            for (var i = 0; i < event.changedTouches.length; i++) {
-              var touch = event.changedTouches[i];
-              SDL.events.push({
-                type: 'touchend',
-                touch: touch
-              });
-            };
-            break;
-          }
-          case 'DOMMouseScroll': case 'mousewheel': case 'wheel':
-            var delta = -Browser.getMouseWheelDelta(event); // Flip the wheel direction to translate from browser wheel direction (+:down) to SDL direction (+:up)
-            delta = (delta == 0) ? 0 : (delta > 0 ? Math.max(delta, 1) : Math.min(delta, -1)); // Quantize to integer so that minimum scroll is at least +/- 1.
-  
-            // Simulate old-style SDL events representing mouse wheel input as buttons
-            var button = delta > 0 ? 3 /*SDL_BUTTON_WHEELUP-1*/ : 4 /*SDL_BUTTON_WHEELDOWN-1*/; // Subtract one since JS->C marshalling is defined to add one back.
-            SDL.events.push({ type: 'mousedown', button: button, pageX: event.pageX, pageY: event.pageY });
-            SDL.events.push({ type: 'mouseup', button: button, pageX: event.pageX, pageY: event.pageY });
-  
-            // Pass a delta motion event.
-            SDL.events.push({ type: 'wheel', deltaX: 0, deltaY: delta });
-            event.preventDefault(); // If we don't prevent this, then 'wheel' event will be sent again by the browser as 'DOMMouseScroll' and we will receive this same event the second time.
-            break;
-          case 'mousemove':
-            if (SDL.DOMButtons[0] === 1) {
-              SDL.events.push({
-                type: 'touchmove',
-                touch: {
-                  identifier: 0,
-                  deviceID: -1,
-                  pageX: event.pageX,
-                  pageY: event.pageY
-                }
-              });
-            }
-            if (Browser.pointerLock) {
-              // workaround for firefox bug 750111
-              if ('mozMovementX' in event) {
-                event['movementX'] = event['mozMovementX'];
-                event['movementY'] = event['mozMovementY'];
-              }
-              // workaround for Firefox bug 782777
-              if (event['movementX'] == 0 && event['movementY'] == 0) {
-                // ignore a mousemove event if it doesn't contain any movement info
-                // (without pointer lock, we infer movement from pageX/pageY, so this check is unnecessary)
-                event.preventDefault();
-                return;
-              }
-            }
-            // fall through
-          case 'keydown': case 'keyup': case 'keypress': case 'mousedown': case 'mouseup':
-            // If we preventDefault on keydown events, the subsequent keypress events
-            // won't fire. However, it's fine (and in some cases necessary) to
-            // preventDefault for keys that don't generate a character. Otherwise,
-            // preventDefault is the right thing to do in general.
-            if (event.type !== 'keydown' || (!SDL.unicode && !SDL.textInput) || (event.keyCode === 8 /* backspace */ || event.keyCode === 9 /* tab */)) {
-              event.preventDefault();
-            }
-  
-            if (event.type == 'mousedown') {
-              SDL.DOMButtons[event.button] = 1;
-              SDL.events.push({
-                type: 'touchstart',
-                touch: {
-                  identifier: 0,
-                  deviceID: -1,
-                  pageX: event.pageX,
-                  pageY: event.pageY
-                }
-              });
-            } else if (event.type == 'mouseup') {
-              // ignore extra ups, can happen if we leave the canvas while pressing down, then return,
-              // since we add a mouseup in that case
-              if (!SDL.DOMButtons[event.button]) {
-                return;
-              }
-  
-              SDL.events.push({
-                type: 'touchend',
-                touch: {
-                  identifier: 0,
-                  deviceID: -1,
-                  pageX: event.pageX,
-                  pageY: event.pageY
-                }
-              });
-              SDL.DOMButtons[event.button] = 0;
-            }
-  
-            // We can only request fullscreen as the result of user input.
-            // Due to this limitation, we toggle a boolean on keydown which
-            // SDL_WM_ToggleFullScreen will check and subsequently set another
-            // flag indicating for us to request fullscreen on the following
-            // keyup. This isn't perfect, but it enables SDL_WM_ToggleFullScreen
-            // to work as the result of a keypress (which is an extremely
-            // common use case).
-            if (event.type === 'keydown' || event.type === 'mousedown') {
-              SDL.canRequestFullscreen = true;
-            } else if (event.type === 'keyup' || event.type === 'mouseup') {
-              if (SDL.isRequestingFullscreen) {
-                Module['requestFullscreen'](/*lockPointer=*/true, /*resizeCanvas=*/true);
-                SDL.isRequestingFullscreen = false;
-              }
-              SDL.canRequestFullscreen = false;
-            }
-  
-            // SDL expects a unicode character to be passed to its keydown events.
-            // Unfortunately, the browser APIs only provide a charCode property on
-            // keypress events, so we must backfill in keydown events with their
-            // subsequent keypress event's charCode.
-            if (event.type === 'keypress' && SDL.savedKeydown) {
-              // charCode is read-only
-              SDL.savedKeydown.keypressCharCode = event.charCode;
-              SDL.savedKeydown = null;
-            } else if (event.type === 'keydown') {
-              SDL.savedKeydown = event;
-            }
-  
-            // Don't push keypress events unless SDL_StartTextInput has been called.
-            if (event.type !== 'keypress' || SDL.textInput) {
-              SDL.events.push(event);
-            }
-            break;
-          case 'mouseout':
-            // Un-press all pressed mouse buttons, because we might miss the release outside of the canvas
-            for (var i = 0; i < 3; i++) {
-              if (SDL.DOMButtons[i]) {
-                SDL.events.push({
-                  type: 'mouseup',
-                  button: i,
-                  pageX: event.pageX,
-                  pageY: event.pageY
-                });
-                SDL.DOMButtons[i] = 0;
-              }
-            }
-            event.preventDefault();
-            break;
-          case 'focus':
-            SDL.events.push(event);
-            event.preventDefault();
-            break;
-          case 'blur':
-            SDL.events.push(event);
-            unpressAllPressedKeys();
-            event.preventDefault();
-            break;
-          case 'visibilitychange':
-            SDL.events.push({
-              type: 'visibilitychange',
-              visible: !document.hidden
-            });
-            unpressAllPressedKeys();
-            event.preventDefault();
-            break;
-          case 'unload':
-            if (Browser.mainLoop.runner) {
-              SDL.events.push(event);
-              // Force-run a main event loop, since otherwise this event will never be caught!
-              Browser.mainLoop.runner();
-            }
-            return;
-          case 'resize':
-            SDL.events.push(event);
-            // manually triggered resize event doesn't have a preventDefault member
-            if (event.preventDefault) {
-              event.preventDefault();
-            }
-            break;
-        }
-        if (SDL.events.length >= 10000) {
-          Module.printErr('SDL event queue full, dropping events');
-          SDL.events = SDL.events.slice(0, 10000);
-        }
-        // If we have a handler installed, this will push the events to the app
-        // instead of the app polling for them.
-        SDL.flushEventsToHandler();
-        return;
-      },lookupKeyCodeForEvent:function (event) {
-          var code = event.keyCode;
-          if (code >= 65 && code <= 90) {
-            code += 32; // make lowercase for SDL
-          } else {
-            code = SDL.keyCodes[event.keyCode] || event.keyCode;
-            // If this is one of the modifier keys (224 | 1<<10 - 227 | 1<<10), and the event specifies that it is
-            // a right key, add 4 to get the right key SDL key code.
-            if (event.location === KeyboardEvent.DOM_KEY_LOCATION_RIGHT && code >= (224 | 1<<10) && code <= (227 | 1<<10)) {
-              code += 4;
-            }
-          }
-          return code;
-      },handleEvent:function (event) {
-        if (event.handled) return;
-        event.handled = true;
-  
-        switch (event.type) {
-          case 'touchstart': case 'touchend': case 'touchmove': {
-            Browser.calculateMouseEvent(event);
-            break;
-          }
-          case 'keydown': case 'keyup': {
-            var down = event.type === 'keydown';
-            var code = SDL.lookupKeyCodeForEvent(event);
-            HEAP8[(((SDL.keyboardState)+(code))>>0)]=down;
-            // TODO: lmeta, rmeta, numlock, capslock, KMOD_MODE, KMOD_RESERVED
-            SDL.modState = (HEAP8[(((SDL.keyboardState)+(1248))>>0)] ? 0x0040 : 0) | // KMOD_LCTRL
-              (HEAP8[(((SDL.keyboardState)+(1249))>>0)] ? 0x0001 : 0) | // KMOD_LSHIFT
-              (HEAP8[(((SDL.keyboardState)+(1250))>>0)] ? 0x0100 : 0) | // KMOD_LALT
-              (HEAP8[(((SDL.keyboardState)+(1252))>>0)] ? 0x0080 : 0) | // KMOD_RCTRL
-              (HEAP8[(((SDL.keyboardState)+(1253))>>0)] ? 0x0002 : 0) | // KMOD_RSHIFT
-              (HEAP8[(((SDL.keyboardState)+(1254))>>0)] ? 0x0200 : 0); //  KMOD_RALT
-            if (down) {
-              SDL.keyboardMap[code] = event.keyCode; // save the DOM input, which we can use to unpress it during blur
-            } else {
-              delete SDL.keyboardMap[code];
-            }
-  
-            break;
-          }
-          case 'mousedown': case 'mouseup':
-            if (event.type == 'mousedown') {
-              // SDL_BUTTON(x) is defined as (1 << ((x)-1)).  SDL buttons are 1-3,
-              // and DOM buttons are 0-2, so this means that the below formula is
-              // correct.
-              SDL.buttonState |= 1 << event.button;
-            } else if (event.type == 'mouseup') {
-              SDL.buttonState &= ~(1 << event.button);
-            }
-            // fall through
-          case 'mousemove': {
-            Browser.calculateMouseEvent(event);
-            break;
-          }
-        }
-      },flushEventsToHandler:function () {
-        if (!SDL.eventHandler) return;
-  
-        while (SDL.pollEvent(SDL.eventHandlerTemp)) {
-          Module['dynCall_iii'](SDL.eventHandler, SDL.eventHandlerContext, SDL.eventHandlerTemp);
-        }
-      },pollEvent:function (ptr) {
-        if (SDL.initFlags & 0x200 && SDL.joystickEventState) {
-          // If SDL_INIT_JOYSTICK was supplied AND the joystick system is configured
-          // to automatically query for events, query for joystick events.
-          SDL.queryJoysticks();
-        }
-        if (ptr) {
-          while (SDL.events.length > 0) {
-            if (SDL.makeCEvent(SDL.events.shift(), ptr) !== false) return 1;
-          }
-          return 0;
-        } else {
-          // XXX: somewhat risky in that we do not check if the event is real or not (makeCEvent returns false) if no pointer supplied
-          return SDL.events.length > 0;
-        }
-      },makeCEvent:function (event, ptr) {
-        if (typeof event === 'number') {
-          // This is a pointer to a copy of a native C event that was SDL_PushEvent'ed
-          _memcpy(ptr, event, 28);
-          _free(event); // the copy is no longer needed
-          return;
-        }
-  
-        SDL.handleEvent(event);
-  
-        switch (event.type) {
-          case 'keydown': case 'keyup': {
-            var down = event.type === 'keydown';
-            //Module.print('Received key event: ' + event.keyCode);
-            var key = SDL.lookupKeyCodeForEvent(event);
-            var scan;
-            if (key >= 1024) {
-              scan = key - 1024;
-            } else {
-              scan = SDL.scanCodes[key] || key;
-            }
-  
-            HEAP32[((ptr)>>2)]=SDL.DOMEventToSDLEvent[event.type];
-            HEAP8[(((ptr)+(8))>>0)]=down ? 1 : 0;
-            HEAP8[(((ptr)+(9))>>0)]=0; // TODO
-            HEAP32[(((ptr)+(12))>>2)]=scan;
-            HEAP32[(((ptr)+(16))>>2)]=key;
-            HEAP16[(((ptr)+(20))>>1)]=SDL.modState;
-            // some non-character keys (e.g. backspace and tab) won't have keypressCharCode set, fill in with the keyCode.
-            HEAP32[(((ptr)+(24))>>2)]=event.keypressCharCode || key;
-  
-            break;
-          }
-          case 'keypress': {
-            HEAP32[((ptr)>>2)]=SDL.DOMEventToSDLEvent[event.type];
-            // Not filling in windowID for now
-            var cStr = intArrayFromString(String.fromCharCode(event.charCode));
-            for (var i = 0; i < cStr.length; ++i) {
-              HEAP8[(((ptr)+(8 + i))>>0)]=cStr[i];
-            }
-            break;
-          }
-          case 'mousedown': case 'mouseup': case 'mousemove': {
-            if (event.type != 'mousemove') {
-              var down = event.type === 'mousedown';
-              HEAP32[((ptr)>>2)]=SDL.DOMEventToSDLEvent[event.type];
-              HEAP32[(((ptr)+(4))>>2)]=0;
-              HEAP32[(((ptr)+(8))>>2)]=0;
-              HEAP32[(((ptr)+(12))>>2)]=0;
-              HEAP8[(((ptr)+(16))>>0)]=event.button+1; // DOM buttons are 0-2, SDL 1-3
-              HEAP8[(((ptr)+(17))>>0)]=down ? 1 : 0;
-              HEAP32[(((ptr)+(20))>>2)]=Browser.mouseX;
-              HEAP32[(((ptr)+(24))>>2)]=Browser.mouseY;
-            } else {
-              HEAP32[((ptr)>>2)]=SDL.DOMEventToSDLEvent[event.type];
-              HEAP32[(((ptr)+(4))>>2)]=0;
-              HEAP32[(((ptr)+(8))>>2)]=0;
-              HEAP32[(((ptr)+(12))>>2)]=0;
-              HEAP32[(((ptr)+(16))>>2)]=SDL.buttonState;
-              HEAP32[(((ptr)+(20))>>2)]=Browser.mouseX;
-              HEAP32[(((ptr)+(24))>>2)]=Browser.mouseY;
-              HEAP32[(((ptr)+(28))>>2)]=Browser.mouseMovementX;
-              HEAP32[(((ptr)+(32))>>2)]=Browser.mouseMovementY;
-            }
-            break;
-          }
-          case 'wheel': {
-            HEAP32[((ptr)>>2)]=SDL.DOMEventToSDLEvent[event.type];
-            HEAP32[(((ptr)+(16))>>2)]=event.deltaX;
-            HEAP32[(((ptr)+(20))>>2)]=event.deltaY; 
-            break;       
-          }
-          case 'touchstart': case 'touchend': case 'touchmove': {
-            var touch = event.touch;
-            if (!Browser.touches[touch.identifier]) break;
-            var w = Module['canvas'].width;
-            var h = Module['canvas'].height;
-            var x = Browser.touches[touch.identifier].x / w;
-            var y = Browser.touches[touch.identifier].y / h;
-            var lx = Browser.lastTouches[touch.identifier].x / w;
-            var ly = Browser.lastTouches[touch.identifier].y / h;
-            var dx = x - lx;
-            var dy = y - ly;
-            if (touch['deviceID'] === undefined) touch.deviceID = SDL.TOUCH_DEFAULT_ID;
-            if (dx === 0 && dy === 0 && event.type === 'touchmove') return false; // don't send these if nothing happened
-            HEAP32[((ptr)>>2)]=SDL.DOMEventToSDLEvent[event.type];
-            HEAP32[(((ptr)+(4))>>2)]=_SDL_GetTicks();
-            (tempI64 = [touch.deviceID>>>0,(tempDouble=touch.deviceID,(+(Math_abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? ((Math_min((+(Math_floor((tempDouble)/4294967296.0))), 4294967295.0))|0)>>>0 : (~~((+(Math_ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)],HEAP32[(((ptr)+(8))>>2)]=tempI64[0],HEAP32[(((ptr)+(12))>>2)]=tempI64[1]);
-            (tempI64 = [touch.identifier>>>0,(tempDouble=touch.identifier,(+(Math_abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? ((Math_min((+(Math_floor((tempDouble)/4294967296.0))), 4294967295.0))|0)>>>0 : (~~((+(Math_ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)],HEAP32[(((ptr)+(16))>>2)]=tempI64[0],HEAP32[(((ptr)+(20))>>2)]=tempI64[1]);
-            HEAPF32[(((ptr)+(24))>>2)]=x;
-            HEAPF32[(((ptr)+(28))>>2)]=y;
-            HEAPF32[(((ptr)+(32))>>2)]=dx;
-            HEAPF32[(((ptr)+(36))>>2)]=dy;
-            if (touch.force !== undefined) {
-              HEAPF32[(((ptr)+(40))>>2)]=touch.force;
-            } else { // No pressure data, send a digital 0/1 pressure.
-              HEAPF32[(((ptr)+(40))>>2)]=event.type == "touchend" ? 0 : 1;
-            }
-            break;
-          }
-          case 'unload': {
-            HEAP32[((ptr)>>2)]=SDL.DOMEventToSDLEvent[event.type];
-            break;
-          }
-          case 'resize': {
-            HEAP32[((ptr)>>2)]=SDL.DOMEventToSDLEvent[event.type];
-            HEAP32[(((ptr)+(4))>>2)]=event.w;
-            HEAP32[(((ptr)+(8))>>2)]=event.h;
-            break;
-          }
-          case 'joystick_button_up': case 'joystick_button_down': {
-            var state = event.type === 'joystick_button_up' ? 0 : 1;
-            HEAP32[((ptr)>>2)]=SDL.DOMEventToSDLEvent[event.type];
-            HEAP8[(((ptr)+(4))>>0)]=event.index;
-            HEAP8[(((ptr)+(5))>>0)]=event.button;
-            HEAP8[(((ptr)+(6))>>0)]=state;
-            break;
-          }
-          case 'joystick_axis_motion': {
-            HEAP32[((ptr)>>2)]=SDL.DOMEventToSDLEvent[event.type];
-            HEAP8[(((ptr)+(4))>>0)]=event.index;
-            HEAP8[(((ptr)+(5))>>0)]=event.axis;
-            HEAP32[(((ptr)+(8))>>2)]=SDL.joystickAxisValueConversion(event.value);
-            break;
-          }
-          case 'focus': {
-            var SDL_WINDOWEVENT_FOCUS_GAINED = 12 /* SDL_WINDOWEVENT_FOCUS_GAINED */;
-            HEAP32[((ptr)>>2)]=SDL.DOMEventToSDLEvent[event.type];
-            HEAP32[(((ptr)+(4))>>2)]=0;
-            HEAP8[(((ptr)+(8))>>0)]=SDL_WINDOWEVENT_FOCUS_GAINED;
-            break;
-          }
-          case 'blur': {
-            var SDL_WINDOWEVENT_FOCUS_LOST = 13 /* SDL_WINDOWEVENT_FOCUS_LOST */;
-            HEAP32[((ptr)>>2)]=SDL.DOMEventToSDLEvent[event.type];
-            HEAP32[(((ptr)+(4))>>2)]=0;
-            HEAP8[(((ptr)+(8))>>0)]=SDL_WINDOWEVENT_FOCUS_LOST;
-            break;
-          }
-          case 'visibilitychange': {
-            var SDL_WINDOWEVENT_SHOWN  = 1 /* SDL_WINDOWEVENT_SHOWN */;
-            var SDL_WINDOWEVENT_HIDDEN = 2 /* SDL_WINDOWEVENT_HIDDEN */;
-            var visibilityEventID = event.visible ? SDL_WINDOWEVENT_SHOWN : SDL_WINDOWEVENT_HIDDEN;
-            HEAP32[((ptr)>>2)]=SDL.DOMEventToSDLEvent[event.type];
-            HEAP32[(((ptr)+(4))>>2)]=0;
-            HEAP8[(((ptr)+(8))>>0)]=visibilityEventID;
-            break;
-          }
-          default: throw 'Unhandled SDL event: ' + event.type;
-        }
-      },estimateTextWidth:function (fontData, text) {
-        var h = fontData.size;
-        var fontString = h + 'px ' + fontData.name;
-        var tempCtx = SDL.ttfContext;
-        tempCtx.save();
-        tempCtx.font = fontString;
-        var ret = tempCtx.measureText(text).width | 0;
-        tempCtx.restore();
-        return ret;
-      },allocateChannels:function (num) { // called from Mix_AllocateChannels and init
-        if (SDL.numChannels && SDL.numChannels >= num && num != 0) return;
-        SDL.numChannels = num;
-        SDL.channels = [];
-        for (var i = 0; i < num; i++) {
-          SDL.channels[i] = {
-            audio: null,
-            volume: 1.0
-          };
-        }
-      },setGetVolume:function (info, volume) {
-        if (!info) return 0;
-        var ret = info.volume * 128; // MIX_MAX_VOLUME
-        if (volume != -1) {
-          info.volume = Math.min(Math.max(volume, 0), 128) / 128;
-          if (info.audio) {
-            try {
-              info.audio.volume = info.volume; // For <audio> element
-              if (info.audio.webAudioGainNode) info.audio.webAudioGainNode['gain']['value'] = info.volume; // For WebAudio playback
-            } catch(e) {
-              Module.printErr('setGetVolume failed to set audio volume: ' + e);
-            }
-          }
-        }
-        return ret;
-      },setPannerPosition:function (info, x, y, z) {
-        if (!info) return;
-        if (info.audio) {
-          if (info.audio.webAudioPannerNode) {
-            info.audio.webAudioPannerNode['setPosition'](x, y, z);
-          }
-        }
-      },playWebAudio:function (audio) {
-        if (!audio) return;
-        if (audio.webAudioNode) return; // This instance is already playing, don't start again.
-        if (!SDL.webAudioAvailable()) return;
-        try {
-          var webAudio = audio.resource.webAudio;
-          audio.paused = false;
-          if (!webAudio.decodedBuffer) {
-            if (webAudio.onDecodeComplete === undefined) abort("Cannot play back audio object that was not loaded");
-            webAudio.onDecodeComplete.push(function() { if (!audio.paused) SDL.playWebAudio(audio); });
-            return;
-          }
-          audio.webAudioNode = SDL.audioContext['createBufferSource']();
-          audio.webAudioNode['buffer'] = webAudio.decodedBuffer;
-          audio.webAudioNode['loop'] = audio.loop;
-          audio.webAudioNode['onended'] = function() { audio['onended'](); } // For <media> element compatibility, route the onended signal to the instance.
-  
-          audio.webAudioPannerNode = SDL.audioContext['createPanner']();
-          // avoid Chrome bug
-          // If posz = 0, the sound will come from only the right.
-          // By posz = -0.5 (slightly ahead), the sound will come from right and left correctly.
-          audio.webAudioPannerNode["setPosition"](0, 0, -.5);
-          audio.webAudioPannerNode['panningModel'] = 'equalpower';
-  
-          // Add an intermediate gain node to control volume.
-          audio.webAudioGainNode = SDL.audioContext['createGain']();
-          audio.webAudioGainNode['gain']['value'] = audio.volume;
-  
-          audio.webAudioNode['connect'](audio.webAudioPannerNode);
-          audio.webAudioPannerNode['connect'](audio.webAudioGainNode);
-          audio.webAudioGainNode['connect'](SDL.audioContext['destination']);
-  
-          audio.webAudioNode['start'](0, audio.currentPosition);
-          audio.startTime = SDL.audioContext['currentTime'] - audio.currentPosition;
-        } catch(e) {
-          Module.printErr('playWebAudio failed: ' + e);
-        }
-      },pauseWebAudio:function (audio) {
-        if (!audio) return;
-        if (audio.webAudioNode) {
-          try {
-            // Remember where we left off, so that if/when we resume, we can restart the playback at a proper place.
-            audio.currentPosition = (SDL.audioContext['currentTime'] - audio.startTime) % audio.resource.webAudio.decodedBuffer.duration;
-            // Important: When we reach here, the audio playback is stopped by the user. But when calling .stop() below, the Web Audio
-            // graph will send the onended signal, but we don't want to process that, since pausing should not clear/destroy the audio
-            // channel.
-            audio.webAudioNode['onended'] = undefined;
-            audio.webAudioNode.stop(0); // 0 is a default parameter, but WebKit is confused by it #3861
-            audio.webAudioNode = undefined;
-          } catch(e) {
-            Module.printErr('pauseWebAudio failed: ' + e);
-          }
-        }
-        audio.paused = true;
-      },openAudioContext:function () {
-        // Initialize Web Audio API if we haven't done so yet. Note: Only initialize Web Audio context ever once on the web page,
-        // since initializing multiple times fails on Chrome saying 'audio resources have been exhausted'.
-        if (!SDL.audioContext) {
-          if (typeof(AudioContext) !== 'undefined') SDL.audioContext = new AudioContext();
-          else if (typeof(webkitAudioContext) !== 'undefined') SDL.audioContext = new webkitAudioContext();
-        }
-      },webAudioAvailable:function () { return !!SDL.audioContext; },fillWebAudioBufferFromHeap:function (heapPtr, sizeSamplesPerChannel, dstAudioBuffer) {
-        // The input audio data is interleaved across the channels, i.e. [L, R, L, R, L, R, ...] and is either 8-bit or 16-bit as
-        // supported by the SDL API. The output audio wave data for Web Audio API must be in planar buffers of [-1,1]-normalized Float32 data,
-        // so perform a buffer conversion for the data.
-        var numChannels = SDL.audio.channels;
-        for(var c = 0; c < numChannels; ++c) {
-          var channelData = dstAudioBuffer['getChannelData'](c);
-          if (channelData.length != sizeSamplesPerChannel) {
-            throw 'Web Audio output buffer length mismatch! Destination size: ' + channelData.length + ' samples vs expected ' + sizeSamplesPerChannel + ' samples!';
-          }
-          if (SDL.audio.format == 0x8010 /*AUDIO_S16LSB*/) {
-            for(var j = 0; j < sizeSamplesPerChannel; ++j) {
-              channelData[j] = (HEAP16[(((heapPtr)+((j*numChannels + c)*2))>>1)]) / 0x8000;
-            }
-          } else if (SDL.audio.format == 0x0008 /*AUDIO_U8*/) {
-            for(var j = 0; j < sizeSamplesPerChannel; ++j) {
-              var v = (HEAP8[(((heapPtr)+(j*numChannels + c))>>0)]);
-              channelData[j] = ((v >= 0) ? v-128 : v+128) /128;
-            }
-          }
-        }
-      },debugSurface:function (surfData) {
-        console.log('dumping surface ' + [surfData.surf, surfData.source, surfData.width, surfData.height]);
-        var image = surfData.ctx.getImageData(0, 0, surfData.width, surfData.height);
-        var data = image.data;
-        var num = Math.min(surfData.width, surfData.height);
-        for (var i = 0; i < num; i++) {
-          console.log('   diagonal ' + i + ':' + [data[i*surfData.width*4 + i*4 + 0], data[i*surfData.width*4 + i*4 + 1], data[i*surfData.width*4 + i*4 + 2], data[i*surfData.width*4 + i*4 + 3]]);
-        }
-      },joystickEventState:1,lastJoystickState:{},joystickNamePool:{},recordJoystickState:function (joystick, state) {
-        // Standardize button state.
-        var buttons = new Array(state.buttons.length);
-        for (var i = 0; i < state.buttons.length; i++) {
-          buttons[i] = SDL.getJoystickButtonState(state.buttons[i]);
-        }
-  
-        SDL.lastJoystickState[joystick] = {
-          buttons: buttons,
-          axes: state.axes.slice(0),
-          timestamp: state.timestamp,
-          index: state.index,
-          id: state.id
-        };
-      },getJoystickButtonState:function (button) {
-        if (typeof button === 'object') {
-          // Current gamepad API editor's draft (Firefox Nightly)
-          // https://dvcs.w3.org/hg/gamepad/raw-file/default/gamepad.html#idl-def-GamepadButton
-          return button['pressed'];
-        } else {
-          // Current gamepad API working draft (Firefox / Chrome Stable)
-          // http://www.w3.org/TR/2012/WD-gamepad-20120529/#gamepad-interface
-          return button > 0;
-        }
-      },queryJoysticks:function () {
-        for (var joystick in SDL.lastJoystickState) {
-          var state = SDL.getGamepad(joystick - 1);
-          var prevState = SDL.lastJoystickState[joystick];
-          // If joystick was removed, state returns null.
-          if (typeof state === 'undefined') return;
-          // Check only if the timestamp has differed.
-          // NOTE: Timestamp is not available in Firefox.
-          if (typeof state.timestamp !== 'number' || state.timestamp !== prevState.timestamp) {
-            var i;
-            for (i = 0; i < state.buttons.length; i++) {
-              var buttonState = SDL.getJoystickButtonState(state.buttons[i]);
-              // NOTE: The previous state already has a boolean representation of
-              //       its button, so no need to standardize its button state here.
-              if (buttonState !== prevState.buttons[i]) {
-                // Insert button-press event.
-                SDL.events.push({
-                  type: buttonState ? 'joystick_button_down' : 'joystick_button_up',
-                  joystick: joystick,
-                  index: joystick - 1,
-                  button: i
-                });
-              }
-            }
-            for (i = 0; i < state.axes.length; i++) {
-              if (state.axes[i] !== prevState.axes[i]) {
-                // Insert axes-change event.
-                SDL.events.push({
-                  type: 'joystick_axis_motion',
-                  joystick: joystick,
-                  index: joystick - 1,
-                  axis: i,
-                  value: state.axes[i]
-                });
-              }
-            }
-  
-            SDL.recordJoystickState(joystick, state);
-          }
-        }
-      },joystickAxisValueConversion:function (value) {
-        // Make sure value is properly clamped
-        value = Math.min(1, Math.max(value, -1));
-        // Ensures that 0 is 0, 1 is 32767, and -1 is 32768.
-        return Math.ceil(((value+1) * 32767.5) - 32768);
-      },getGamepads:function () {
-        var fcn = navigator.getGamepads || navigator.webkitGamepads || navigator.mozGamepads || navigator.gamepads || navigator.webkitGetGamepads;
-        if (fcn !== undefined) {
-          // The function must be applied on the navigator object.
-          return fcn.apply(navigator);
-        } else {
-          return [];
-        }
-      },getGamepad:function (deviceIndex) {
-        var gamepads = SDL.getGamepads();
-        if (gamepads.length > deviceIndex && deviceIndex >= 0) {
-          return gamepads[deviceIndex];
-        }
-        return null;
-      }};function _SDL_PauseAudio(pauseOn) {
-      if (!SDL.audio) {
-        return;
-      }
-      if (pauseOn) {
-        if (SDL.audio.timer !== undefined) {
-          clearTimeout(SDL.audio.timer);
-          SDL.audio.numAudioTimersPending = 0;
-          SDL.audio.timer = undefined;
-        }
-      } else if (!SDL.audio.timer) {
-        // Start the audio playback timer callback loop.
-        SDL.audio.numAudioTimersPending = 1;
-        SDL.audio.timer = Browser.safeSetTimeout(SDL.audio.caller, 1);
-      }
-      SDL.audio.paused = pauseOn;
-    }
-
-  
   function __ZSt18uncaught_exceptionv() { // std::uncaught_exception()
       return !!__ZSt18uncaught_exceptionv.uncaught_exception;
     }
@@ -7954,8 +5824,16 @@ function copyTempDouble(ptr) {
   return ___syscall214.apply(null, arguments)
   }
 
-  function _csoundModuleInit_ftsamplebank() {
-  Module['printErr']('missing function: csoundModuleInit_ftsamplebank'); abort(-1);
+  function ___syscall207(which, varargs) {SYSCALLS.varargs = varargs;
+  try {
+   // fchown32
+      var fd = SYSCALLS.get(), owner = SYSCALLS.get(), group = SYSCALLS.get();
+      FS.fchown(fd, owner, group);
+      return 0;
+    } catch (e) {
+    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
+    return -e.errno;
+  }
   }
 
   function ___syscall168(which, varargs) {SYSCALLS.varargs = varargs;
@@ -7999,6 +5877,7 @@ function copyTempDouble(ptr) {
       // http://pubs.opengroup.org/onlinepubs/000095399/functions/kill.html
       // Makes no sense in a single-process environment.
   	  // Should kill itself somtimes depending on `pid`
+      Module.printErr('Calling stub instead of kill()');
       ___setErrNo(ERRNO_CODES.EPERM);
       return -1;
     }
@@ -8080,7 +5959,6 @@ function copyTempDouble(ptr) {
   function ___restore_sigs() {
   Module['printErr']('missing function: __restore_sigs'); abort(-1);
   }
-
 
   function ___assert_fail(condition, filename, line, func) {
       ABORT = true;
@@ -8580,14 +6458,12 @@ function copyTempDouble(ptr) {
   }
   }
 
-  function ___syscall301(which, varargs) {SYSCALLS.varargs = varargs;
+  function ___syscall147(which, varargs) {SYSCALLS.varargs = varargs;
   try {
-   // unlinkat
-      var dirfd = SYSCALLS.get(), path = SYSCALLS.getStr(), flags = SYSCALLS.get();
-      assert(flags === 0);
-      path = SYSCALLS.calculateAt(dirfd, path);
-      FS.unlink(path);
-      return 0;
+   // getsid
+      var pid = SYSCALLS.get();
+      if (pid && pid !== PROCINFO.pid) return -ERRNO_CODES.ESRCH;
+      return PROCINFO.sid;
     } catch (e) {
     if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
     return -e.errno;
@@ -8624,6 +6500,8 @@ function copyTempDouble(ptr) {
   }
 
 
+  
+  function _emscripten_get_now() { abort() }
   
   function _emscripten_get_now_is_monotonic() {
       // return whether emscripten_get_now is guaranteed monotonic; the Date.now
@@ -8687,17 +6565,6 @@ function copyTempDouble(ptr) {
 
   function _res_query() {
   Module['printErr']('missing function: res_query'); abort(-1);
-  }
-
-  function ___syscall269(which, varargs) {SYSCALLS.varargs = varargs;
-  try {
-   // fstatfs64
-      var stream = SYSCALLS.getStreamFromFD(), size = SYSCALLS.get(), buf = SYSCALLS.get();
-      return ___syscall([268, 0, size, buf], 0);
-    } catch (e) {
-    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
-    return -e.errno;
-  }
   }
 
   
@@ -9120,17 +6987,25 @@ function copyTempDouble(ptr) {
   }
   }
 
-  function _SDL_GetError() {
-      if (!SDL.errorMessage) {
-        SDL.errorMessage = allocate(intArrayFromString("unknown SDL-emscripten error"), 'i8', ALLOC_NORMAL);
-      }
-      return SDL.errorMessage;
-    }
-
   function _posix_spawn_file_actions_destroy() {
   Module['printErr']('missing function: posix_spawn_file_actions_destroy'); abort(-1);
   }
 
+  function ___syscall77(which, varargs) {SYSCALLS.varargs = varargs;
+  try {
+   // getrusage
+      var who = SYSCALLS.get(), usage = SYSCALLS.get();
+      _memset(usage, 0, 136);
+      HEAP32[((usage)>>2)]=1; // fake some values
+      HEAP32[(((usage)+(4))>>2)]=2;
+      HEAP32[(((usage)+(8))>>2)]=3;
+      HEAP32[(((usage)+(12))>>2)]=4;
+      return 0;
+    } catch (e) {
+    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
+    return -e.errno;
+  }
+  }
 
   function ___syscall75(which, varargs) {SYSCALLS.varargs = varargs;
   try {
@@ -9159,6 +7034,72 @@ function copyTempDouble(ptr) {
   Module['printErr']('missing function: csp_orc_sa_print_list'); abort(-1);
   }
 
+  
+  
+  
+  
+  var _environ=STATICTOP; STATICTOP += 16;;var ___environ=_environ;function ___buildEnvironment(env) {
+      // WARNING: Arbitrary limit!
+      var MAX_ENV_VALUES = 64;
+      var TOTAL_ENV_SIZE = 1024;
+  
+      // Statically allocate memory for the environment.
+      var poolPtr;
+      var envPtr;
+      if (!___buildEnvironment.called) {
+        ___buildEnvironment.called = true;
+        // Set default values. Use string keys for Closure Compiler compatibility.
+        ENV['USER'] = ENV['LOGNAME'] = 'web_user';
+        ENV['PATH'] = '/';
+        ENV['PWD'] = '/';
+        ENV['HOME'] = '/home/web_user';
+        ENV['LANG'] = 'C';
+        ENV['_'] = Module['thisProgram'];
+        // Allocate memory.
+        poolPtr = allocate(TOTAL_ENV_SIZE, 'i8', ALLOC_STATIC);
+        envPtr = allocate(MAX_ENV_VALUES * 4,
+                          'i8*', ALLOC_STATIC);
+        HEAP32[((envPtr)>>2)]=poolPtr;
+        HEAP32[((_environ)>>2)]=envPtr;
+      } else {
+        envPtr = HEAP32[((_environ)>>2)];
+        poolPtr = HEAP32[((envPtr)>>2)];
+      }
+  
+      // Collect key=value lines.
+      var strings = [];
+      var totalSize = 0;
+      for (var key in env) {
+        if (typeof env[key] === 'string') {
+          var line = key + '=' + env[key];
+          strings.push(line);
+          totalSize += line.length;
+        }
+      }
+      if (totalSize > TOTAL_ENV_SIZE) {
+        throw new Error('Environment size exceeded TOTAL_ENV_SIZE!');
+      }
+  
+      // Make new.
+      var ptrSize = 4;
+      for (var i = 0; i < strings.length; i++) {
+        var line = strings[i];
+        writeAsciiToMemory(line, poolPtr);
+        HEAP32[(((envPtr)+(i * ptrSize))>>2)]=poolPtr;
+        poolPtr += line.length + 1;
+      }
+      HEAP32[(((envPtr)+(strings.length * ptrSize))>>2)]=0;
+    }var ENV={};function _getenv(name) {
+      // char *getenv(const char *name);
+      // http://pubs.opengroup.org/onlinepubs/009695399/functions/getenv.html
+      if (name === 0) return 0;
+      name = Pointer_stringify(name);
+      if (!ENV.hasOwnProperty(name)) return 0;
+  
+      if (_getenv.ret) _free(_getenv.ret);
+      _getenv.ret = allocate(intArrayFromString(ENV[name]), 'i8', ALLOC_NORMAL);
+      return _getenv.ret;
+    }
 
   
   
@@ -9619,199 +7560,6 @@ function copyTempDouble(ptr) {
   }
   }
 
-  function _SDL_OpenAudio(desired, obtained) {
-      try {
-        SDL.audio = {
-          freq: HEAPU32[((desired)>>2)],
-          format: HEAPU16[(((desired)+(4))>>1)],
-          channels: HEAPU8[(((desired)+(6))>>0)],
-          samples: HEAPU16[(((desired)+(8))>>1)], // Samples in the CB buffer per single sound channel.
-          callback: HEAPU32[(((desired)+(16))>>2)],
-          userdata: HEAPU32[(((desired)+(20))>>2)],
-          paused: true,
-          timer: null
-        };
-        // The .silence field tells the constant sample value that corresponds to the safe un-skewed silence value for the wave data.
-        if (SDL.audio.format == 0x0008 /*AUDIO_U8*/) {
-          SDL.audio.silence = 128; // Audio ranges in [0, 255], so silence is half-way in between.
-        } else if (SDL.audio.format == 0x8010 /*AUDIO_S16LSB*/) {
-          SDL.audio.silence = 0; // Signed data in range [-32768, 32767], silence is 0.
-        } else {
-          throw 'Invalid SDL audio format ' + SDL.audio.format + '!';
-        }
-        // Round the desired audio frequency up to the next 'common' frequency value.
-        // Web Audio API spec states 'An implementation must support sample-rates in at least the range 22050 to 96000.'
-        if (SDL.audio.freq <= 0) {
-          throw 'Unsupported sound frequency ' + SDL.audio.freq + '!';
-        } else if (SDL.audio.freq <= 22050) {
-          SDL.audio.freq = 22050; // Take it safe and clamp everything lower than 22kHz to that.
-        } else if (SDL.audio.freq <= 32000) {
-          SDL.audio.freq = 32000;
-        } else if (SDL.audio.freq <= 44100) {
-          SDL.audio.freq = 44100;
-        } else if (SDL.audio.freq <= 48000) {
-          SDL.audio.freq = 48000;
-        } else if (SDL.audio.freq <= 96000) {
-          SDL.audio.freq = 96000;
-        } else {
-          throw 'Unsupported sound frequency ' + SDL.audio.freq + '!';
-        }
-        if (SDL.audio.channels == 0) {
-          SDL.audio.channels = 1; // In SDL both 0 and 1 mean mono.
-        } else if (SDL.audio.channels < 0 || SDL.audio.channels > 32) {
-          throw 'Unsupported number of audio channels for SDL audio: ' + SDL.audio.channels + '!';
-        } else if (SDL.audio.channels != 1 && SDL.audio.channels != 2) { // Unsure what SDL audio spec supports. Web Audio spec supports up to 32 channels.
-          console.log('Warning: Using untested number of audio channels ' + SDL.audio.channels);
-        }
-        if (SDL.audio.samples < 128 || SDL.audio.samples > 524288 /* arbitrary cap */) {
-          throw 'Unsupported audio callback buffer size ' + SDL.audio.samples + '!';
-        } else if ((SDL.audio.samples & (SDL.audio.samples-1)) != 0) {
-          throw 'Audio callback buffer size ' + SDL.audio.samples + ' must be a power-of-two!';
-        }
-        
-        var totalSamples = SDL.audio.samples*SDL.audio.channels;
-        SDL.audio.bytesPerSample = (SDL.audio.format == 0x0008 /*AUDIO_U8*/ || SDL.audio.format == 0x8008 /*AUDIO_S8*/) ? 1 : 2;
-        SDL.audio.bufferSize = totalSamples*SDL.audio.bytesPerSample;
-        SDL.audio.bufferDurationSecs = SDL.audio.bufferSize / SDL.audio.bytesPerSample / SDL.audio.channels / SDL.audio.freq; // Duration of a single queued buffer in seconds.
-        SDL.audio.bufferingDelay = 50 / 1000; // Audio samples are played with a constant delay of this many seconds to account for browser and jitter.
-        SDL.audio.buffer = _malloc(SDL.audio.bufferSize);
-        
-        // To account for jittering in frametimes, always have multiple audio buffers queued up for the audio output device.
-        // This helps that we won't starve that easily if a frame takes long to complete.
-        SDL.audio.numSimultaneouslyQueuedBuffers = Module['SDL_numSimultaneouslyQueuedBuffers'] || 5;
-  
-        // Pulls and queues new audio data if appropriate. This function gets "over-called" in both requestAnimationFrames and
-        // setTimeouts to ensure that we get the finest granularity possible and as many chances from the browser to fill
-        // new audio data. This is because setTimeouts alone have very poor granularity for audio streaming purposes, but also
-        // the application might not be using emscripten_set_main_loop to drive the main loop, so we cannot rely on that alone.
-        SDL.audio.queueNewAudioData = function SDL_queueNewAudioData() {
-          if (!SDL.audio) return;
-  
-          for(var i = 0; i < SDL.audio.numSimultaneouslyQueuedBuffers; ++i) {
-            // Only queue new data if we don't have enough audio data already in queue. Otherwise skip this time slot
-            // and wait to queue more in the next time the callback is run.
-            var secsUntilNextPlayStart = SDL.audio.nextPlayTime - SDL.audioContext['currentTime'];
-            if (secsUntilNextPlayStart >= SDL.audio.bufferingDelay + SDL.audio.bufferDurationSecs*SDL.audio.numSimultaneouslyQueuedBuffers) return;
-  
-            // Ask SDL audio data from the user code.
-            Module['dynCall_viii'](SDL.audio.callback, SDL.audio.userdata, SDL.audio.buffer, SDL.audio.bufferSize);
-            // And queue it to be played after the currently playing audio stream.
-            SDL.audio.pushAudio(SDL.audio.buffer, SDL.audio.bufferSize);
-          }
-        } 
-  
-  
-        // Create a callback function that will be routinely called to ask more audio data from the user application.
-        SDL.audio.caller = function SDL_audioCaller() {
-          if (!SDL.audio) return;
-  
-          --SDL.audio.numAudioTimersPending;
-  
-          SDL.audio.queueNewAudioData();
-  
-          // Queue this callback function to be called again later to pull more audio data.
-          var secsUntilNextPlayStart = SDL.audio.nextPlayTime - SDL.audioContext['currentTime'];
-  
-          // Queue the next audio frame push to be performed half-way when the previously queued buffer has finished playing.
-          var preemptBufferFeedSecs = SDL.audio.bufferDurationSecs/2.0;
-  
-          if (SDL.audio.numAudioTimersPending < SDL.audio.numSimultaneouslyQueuedBuffers) {
-            ++SDL.audio.numAudioTimersPending;
-            SDL.audio.timer = Browser.safeSetTimeout(SDL.audio.caller, Math.max(0.0, 1000.0*(secsUntilNextPlayStart-preemptBufferFeedSecs)));
-  
-            // If we are risking starving, immediately queue an extra buffer.
-            if (SDL.audio.numAudioTimersPending < SDL.audio.numSimultaneouslyQueuedBuffers) {
-              ++SDL.audio.numAudioTimersPending;
-              Browser.safeSetTimeout(SDL.audio.caller, 1.0);
-            }
-          }
-        };
-        
-        SDL.audio.audioOutput = new Audio();
-  
-        // Initialize Web Audio API if we haven't done so yet. Note: Only initialize Web Audio context ever once on the web page,
-        // since initializing multiple times fails on Chrome saying 'audio resources have been exhausted'.
-        SDL.openAudioContext();
-        if (!SDL.audioContext) throw 'Web Audio API is not available!';
-        SDL.audio.nextPlayTime = 0; // Time in seconds when the next audio block is due to start.
-        
-        // The pushAudio function with a new audio buffer whenever there is new audio data to schedule to be played back on the device.
-        SDL.audio.pushAudio=function(ptr,sizeBytes) {
-          try {
-            if (SDL.audio.paused) return;
-  
-            var sizeSamples = sizeBytes / SDL.audio.bytesPerSample; // How many samples fit in the callback buffer?
-            var sizeSamplesPerChannel = sizeSamples / SDL.audio.channels; // How many samples per a single channel fit in the cb buffer?
-            if (sizeSamplesPerChannel != SDL.audio.samples) {
-              throw 'Received mismatching audio buffer size!';
-            }
-            // Allocate new sound buffer to be played.
-            var source = SDL.audioContext['createBufferSource']();
-            var soundBuffer = SDL.audioContext['createBuffer'](SDL.audio.channels,sizeSamplesPerChannel,SDL.audio.freq);
-            source['connect'](SDL.audioContext['destination']);
-  
-            SDL.fillWebAudioBufferFromHeap(ptr, sizeSamplesPerChannel, soundBuffer);
-            // Workaround https://bugzilla.mozilla.org/show_bug.cgi?id=883675 by setting the buffer only after filling. The order is important here!
-            source['buffer'] = soundBuffer;
-            
-            // Schedule the generated sample buffer to be played out at the correct time right after the previously scheduled
-            // sample buffer has finished.
-            var curtime = SDL.audioContext['currentTime'];
-            // Don't ever start buffer playbacks earlier from current time than a given constant 'SDL.audio.bufferingDelay', since a browser 
-            // may not be able to mix that audio clip in immediately, and there may be subsequent jitter that might cause the stream to starve.
-            var playtime = Math.max(curtime + SDL.audio.bufferingDelay, SDL.audio.nextPlayTime);
-            if (typeof source['start'] !== 'undefined') {
-              source['start'](playtime); // New Web Audio API: sound sources are started with a .start() call.
-            } else if (typeof source['noteOn'] !== 'undefined') {
-              source['noteOn'](playtime); // Support old Web Audio API specification which had the .noteOn() API.
-            }
-            /*
-            // Uncomment to debug SDL buffer feed starves.
-            if (SDL.audio.curBufferEnd) {
-              var thisBufferStart = Math.round(playtime * SDL.audio.freq);
-              if (thisBufferStart != SDL.audio.curBufferEnd) console.log('SDL starved ' + (thisBufferStart - SDL.audio.curBufferEnd) + ' samples!');
-            }
-            SDL.audio.curBufferEnd = Math.round(playtime * SDL.audio.freq + sizeSamplesPerChannel);
-            */
-            
-            SDL.audio.nextPlayTime = playtime + SDL.audio.bufferDurationSecs;
-          } catch(e) {
-            console.log('Web Audio API error playing back audio: ' + e.toString());
-          }
-        }
-  
-        if (obtained) {
-          // Report back the initialized audio parameters.
-          HEAP32[((obtained)>>2)]=SDL.audio.freq;
-          HEAP16[(((obtained)+(4))>>1)]=SDL.audio.format;
-          HEAP8[(((obtained)+(6))>>0)]=SDL.audio.channels;
-          HEAP8[(((obtained)+(7))>>0)]=SDL.audio.silence;
-          HEAP16[(((obtained)+(8))>>1)]=SDL.audio.samples;
-          HEAP32[(((obtained)+(16))>>2)]=SDL.audio.callback;
-          HEAP32[(((obtained)+(20))>>2)]=SDL.audio.userdata;
-        }
-        SDL.allocateChannels(32);
-  
-      } catch(e) {
-        console.log('Initializing SDL audio threw an exception: "' + e.toString() + '"! Continuing without audio.');
-        SDL.audio = null;
-        SDL.allocateChannels(0);
-        if (obtained) {
-          HEAP32[((obtained)>>2)]=0;
-          HEAP16[(((obtained)+(4))>>1)]=0;
-          HEAP8[(((obtained)+(6))>>0)]=0;
-          HEAP8[(((obtained)+(7))>>0)]=0;
-          HEAP16[(((obtained)+(8))>>1)]=0;
-          HEAP32[(((obtained)+(16))>>2)]=0;
-          HEAP32[(((obtained)+(20))>>2)]=0;
-        }
-      }
-      if (!SDL.audio) {
-        return -1;
-      }
-      return 0;
-    }
-
   function _globallock() {
   Module['printErr']('missing function: globallock'); abort(-1);
   }
@@ -9839,21 +7587,6 @@ function copyTempDouble(ptr) {
   }
   }
 
-  function ___syscall77(which, varargs) {SYSCALLS.varargs = varargs;
-  try {
-   // getrusage
-      var who = SYSCALLS.get(), usage = SYSCALLS.get();
-      _memset(usage, 0, 136);
-      HEAP32[((usage)>>2)]=1; // fake some values
-      HEAP32[(((usage)+(4))>>2)]=2;
-      HEAP32[(((usage)+(8))>>2)]=3;
-      HEAP32[(((usage)+(12))>>2)]=4;
-      return 0;
-    } catch (e) {
-    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
-    return -e.errno;
-  }
-  }
 
   function ___syscall66(which, varargs) {SYSCALLS.varargs = varargs;
   try {
@@ -10040,10 +7773,14 @@ function copyTempDouble(ptr) {
   
   
   
-  function ___cxa_free_exception(ptr) {
+  
+  function _free() {
+  }
+  Module["_free"] = _free;function ___cxa_free_exception(ptr) {
       try {
         return _free(ptr);
       } catch(e) { // XXX FIXME
+        Module.printErr('exception during cxa_free_exception: ' + e);
       }
     }function ___cxa_end_catch() {
       // Clear state flag.
@@ -10253,7 +7990,17 @@ function copyTempDouble(ptr) {
   }
   }
 
-  function ___cxa_allocate_exception(size) {
+  
+  function _malloc(bytes) {
+      /* Over-allocate to make sure it is byte-aligned by 8.
+       * This will leak memory, but this is only the dummy
+       * implementation (replaced by dlmalloc normally) so
+       * not an issue.
+       */
+      var ptr = Runtime.dynamicAlloc(bytes + 8);
+      return (ptr+8) & 0xFFFFFFF8;
+    }
+  Module["_malloc"] = _malloc;function ___cxa_allocate_exception(size) {
       return _malloc(size);
     }
 
@@ -10329,6 +8076,17 @@ function copyTempDouble(ptr) {
   Module['printErr']('missing function: llvm_fma_f64'); abort(-1);
   }
 
+  function ___syscall269(which, varargs) {SYSCALLS.varargs = varargs;
+  try {
+   // fstatfs64
+      var stream = SYSCALLS.getStreamFromFD(), size = SYSCALLS.get(), buf = SYSCALLS.get();
+      return ___syscall([268, 0, size, buf], 0);
+    } catch (e) {
+    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
+    return -e.errno;
+  }
+  }
+
   function ___syscall307(which, varargs) {SYSCALLS.varargs = varargs;
   try {
    // faccessat
@@ -10345,18 +8103,6 @@ function copyTempDouble(ptr) {
   function _setitimer() {
       throw 'setitimer() is not implemented yet';
     }
-
-  function ___syscall207(which, varargs) {SYSCALLS.varargs = varargs;
-  try {
-   // fchown32
-      var fd = SYSCALLS.get(), owner = SYSCALLS.get(), group = SYSCALLS.get();
-      FS.fchown(fd, owner, group);
-      return 0;
-    } catch (e) {
-    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
-    return -e.errno;
-  }
-  }
 
   
   var SOCKFS={mount:function (mount) {
@@ -11171,12 +8917,14 @@ function copyTempDouble(ptr) {
   }
   }
 
-  function ___syscall147(which, varargs) {SYSCALLS.varargs = varargs;
+  function ___syscall301(which, varargs) {SYSCALLS.varargs = varargs;
   try {
-   // getsid
-      var pid = SYSCALLS.get();
-      if (pid && pid !== PROCINFO.pid) return -ERRNO_CODES.ESRCH;
-      return PROCINFO.sid;
+   // unlinkat
+      var dirfd = SYSCALLS.get(), path = SYSCALLS.getStr(), flags = SYSCALLS.get();
+      assert(flags === 0);
+      path = SYSCALLS.calculateAt(dirfd, path);
+      FS.unlink(path);
+      return 0;
     } catch (e) {
     if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
     return -e.errno;
@@ -11271,14 +9019,6 @@ function copyTempDouble(ptr) {
 FS.staticInit();__ATINIT__.unshift(function() { if (!Module["noFSInit"] && !FS.init.initialized) FS.init() });__ATMAIN__.push(function() { FS.ignorePermissions = false });__ATEXIT__.push(function() { FS.quit() });Module["FS_createFolder"] = FS.createFolder;Module["FS_createPath"] = FS.createPath;Module["FS_createDataFile"] = FS.createDataFile;Module["FS_createPreloadedFile"] = FS.createPreloadedFile;Module["FS_createLazyFile"] = FS.createLazyFile;Module["FS_createLink"] = FS.createLink;Module["FS_createDevice"] = FS.createDevice;Module["FS_unlink"] = FS.unlink;;
 __ATINIT__.unshift(function() { TTY.init() });__ATEXIT__.push(function() { TTY.shutdown() });;
 if (ENVIRONMENT_IS_NODE) { var fs = require("fs"); var NODEJS_PATH = require("path"); NODEFS.staticInit(); };
-Module["requestFullScreen"] = function Module_requestFullScreen(lockPointer, resizeCanvas, vrDevice) { Module.printErr("Module.requestFullScreen is deprecated. Please call Module.requestFullscreen instead."); Module["requestFullScreen"] = Module["requestFullscreen"]; Browser.requestFullScreen(lockPointer, resizeCanvas, vrDevice) };
-  Module["requestFullscreen"] = function Module_requestFullscreen(lockPointer, resizeCanvas, vrDevice) { Browser.requestFullscreen(lockPointer, resizeCanvas, vrDevice) };
-  Module["requestAnimationFrame"] = function Module_requestAnimationFrame(func) { Browser.requestAnimationFrame(func) };
-  Module["setCanvasSize"] = function Module_setCanvasSize(width, height, noUpdates) { Browser.setCanvasSize(width, height, noUpdates) };
-  Module["pauseMainLoop"] = function Module_pauseMainLoop() { Browser.mainLoop.pause() };
-  Module["resumeMainLoop"] = function Module_resumeMainLoop() { Browser.mainLoop.resume() };
-  Module["getUserMedia"] = function Module_getUserMedia() { Browser.getUserMedia() }
-  Module["createContext"] = function Module_createContext(canvas, useWebGL, setInModule, webGLContextAttributes) { return Browser.createContext(canvas, useWebGL, setInModule, webGLContextAttributes) };
 if (ENVIRONMENT_IS_NODE) {
     _emscripten_get_now = function _emscripten_get_now_actual() {
       var t = process['hrtime']();
@@ -11307,10 +9047,94 @@ HEAP32[DYNAMICTOP_PTR>>2] = DYNAMIC_BASE;
 
 staticSealed = true; // seal the static portion of memory
 
+assert(DYNAMIC_BASE < TOTAL_MEMORY, "TOTAL_MEMORY not big enough for stack");
 
-Module['wasmTableSize'] = 6504;
 
-Module['wasmMaxTableSize'] = 6504;
+function nullFunc_iiiiiiii(x) { Module["printErr"]("Invalid function pointer called with signature 'iiiiiiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_iiiiiid(x) { Module["printErr"]("Invalid function pointer called with signature 'iiiiiid'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_vif(x) { Module["printErr"]("Invalid function pointer called with signature 'vif'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_viiiii(x) { Module["printErr"]("Invalid function pointer called with signature 'viiiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_vi(x) { Module["printErr"]("Invalid function pointer called with signature 'vi'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_vii(x) { Module["printErr"]("Invalid function pointer called with signature 'vii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_iiiiiii(x) { Module["printErr"]("Invalid function pointer called with signature 'iiiiiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_ii(x) { Module["printErr"]("Invalid function pointer called with signature 'ii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_viijii(x) { Module["printErr"]("Invalid function pointer called with signature 'viijii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_ffi(x) { Module["printErr"]("Invalid function pointer called with signature 'ffi'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_viiif(x) { Module["printErr"]("Invalid function pointer called with signature 'viiif'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_if(x) { Module["printErr"]("Invalid function pointer called with signature 'if'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_iiiiiiiiii(x) { Module["printErr"]("Invalid function pointer called with signature 'iiiiiiiiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_iiii(x) { Module["printErr"]("Invalid function pointer called with signature 'iiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_iiij(x) { Module["printErr"]("Invalid function pointer called with signature 'iiij'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_fif(x) { Module["printErr"]("Invalid function pointer called with signature 'fif'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_viiiffff(x) { Module["printErr"]("Invalid function pointer called with signature 'viiiffff'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_viiiiif(x) { Module["printErr"]("Invalid function pointer called with signature 'viiiiif'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_fii(x) { Module["printErr"]("Invalid function pointer called with signature 'fii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_iiid(x) { Module["printErr"]("Invalid function pointer called with signature 'iiid'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_fiii(x) { Module["printErr"]("Invalid function pointer called with signature 'fiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_di(x) { Module["printErr"]("Invalid function pointer called with signature 'di'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_iiiiiiiiiii(x) { Module["printErr"]("Invalid function pointer called with signature 'iiiiiiiiiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_v(x) { Module["printErr"]("Invalid function pointer called with signature 'v'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_iif(x) { Module["printErr"]("Invalid function pointer called with signature 'iif'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_ji(x) { Module["printErr"]("Invalid function pointer called with signature 'ji'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_fi(x) { Module["printErr"]("Invalid function pointer called with signature 'fi'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_iii(x) { Module["printErr"]("Invalid function pointer called with signature 'iii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_iiiiii(x) { Module["printErr"]("Invalid function pointer called with signature 'iiiiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_viiiiii(x) { Module["printErr"]("Invalid function pointer called with signature 'viiiiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_dii(x) { Module["printErr"]("Invalid function pointer called with signature 'dii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_viiiiiii(x) { Module["printErr"]("Invalid function pointer called with signature 'viiiiiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_i(x) { Module["printErr"]("Invalid function pointer called with signature 'i'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_iiiii(x) { Module["printErr"]("Invalid function pointer called with signature 'iiiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_viiid(x) { Module["printErr"]("Invalid function pointer called with signature 'viiid'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_iiiiij(x) { Module["printErr"]("Invalid function pointer called with signature 'iiiiij'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_viii(x) { Module["printErr"]("Invalid function pointer called with signature 'viii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_iiiiiiiiiifii(x) { Module["printErr"]("Invalid function pointer called with signature 'iiiiiiiiiifii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_iiiiiiiii(x) { Module["printErr"]("Invalid function pointer called with signature 'iiiiiiiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_iiiiid(x) { Module["printErr"]("Invalid function pointer called with signature 'iiiiid'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+function nullFunc_viiii(x) { Module["printErr"]("Invalid function pointer called with signature 'viiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  Module["printErr"]("Build with ASSERTIONS=2 for more info.");abort(x) }
+
+Module['wasmTableSize'] = 6496;
+
+Module['wasmMaxTableSize'] = 6496;
 
 function invoke_iiiiiiii(index,a1,a2,a3,a4,a5,a6,a7) {
   try {
@@ -11847,11 +9671,412 @@ function jsCall_viiii(index,a1,a2,a3,a4) {
 
 Module.asmGlobalArg = { "Math": Math, "Int8Array": Int8Array, "Int16Array": Int16Array, "Int32Array": Int32Array, "Uint8Array": Uint8Array, "Uint16Array": Uint16Array, "Uint32Array": Uint32Array, "Float32Array": Float32Array, "Float64Array": Float64Array, "NaN": NaN, "Infinity": Infinity, "byteLength": byteLength };
 
-Module.asmLibraryArg = { "abort": abort, "assert": assert, "enlargeMemory": enlargeMemory, "getTotalMemory": getTotalMemory, "abortOnCannotGrowMemory": abortOnCannotGrowMemory, "invoke_iiiiiiii": invoke_iiiiiiii, "jsCall_iiiiiiii": jsCall_iiiiiiii, "invoke_iiiiiid": invoke_iiiiiid, "jsCall_iiiiiid": jsCall_iiiiiid, "invoke_vif": invoke_vif, "jsCall_vif": jsCall_vif, "invoke_viiiii": invoke_viiiii, "jsCall_viiiii": jsCall_viiiii, "invoke_vi": invoke_vi, "jsCall_vi": jsCall_vi, "invoke_vii": invoke_vii, "jsCall_vii": jsCall_vii, "invoke_iiiiiii": invoke_iiiiiii, "jsCall_iiiiiii": jsCall_iiiiiii, "invoke_ii": invoke_ii, "jsCall_ii": jsCall_ii, "invoke_viijii": invoke_viijii, "jsCall_viijii": jsCall_viijii, "invoke_ffi": invoke_ffi, "jsCall_ffi": jsCall_ffi, "invoke_viiif": invoke_viiif, "jsCall_viiif": jsCall_viiif, "invoke_if": invoke_if, "jsCall_if": jsCall_if, "invoke_iiiiiiiiii": invoke_iiiiiiiiii, "jsCall_iiiiiiiiii": jsCall_iiiiiiiiii, "invoke_iiii": invoke_iiii, "jsCall_iiii": jsCall_iiii, "invoke_iiij": invoke_iiij, "jsCall_iiij": jsCall_iiij, "invoke_fif": invoke_fif, "jsCall_fif": jsCall_fif, "invoke_viiiffff": invoke_viiiffff, "jsCall_viiiffff": jsCall_viiiffff, "invoke_viiiiif": invoke_viiiiif, "jsCall_viiiiif": jsCall_viiiiif, "invoke_fii": invoke_fii, "jsCall_fii": jsCall_fii, "invoke_iiid": invoke_iiid, "jsCall_iiid": jsCall_iiid, "invoke_fiii": invoke_fiii, "jsCall_fiii": jsCall_fiii, "invoke_di": invoke_di, "jsCall_di": jsCall_di, "invoke_iiiiiiiiiii": invoke_iiiiiiiiiii, "jsCall_iiiiiiiiiii": jsCall_iiiiiiiiiii, "invoke_v": invoke_v, "jsCall_v": jsCall_v, "invoke_iif": invoke_iif, "jsCall_iif": jsCall_iif, "invoke_ji": invoke_ji, "jsCall_ji": jsCall_ji, "invoke_fi": invoke_fi, "jsCall_fi": jsCall_fi, "invoke_iii": invoke_iii, "jsCall_iii": jsCall_iii, "invoke_iiiiii": invoke_iiiiii, "jsCall_iiiiii": jsCall_iiiiii, "invoke_viiiiii": invoke_viiiiii, "jsCall_viiiiii": jsCall_viiiiii, "invoke_dii": invoke_dii, "jsCall_dii": jsCall_dii, "invoke_viiiiiii": invoke_viiiiiii, "jsCall_viiiiiii": jsCall_viiiiiii, "invoke_i": invoke_i, "jsCall_i": jsCall_i, "invoke_iiiii": invoke_iiiii, "jsCall_iiiii": jsCall_iiiii, "invoke_viiid": invoke_viiid, "jsCall_viiid": jsCall_viiid, "invoke_iiiiij": invoke_iiiiij, "jsCall_iiiiij": jsCall_iiiiij, "invoke_viii": invoke_viii, "jsCall_viii": jsCall_viii, "invoke_iiiiiiiiiifii": invoke_iiiiiiiiiifii, "jsCall_iiiiiiiiiifii": jsCall_iiiiiiiiiifii, "invoke_iiiiiiiii": invoke_iiiiiiiii, "jsCall_iiiiiiiii": jsCall_iiiiiiiii, "invoke_iiiiid": invoke_iiiiid, "jsCall_iiiiid": jsCall_iiiiid, "invoke_viiii": invoke_viiii, "jsCall_viiii": jsCall_viiii, "___syscall221": ___syscall221, "___syscall220": ___syscall220, "__inet_ntop6_raw": __inet_ntop6_raw, "___syscall66": ___syscall66, "___syscall64": ___syscall64, "___syscall63": ___syscall63, "___syscall60": ___syscall60, "___muldc3": ___muldc3, "___syscall212": ___syscall212, "_SDL_RWFromFile": _SDL_RWFromFile, "_atexit": _atexit, "_putenv": _putenv, "___assert_fail": ___assert_fail, "__ZSt18uncaught_exceptionv": __ZSt18uncaught_exceptionv, "_longjmp": _longjmp, "__write_sockaddr": __write_sockaddr, "_llvm_exp2_f64": _llvm_exp2_f64, "_clock_gettime": _clock_gettime, "_TTF_FontHeight": _TTF_FontHeight, "_SDL_GetError": _SDL_GetError, "_llvm_pow_f64": _llvm_pow_f64, "_setgrent": _setgrent, "___syscall331": ___syscall331, "_emscripten_set_main_loop_timing": _emscripten_set_main_loop_timing, "_dag_end_task": _dag_end_task, "___syscall330": ___syscall330, "_sigfillset": _sigfillset, "___cxa_begin_catch": ___cxa_begin_catch, "_TTF_RenderText_Solid": _TTF_RenderText_Solid, "_getnameinfo": _getnameinfo, "___syscall152": ___syscall152, "_execl": _execl, "___syscall150": ___syscall150, "_clock": _clock, "_Mix_PlayMusic": _Mix_PlayMusic, "___syscall163": ___syscall163, "_pthread_setcancelstate": _pthread_setcancelstate, "___syscall75": ___syscall75, "___restore_sigs": ___restore_sigs, "___syscall77": ___syscall77, "_pthread_mutexattr_settype": _pthread_mutexattr_settype, "_IMG_Load": _IMG_Load, "_Mix_FreeChunk": _Mix_FreeChunk, "__isLeapYear": __isLeapYear, "_globallock": _globallock, "___cxa_atexit": ___cxa_atexit, "_gmtime_r": _gmtime_r, "___syscall153": ___syscall153, "_csp_barrier_alloc": _csp_barrier_alloc, "_pthread_cleanup_push": _pthread_cleanup_push, "___syscall306": ___syscall306, "___syscall307": ___syscall307, "_Mix_HaltMusic": _Mix_HaltMusic, "_inet_addr": _inet_addr, "___syscall302": ___syscall302, "___syscall303": ___syscall303, "___syscall300": ___syscall300, "___syscall301": ___syscall301, "___syscall140": ___syscall140, "___syscall142": ___syscall142, "_posix_spawn_file_actions_adddup2": _posix_spawn_file_actions_adddup2, "___syscall144": ___syscall144, "___syscall145": ___syscall145, "___syscall146": ___syscall146, "___syscall147": ___syscall147, "___block_all_sigs": ___block_all_sigs, "___syscall85": ___syscall85, "___cxa_rethrow": ___cxa_rethrow, "_emscripten_get_now_is_monotonic": _emscripten_get_now_is_monotonic, "___syscall83": ___syscall83, "_pthread_cond_timedwait": _pthread_cond_timedwait, "___syscall132": ___syscall132, "___syscall125": ___syscall125, "___syscall122": ___syscall122, "___syscall121": ___syscall121, "___syscall118": ___syscall118, "___syscall268": ___syscall268, "_SDL_GetTicks": _SDL_GetTicks, "__arraySum": __arraySum, "_llvm_stackrestore": _llvm_stackrestore, "___cxa_free_exception": ___cxa_free_exception, "___cxa_find_matching_catch": ___cxa_find_matching_catch, "___syscall148": ___syscall148, "___clone": ___clone, "_SDL_LockSurface": _SDL_LockSurface, "_wait": _wait, "___setErrNo": ___setErrNo, "___syscall333": ___syscall333, "_llvm_pow_f32": _llvm_pow_f32, "_SDL_OpenAudio": _SDL_OpenAudio, "___syscall337": ___syscall337, "___syscall304": ___syscall304, "___syscall334": ___syscall334, "___resumeException": ___resumeException, "__read_sockaddr": __read_sockaddr, "_mktime": _mktime, "___syscall97": ___syscall97, "___syscall96": ___syscall96, "___syscall94": ___syscall94, "_nanosleep": _nanosleep, "___syscall91": ___syscall91, "_gmtime": _gmtime, "_setgroups": _setgroups, "_kill": _kill, "___syscall114": ___syscall114, "___syscall305": ___syscall305, "_pthread_once": _pthread_once, "___syscall181": ___syscall181, "_res_query": _res_query, "___syscall15": ___syscall15, "___syscall14": ___syscall14, "_pthread_detach": _pthread_detach, "_emscripten_get_now": _emscripten_get_now, "___syscall10": ___syscall10, "___syscall9": ___syscall9, "_pthread_sigmask": _pthread_sigmask, "_TTF_SizeText": _TTF_SizeText, "___syscall3": ___syscall3, "_asctime": _asctime, "___syscall1": ___syscall1, "__addDays": __addDays, "___syscall320": ___syscall320, "___syscall6": ___syscall6, "___syscall5": ___syscall5, "___clock_gettime": ___clock_gettime, "_time": _time, "_gettimeofday": _gettimeofday, "___syscall308": ___syscall308, "___syscall209": ___syscall209, "_SDL_UpperBlitScaled": _SDL_UpperBlitScaled, "___syscall205": ___syscall205, "___syscall204": ___syscall204, "___syscall203": ___syscall203, "___syscall202": ___syscall202, "___syscall201": ___syscall201, "___syscall200": ___syscall200, "_pthread_cleanup_pop": _pthread_cleanup_pop, "__inet_pton4_raw": __inet_pton4_raw, "___syscall269": ___syscall269, "_pthread_join": _pthread_join, "___syscall102": ___syscall102, "_setitimer": _setitimer, "___syscall54": ___syscall54, "_sched_yield": _sched_yield, "_getgrent": _getgrent, "___syscall29": ___syscall29, "_csoundModuleInit_ftsamplebank": _csoundModuleInit_ftsamplebank, "___syscall20": ___syscall20, "__Exit": __Exit, "___cxa_allocate_exception": ___cxa_allocate_exception, "___syscall183": ___syscall183, "___buildEnvironment": ___buildEnvironment, "___syscall295": ___syscall295, "___syscall296": ___syscall296, "___syscall192": ___syscall192, "___syscall298": ___syscall298, "___cxa_increment_exception_refcount": ___cxa_increment_exception_refcount, "_localtime_r": _localtime_r, "_tzset": _tzset, "___syscall12": ___syscall12, "___syscall218": ___syscall218, "___syscall219": ___syscall219, "___syscall191": ___syscall191, "___syscall197": ___syscall197, "___syscall196": ___syscall196, "___syscall195": ___syscall195, "___cxa_end_catch": ___cxa_end_catch, "___syscall211": ___syscall211, "___syscall199": ___syscall199, "___syscall198": ___syscall198, "___syscall214": ___syscall214, "___cxa_current_primary_exception": ___cxa_current_primary_exception, "_Mix_PlayChannel": _Mix_PlayChannel, "_strftime": _strftime, "_pthread_cond_signal": _pthread_cond_signal, "___syscall194": ___syscall194, "___syscall272": ___syscall272, "_getenv": _getenv, "___syscall36": ___syscall36, "___map_file": ___map_file, "___syscall33": ___syscall33, "_pthread_key_create": _pthread_key_create, "_pthread_setspecific": _pthread_setspecific, "__inet_ntop4_raw": __inet_ntop4_raw, "___syscall39": ___syscall39, "___syscall38": ___syscall38, "_sysconf": _sysconf, "___syscall340": ___syscall340, "___syscall180": ___syscall180, "_abort": _abort, "___syscall345": ___syscall345, "___syscall324": ___syscall324, "___syscall151": ___syscall151, "_localtime": _localtime, "___mulsc3": ___mulsc3, "___cxa_pure_virtual": ___cxa_pure_virtual, "_waitpid": _waitpid, "_pthread_getspecific": _pthread_getspecific, "_pthread_cond_wait": _pthread_cond_wait, "___lock": ___lock, "_llvm_exp2_f32": _llvm_exp2_f32, "___syscall168": ___syscall168, "_dag_build": _dag_build, "___syscall40": ___syscall40, "___syscall41": ___syscall41, "___syscall42": ___syscall42, "_SDL_CloseAudio": _SDL_CloseAudio, "_fork": _fork, "___gxx_personality_v0": ___gxx_personality_v0, "_asctime_r": _asctime_r, "__inet_pton6_raw": __inet_pton6_raw, "___syscall4": ___syscall4, "_usleep": _usleep, "___syscall193": ___syscall193, "___syscall297": ___syscall297, "_system": _system, "___cxa_decrement_exception_refcount": ___cxa_decrement_exception_refcount, "_SDL_FreeRW": _SDL_FreeRW, "_strftime_l": _strftime_l, "_SDL_PauseAudio": _SDL_PauseAudio, "_dag_reinit": _dag_reinit, "_Mix_LoadWAV_RW": _Mix_LoadWAV_RW, "_pthread_equal": _pthread_equal, "_IMG_Load_RW": _IMG_Load_RW, "_posix_spawn_file_actions_init": _posix_spawn_file_actions_init, "___cxa_rethrow_primary_exception": ___cxa_rethrow_primary_exception, "_pthread_mutex_destroy": _pthread_mutex_destroy, "_globalunlock": _globalunlock, "_posix_spawn": _posix_spawn, "_llvm_stacksave": _llvm_stacksave, "___syscall207": ___syscall207, "___syscall51": ___syscall51, "___syscall57": ___syscall57, "___syscall133": ___syscall133, "_endgrent": _endgrent, "___unlock": ___unlock, "_dag_get_task": _dag_get_task, "_emscripten_set_main_loop": _emscripten_set_main_loop, "_exit": _exit, "___syscall34": ___syscall34, "_pthread_mutexattr_init": _pthread_mutexattr_init, "_csp_orc_sa_print_list": _csp_orc_sa_print_list, "_llvm_fma_f64": _llvm_fma_f64, "___cxa_throw": ___cxa_throw, "_posix_spawn_file_actions_destroy": _posix_spawn_file_actions_destroy, "___wait": ___wait, "_pthread_cond_destroy": _pthread_cond_destroy, "_pthread_mutexattr_destroy": _pthread_mutexattr_destroy, "_SDL_UpperBlit": _SDL_UpperBlit, "_pthread_mutex_init": _pthread_mutex_init, "_SDL_RWFromConstMem": _SDL_RWFromConstMem, "DYNAMICTOP_PTR": DYNAMICTOP_PTR, "tempDoublePtr": tempDoublePtr, "ABORT": ABORT, "STACKTOP": STACKTOP, "STACK_MAX": STACK_MAX, "___dso_handle": ___dso_handle, "___environ": ___environ };
+Module.asmLibraryArg = { "abort": abort, "assert": assert, "enlargeMemory": enlargeMemory, "getTotalMemory": getTotalMemory, "abortOnCannotGrowMemory": abortOnCannotGrowMemory, "abortStackOverflow": abortStackOverflow, "nullFunc_iiiiiiii": nullFunc_iiiiiiii, "nullFunc_iiiiiid": nullFunc_iiiiiid, "nullFunc_vif": nullFunc_vif, "nullFunc_viiiii": nullFunc_viiiii, "nullFunc_vi": nullFunc_vi, "nullFunc_vii": nullFunc_vii, "nullFunc_iiiiiii": nullFunc_iiiiiii, "nullFunc_ii": nullFunc_ii, "nullFunc_viijii": nullFunc_viijii, "nullFunc_ffi": nullFunc_ffi, "nullFunc_viiif": nullFunc_viiif, "nullFunc_if": nullFunc_if, "nullFunc_iiiiiiiiii": nullFunc_iiiiiiiiii, "nullFunc_iiii": nullFunc_iiii, "nullFunc_iiij": nullFunc_iiij, "nullFunc_fif": nullFunc_fif, "nullFunc_viiiffff": nullFunc_viiiffff, "nullFunc_viiiiif": nullFunc_viiiiif, "nullFunc_fii": nullFunc_fii, "nullFunc_iiid": nullFunc_iiid, "nullFunc_fiii": nullFunc_fiii, "nullFunc_di": nullFunc_di, "nullFunc_iiiiiiiiiii": nullFunc_iiiiiiiiiii, "nullFunc_v": nullFunc_v, "nullFunc_iif": nullFunc_iif, "nullFunc_ji": nullFunc_ji, "nullFunc_fi": nullFunc_fi, "nullFunc_iii": nullFunc_iii, "nullFunc_iiiiii": nullFunc_iiiiii, "nullFunc_viiiiii": nullFunc_viiiiii, "nullFunc_dii": nullFunc_dii, "nullFunc_viiiiiii": nullFunc_viiiiiii, "nullFunc_i": nullFunc_i, "nullFunc_iiiii": nullFunc_iiiii, "nullFunc_viiid": nullFunc_viiid, "nullFunc_iiiiij": nullFunc_iiiiij, "nullFunc_viii": nullFunc_viii, "nullFunc_iiiiiiiiiifii": nullFunc_iiiiiiiiiifii, "nullFunc_iiiiiiiii": nullFunc_iiiiiiiii, "nullFunc_iiiiid": nullFunc_iiiiid, "nullFunc_viiii": nullFunc_viiii, "invoke_iiiiiiii": invoke_iiiiiiii, "jsCall_iiiiiiii": jsCall_iiiiiiii, "invoke_iiiiiid": invoke_iiiiiid, "jsCall_iiiiiid": jsCall_iiiiiid, "invoke_vif": invoke_vif, "jsCall_vif": jsCall_vif, "invoke_viiiii": invoke_viiiii, "jsCall_viiiii": jsCall_viiiii, "invoke_vi": invoke_vi, "jsCall_vi": jsCall_vi, "invoke_vii": invoke_vii, "jsCall_vii": jsCall_vii, "invoke_iiiiiii": invoke_iiiiiii, "jsCall_iiiiiii": jsCall_iiiiiii, "invoke_ii": invoke_ii, "jsCall_ii": jsCall_ii, "invoke_viijii": invoke_viijii, "jsCall_viijii": jsCall_viijii, "invoke_ffi": invoke_ffi, "jsCall_ffi": jsCall_ffi, "invoke_viiif": invoke_viiif, "jsCall_viiif": jsCall_viiif, "invoke_if": invoke_if, "jsCall_if": jsCall_if, "invoke_iiiiiiiiii": invoke_iiiiiiiiii, "jsCall_iiiiiiiiii": jsCall_iiiiiiiiii, "invoke_iiii": invoke_iiii, "jsCall_iiii": jsCall_iiii, "invoke_iiij": invoke_iiij, "jsCall_iiij": jsCall_iiij, "invoke_fif": invoke_fif, "jsCall_fif": jsCall_fif, "invoke_viiiffff": invoke_viiiffff, "jsCall_viiiffff": jsCall_viiiffff, "invoke_viiiiif": invoke_viiiiif, "jsCall_viiiiif": jsCall_viiiiif, "invoke_fii": invoke_fii, "jsCall_fii": jsCall_fii, "invoke_iiid": invoke_iiid, "jsCall_iiid": jsCall_iiid, "invoke_fiii": invoke_fiii, "jsCall_fiii": jsCall_fiii, "invoke_di": invoke_di, "jsCall_di": jsCall_di, "invoke_iiiiiiiiiii": invoke_iiiiiiiiiii, "jsCall_iiiiiiiiiii": jsCall_iiiiiiiiiii, "invoke_v": invoke_v, "jsCall_v": jsCall_v, "invoke_iif": invoke_iif, "jsCall_iif": jsCall_iif, "invoke_ji": invoke_ji, "jsCall_ji": jsCall_ji, "invoke_fi": invoke_fi, "jsCall_fi": jsCall_fi, "invoke_iii": invoke_iii, "jsCall_iii": jsCall_iii, "invoke_iiiiii": invoke_iiiiii, "jsCall_iiiiii": jsCall_iiiiii, "invoke_viiiiii": invoke_viiiiii, "jsCall_viiiiii": jsCall_viiiiii, "invoke_dii": invoke_dii, "jsCall_dii": jsCall_dii, "invoke_viiiiiii": invoke_viiiiiii, "jsCall_viiiiiii": jsCall_viiiiiii, "invoke_i": invoke_i, "jsCall_i": jsCall_i, "invoke_iiiii": invoke_iiiii, "jsCall_iiiii": jsCall_iiiii, "invoke_viiid": invoke_viiid, "jsCall_viiid": jsCall_viiid, "invoke_iiiiij": invoke_iiiiij, "jsCall_iiiiij": jsCall_iiiiij, "invoke_viii": invoke_viii, "jsCall_viii": jsCall_viii, "invoke_iiiiiiiiiifii": invoke_iiiiiiiiiifii, "jsCall_iiiiiiiiiifii": jsCall_iiiiiiiiiifii, "invoke_iiiiiiiii": invoke_iiiiiiiii, "jsCall_iiiiiiiii": jsCall_iiiiiiiii, "invoke_iiiiid": invoke_iiiiid, "jsCall_iiiiid": jsCall_iiiiid, "invoke_viiii": invoke_viiii, "jsCall_viiii": jsCall_viiii, "___syscall221": ___syscall221, "___syscall220": ___syscall220, "__inet_ntop6_raw": __inet_ntop6_raw, "___syscall66": ___syscall66, "___syscall64": ___syscall64, "___syscall63": ___syscall63, "___syscall60": ___syscall60, "___muldc3": ___muldc3, "___syscall212": ___syscall212, "___assert_fail": ___assert_fail, "__ZSt18uncaught_exceptionv": __ZSt18uncaught_exceptionv, "_longjmp": _longjmp, "__write_sockaddr": __write_sockaddr, "_llvm_exp2_f64": _llvm_exp2_f64, "_clock_gettime": _clock_gettime, "_llvm_pow_f64": _llvm_pow_f64, "_setgrent": _setgrent, "_llvm_pow_f32": _llvm_pow_f32, "_dag_end_task": _dag_end_task, "_sigfillset": _sigfillset, "_endgrent": _endgrent, "_getnameinfo": _getnameinfo, "___syscall152": ___syscall152, "_execl": _execl, "___syscall150": ___syscall150, "_clock": _clock, "___syscall163": ___syscall163, "_pthread_setcancelstate": _pthread_setcancelstate, "___syscall75": ___syscall75, "___restore_sigs": ___restore_sigs, "___syscall77": ___syscall77, "_pthread_mutexattr_settype": _pthread_mutexattr_settype, "__isLeapYear": __isLeapYear, "_globallock": _globallock, "___cxa_atexit": ___cxa_atexit, "_gmtime_r": _gmtime_r, "___syscall153": ___syscall153, "_csp_barrier_alloc": _csp_barrier_alloc, "_pthread_cleanup_push": _pthread_cleanup_push, "___syscall148": ___syscall148, "___syscall307": ___syscall307, "___syscall304": ___syscall304, "___syscall305": ___syscall305, "___syscall302": ___syscall302, "___syscall303": ___syscall303, "___syscall300": ___syscall300, "___syscall301": ___syscall301, "___syscall140": ___syscall140, "_pthread_detach": _pthread_detach, "_posix_spawn_file_actions_adddup2": _posix_spawn_file_actions_adddup2, "___syscall144": ___syscall144, "___syscall145": ___syscall145, "___syscall146": ___syscall146, "___syscall147": ___syscall147, "___block_all_sigs": ___block_all_sigs, "___syscall85": ___syscall85, "___cxa_rethrow": ___cxa_rethrow, "_emscripten_get_now_is_monotonic": _emscripten_get_now_is_monotonic, "___syscall83": ___syscall83, "_pthread_cond_timedwait": _pthread_cond_timedwait, "___syscall125": ___syscall125, "___syscall122": ___syscall122, "___syscall121": ___syscall121, "___syscall118": ___syscall118, "___syscall268": ___syscall268, "__arraySum": __arraySum, "_llvm_stackrestore": _llvm_stackrestore, "___cxa_free_exception": ___cxa_free_exception, "___cxa_find_matching_catch": ___cxa_find_matching_catch, "___syscall306": ___syscall306, "___clone": ___clone, "_wait": _wait, "___setErrNo": ___setErrNo, "___syscall333": ___syscall333, "___syscall331": ___syscall331, "___syscall330": ___syscall330, "___syscall337": ___syscall337, "___syscall334": ___syscall334, "___resumeException": ___resumeException, "__read_sockaddr": __read_sockaddr, "_mktime": _mktime, "___syscall97": ___syscall97, "___syscall96": ___syscall96, "___syscall94": ___syscall94, "_nanosleep": _nanosleep, "___syscall91": ___syscall91, "_gmtime": _gmtime, "_inet_addr": _inet_addr, "_setgroups": _setgroups, "_kill": _kill, "___syscall114": ___syscall114, "_pthread_once": _pthread_once, "___syscall181": ___syscall181, "_res_query": _res_query, "___syscall15": ___syscall15, "___syscall14": ___syscall14, "___syscall142": ___syscall142, "_emscripten_get_now": _emscripten_get_now, "___syscall10": ___syscall10, "___syscall9": ___syscall9, "_pthread_sigmask": _pthread_sigmask, "___syscall3": ___syscall3, "_asctime": _asctime, "___syscall1": ___syscall1, "__addDays": __addDays, "___syscall320": ___syscall320, "___syscall6": ___syscall6, "___syscall5": ___syscall5, "___clock_gettime": ___clock_gettime, "_time": _time, "_gettimeofday": _gettimeofday, "___syscall308": ___syscall308, "___syscall209": ___syscall209, "___syscall207": ___syscall207, "___syscall205": ___syscall205, "___syscall204": ___syscall204, "___syscall203": ___syscall203, "___syscall202": ___syscall202, "___syscall201": ___syscall201, "___syscall200": ___syscall200, "_pthread_cleanup_pop": _pthread_cleanup_pop, "__inet_pton4_raw": __inet_pton4_raw, "___syscall269": ___syscall269, "_pthread_join": _pthread_join, "___syscall102": ___syscall102, "_setitimer": _setitimer, "_sched_yield": _sched_yield, "_getgrent": _getgrent, "___syscall29": ___syscall29, "___syscall20": ___syscall20, "__Exit": __Exit, "___cxa_allocate_exception": ___cxa_allocate_exception, "___syscall183": ___syscall183, "___syscall218": ___syscall218, "___syscall295": ___syscall295, "___syscall296": ___syscall296, "___syscall192": ___syscall192, "___syscall298": ___syscall298, "___cxa_increment_exception_refcount": ___cxa_increment_exception_refcount, "_localtime_r": _localtime_r, "_tzset": _tzset, "___syscall12": ___syscall12, "___syscall193": ___syscall193, "___syscall219": ___syscall219, "___syscall191": ___syscall191, "___syscall197": ___syscall197, "___syscall196": ___syscall196, "___syscall195": ___syscall195, "___cxa_end_catch": ___cxa_end_catch, "___syscall211": ___syscall211, "___syscall199": ___syscall199, "___syscall198": ___syscall198, "___syscall214": ___syscall214, "___cxa_current_primary_exception": ___cxa_current_primary_exception, "___cxa_begin_catch": ___cxa_begin_catch, "_strftime": _strftime, "_pthread_cond_signal": _pthread_cond_signal, "___syscall194": ___syscall194, "___syscall272": ___syscall272, "_getenv": _getenv, "___syscall36": ___syscall36, "___map_file": ___map_file, "___syscall33": ___syscall33, "_pthread_key_create": _pthread_key_create, "_pthread_setspecific": _pthread_setspecific, "__inet_ntop4_raw": __inet_ntop4_raw, "___syscall39": ___syscall39, "___syscall38": ___syscall38, "_sysconf": _sysconf, "___syscall340": ___syscall340, "___syscall180": ___syscall180, "_abort": _abort, "___syscall345": ___syscall345, "___syscall324": ___syscall324, "___syscall151": ___syscall151, "_localtime": _localtime, "___mulsc3": ___mulsc3, "___cxa_pure_virtual": ___cxa_pure_virtual, "_waitpid": _waitpid, "_pthread_getspecific": _pthread_getspecific, "_pthread_cond_wait": _pthread_cond_wait, "___lock": ___lock, "_llvm_exp2_f32": _llvm_exp2_f32, "___syscall168": ___syscall168, "___buildEnvironment": ___buildEnvironment, "_dag_build": _dag_build, "___syscall40": ___syscall40, "___syscall41": ___syscall41, "___syscall42": ___syscall42, "_fork": _fork, "___gxx_personality_v0": ___gxx_personality_v0, "_asctime_r": _asctime_r, "__inet_pton6_raw": __inet_pton6_raw, "___syscall4": ___syscall4, "_usleep": _usleep, "___syscall297": ___syscall297, "_system": _system, "___cxa_decrement_exception_refcount": ___cxa_decrement_exception_refcount, "_pthread_mutexattr_destroy": _pthread_mutexattr_destroy, "_strftime_l": _strftime_l, "_dag_reinit": _dag_reinit, "_dag_get_task": _dag_get_task, "_pthread_equal": _pthread_equal, "_posix_spawn_file_actions_init": _posix_spawn_file_actions_init, "___cxa_rethrow_primary_exception": ___cxa_rethrow_primary_exception, "_pthread_mutex_destroy": _pthread_mutex_destroy, "_globalunlock": _globalunlock, "_posix_spawn": _posix_spawn, "_llvm_stacksave": _llvm_stacksave, "___syscall51": ___syscall51, "___syscall57": ___syscall57, "___syscall133": ___syscall133, "___syscall54": ___syscall54, "___unlock": ___unlock, "___syscall132": ___syscall132, "_exit": _exit, "___syscall34": ___syscall34, "_pthread_mutexattr_init": _pthread_mutexattr_init, "_csp_orc_sa_print_list": _csp_orc_sa_print_list, "_llvm_fma_f64": _llvm_fma_f64, "___cxa_throw": ___cxa_throw, "_posix_spawn_file_actions_destroy": _posix_spawn_file_actions_destroy, "___wait": ___wait, "_pthread_cond_destroy": _pthread_cond_destroy, "_atexit": _atexit, "_pthread_mutex_init": _pthread_mutex_init, "DYNAMICTOP_PTR": DYNAMICTOP_PTR, "tempDoublePtr": tempDoublePtr, "ABORT": ABORT, "STACKTOP": STACKTOP, "STACK_MAX": STACK_MAX, "___dso_handle": ___dso_handle, "___environ": ___environ };
 // EMSCRIPTEN_START_ASM
 var asm =Module["asm"]// EMSCRIPTEN_END_ASM
 (Module.asmGlobalArg, Module.asmLibraryArg, buffer);
 
+var real__CsoundObj_setTable = asm["_CsoundObj_setTable"]; asm["_CsoundObj_setTable"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_setTable.apply(null, arguments);
+};
+
+var real__CsoundObj_getKsmps = asm["_CsoundObj_getKsmps"]; asm["_CsoundObj_getKsmps"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_getKsmps.apply(null, arguments);
+};
+
+var real__CsoundObj_new = asm["_CsoundObj_new"]; asm["_CsoundObj_new"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_new.apply(null, arguments);
+};
+
+var real__strlen = asm["_strlen"]; asm["_strlen"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__strlen.apply(null, arguments);
+};
+
+var real__CsoundObj_reset = asm["_CsoundObj_reset"]; asm["_CsoundObj_reset"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_reset.apply(null, arguments);
+};
+
+var real__CsoundObj_pushMidiMessage = asm["_CsoundObj_pushMidiMessage"]; asm["_CsoundObj_pushMidiMessage"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_pushMidiMessage.apply(null, arguments);
+};
+
+var real__CsoundObj_getInputBuffer = asm["_CsoundObj_getInputBuffer"]; asm["_CsoundObj_getInputBuffer"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_getInputBuffer.apply(null, arguments);
+};
+
+var real__CsoundObj_destroy = asm["_CsoundObj_destroy"]; asm["_CsoundObj_destroy"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_destroy.apply(null, arguments);
+};
+
+var real__CsoundObj_render = asm["_CsoundObj_render"]; asm["_CsoundObj_render"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_render.apply(null, arguments);
+};
+
+var real__CsoundObj_prepareRT = asm["_CsoundObj_prepareRT"]; asm["_CsoundObj_prepareRT"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_prepareRT.apply(null, arguments);
+};
+
+var real__CsoundObj_midiInClose = asm["_CsoundObj_midiInClose"]; asm["_CsoundObj_midiInClose"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_midiInClose.apply(null, arguments);
+};
+
+var real__pthread_mutex_trylock = asm["_pthread_mutex_trylock"]; asm["_pthread_mutex_trylock"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__pthread_mutex_trylock.apply(null, arguments);
+};
+
+var real__CsoundObj_pause = asm["_CsoundObj_pause"]; asm["_CsoundObj_pause"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_pause.apply(null, arguments);
+};
+
+var real__CsoundObj_compileOrc = asm["_CsoundObj_compileOrc"]; asm["_CsoundObj_compileOrc"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_compileOrc.apply(null, arguments);
+};
+
+var real__fflush = asm["_fflush"]; asm["_fflush"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__fflush.apply(null, arguments);
+};
+
+var real_setTempRet0 = asm["setTempRet0"]; asm["setTempRet0"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real_setTempRet0.apply(null, arguments);
+};
+
+var real_setThrew = asm["setThrew"]; asm["setThrew"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real_setThrew.apply(null, arguments);
+};
+
+var real__CsoundObj_compileCSD = asm["_CsoundObj_compileCSD"]; asm["_CsoundObj_compileCSD"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_compileCSD.apply(null, arguments);
+};
+
+var real_stackRestore = asm["stackRestore"]; asm["stackRestore"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real_stackRestore.apply(null, arguments);
+};
+
+var real__CsoundObj_setMidiCallbacks = asm["_CsoundObj_setMidiCallbacks"]; asm["_CsoundObj_setMidiCallbacks"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_setMidiCallbacks.apply(null, arguments);
+};
+
+var real__sbrk = asm["_sbrk"]; asm["_sbrk"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__sbrk.apply(null, arguments);
+};
+
+var real__CsoundObj_play = asm["_CsoundObj_play"]; asm["_CsoundObj_play"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_play.apply(null, arguments);
+};
+
+var real____errno_location = asm["___errno_location"]; asm["___errno_location"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real____errno_location.apply(null, arguments);
+};
+
+var real__CsoundObj_setStringChannel = asm["_CsoundObj_setStringChannel"]; asm["_CsoundObj_setStringChannel"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_setStringChannel.apply(null, arguments);
+};
+
+var real__CsoundObj_getOutputChannelCount = asm["_CsoundObj_getOutputChannelCount"]; asm["_CsoundObj_getOutputChannelCount"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_getOutputChannelCount.apply(null, arguments);
+};
+
+var real__CsoundObj_getTableLength = asm["_CsoundObj_getTableLength"]; asm["_CsoundObj_getTableLength"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_getTableLength.apply(null, arguments);
+};
+
+var real_stackSave = asm["stackSave"]; asm["stackSave"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real_stackSave.apply(null, arguments);
+};
+
+var real_stackAlloc = asm["stackAlloc"]; asm["stackAlloc"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real_stackAlloc.apply(null, arguments);
+};
+
+var real__CsoundObj_evaluateCode = asm["_CsoundObj_evaluateCode"]; asm["_CsoundObj_evaluateCode"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_evaluateCode.apply(null, arguments);
+};
+
+var real__CsoundObj_getOutputBuffer = asm["_CsoundObj_getOutputBuffer"]; asm["_CsoundObj_getOutputBuffer"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_getOutputBuffer.apply(null, arguments);
+};
+
+var real_getTempRet0 = asm["getTempRet0"]; asm["getTempRet0"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real_getTempRet0.apply(null, arguments);
+};
+
+var real__ntohs = asm["_ntohs"]; asm["_ntohs"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__ntohs.apply(null, arguments);
+};
+
+var real__htonl = asm["_htonl"]; asm["_htonl"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__htonl.apply(null, arguments);
+};
+
+var real__realloc = asm["_realloc"]; asm["_realloc"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__realloc.apply(null, arguments);
+};
+
+var real__CsoundObj_getScoreTime = asm["_CsoundObj_getScoreTime"]; asm["_CsoundObj_getScoreTime"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_getScoreTime.apply(null, arguments);
+};
+
+var real__pthread_mutex_unlock = asm["_pthread_mutex_unlock"]; asm["_pthread_mutex_unlock"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__pthread_mutex_unlock.apply(null, arguments);
+};
+
+var real__CsoundObj_midiInOpen = asm["_CsoundObj_midiInOpen"]; asm["_CsoundObj_midiInOpen"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_midiInOpen.apply(null, arguments);
+};
+
+var real___GLOBAL__I_000101 = asm["__GLOBAL__I_000101"]; asm["__GLOBAL__I_000101"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real___GLOBAL__I_000101.apply(null, arguments);
+};
+
+var real__llvm_bswap_i16 = asm["_llvm_bswap_i16"]; asm["_llvm_bswap_i16"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__llvm_bswap_i16.apply(null, arguments);
+};
+
+var real__emscripten_get_global_libc = asm["_emscripten_get_global_libc"]; asm["_emscripten_get_global_libc"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__emscripten_get_global_libc.apply(null, arguments);
+};
+
+var real__FileList_getFileNameString = asm["_FileList_getFileNameString"]; asm["_FileList_getFileNameString"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__FileList_getFileNameString.apply(null, arguments);
+};
+
+var real__CsoundObj_readScore = asm["_CsoundObj_readScore"]; asm["_CsoundObj_readScore"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_readScore.apply(null, arguments);
+};
+
+var real___GLOBAL__sub_I_iostream_cpp = asm["__GLOBAL__sub_I_iostream_cpp"]; asm["__GLOBAL__sub_I_iostream_cpp"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real___GLOBAL__sub_I_iostream_cpp.apply(null, arguments);
+};
+
+var real__htons = asm["_htons"]; asm["_htons"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__htons.apply(null, arguments);
+};
+
+var real__pthread_cond_broadcast = asm["_pthread_cond_broadcast"]; asm["_pthread_cond_broadcast"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__pthread_cond_broadcast.apply(null, arguments);
+};
+
+var real__CsoundObj_getInputChannelCount = asm["_CsoundObj_getInputChannelCount"]; asm["_CsoundObj_getInputChannelCount"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_getInputChannelCount.apply(null, arguments);
+};
+
+var real__llvm_bswap_i32 = asm["_llvm_bswap_i32"]; asm["_llvm_bswap_i32"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__llvm_bswap_i32.apply(null, arguments);
+};
+
+var real__CsoundObj_getControlChannel = asm["_CsoundObj_getControlChannel"]; asm["_CsoundObj_getControlChannel"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_getControlChannel.apply(null, arguments);
+};
+
+var real__CsoundObj_openAudioOut = asm["_CsoundObj_openAudioOut"]; asm["_CsoundObj_openAudioOut"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_openAudioOut.apply(null, arguments);
+};
+
+var real__testSetjmp = asm["_testSetjmp"]; asm["_testSetjmp"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__testSetjmp.apply(null, arguments);
+};
+
+var real__saveSetjmp = asm["_saveSetjmp"]; asm["_saveSetjmp"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__saveSetjmp.apply(null, arguments);
+};
+
+var real__free = asm["_free"]; asm["_free"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__free.apply(null, arguments);
+};
+
+var real____cxa_can_catch = asm["___cxa_can_catch"]; asm["___cxa_can_catch"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real____cxa_can_catch.apply(null, arguments);
+};
+
+var real__CsoundObj_getTable = asm["_CsoundObj_getTable"]; asm["_CsoundObj_getTable"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_getTable.apply(null, arguments);
+};
+
+var real__round = asm["_round"]; asm["_round"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__round.apply(null, arguments);
+};
+
+var real_establishStackSpace = asm["establishStackSpace"]; asm["establishStackSpace"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real_establishStackSpace.apply(null, arguments);
+};
+
+var real____cxa_is_pointer_type = asm["___cxa_is_pointer_type"]; asm["___cxa_is_pointer_type"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real____cxa_is_pointer_type.apply(null, arguments);
+};
+
+var real__CsoundObj_getZerodBFS = asm["_CsoundObj_getZerodBFS"]; asm["_CsoundObj_getZerodBFS"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_getZerodBFS.apply(null, arguments);
+};
+
+var real__CsoundObj_closeAudioOut = asm["_CsoundObj_closeAudioOut"]; asm["_CsoundObj_closeAudioOut"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_closeAudioOut.apply(null, arguments);
+};
+
+var real__CsoundObj_setOutputChannelCallback = asm["_CsoundObj_setOutputChannelCallback"]; asm["_CsoundObj_setOutputChannelCallback"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_setOutputChannelCallback.apply(null, arguments);
+};
+
+var real__malloc = asm["_malloc"]; asm["_malloc"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__malloc.apply(null, arguments);
+};
+
+var real__FileList_getFileCount = asm["_FileList_getFileCount"]; asm["_FileList_getFileCount"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__FileList_getFileCount.apply(null, arguments);
+};
+
+var real__pthread_mutex_lock = asm["_pthread_mutex_lock"]; asm["_pthread_mutex_lock"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__pthread_mutex_lock.apply(null, arguments);
+};
+
+var real__CsoundObj_performKsmps = asm["_CsoundObj_performKsmps"]; asm["_CsoundObj_performKsmps"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_performKsmps.apply(null, arguments);
+};
+
+var real__roundf = asm["_roundf"]; asm["_roundf"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__roundf.apply(null, arguments);
+};
+
+var real__CsoundObj_setControlChannel = asm["_CsoundObj_setControlChannel"]; asm["_CsoundObj_setControlChannel"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_setControlChannel.apply(null, arguments);
+};
+
+var real__CsoundObj_setOption = asm["_CsoundObj_setOption"]; asm["_CsoundObj_setOption"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__CsoundObj_setOption.apply(null, arguments);
+};
 Module["asm"] = asm;
 var _CsoundObj_setTable = Module["_CsoundObj_setTable"] = function() { return Module["asm"]["_CsoundObj_setTable"].apply(null, arguments) };
 var _CsoundObj_getKsmps = Module["_CsoundObj_getKsmps"] = function() { return Module["asm"]["_CsoundObj_getKsmps"].apply(null, arguments) };
@@ -11864,6 +10089,7 @@ var _CsoundObj_getInputBuffer = Module["_CsoundObj_getInputBuffer"] = function()
 var _CsoundObj_destroy = Module["_CsoundObj_destroy"] = function() { return Module["asm"]["_CsoundObj_destroy"].apply(null, arguments) };
 var _CsoundObj_render = Module["_CsoundObj_render"] = function() { return Module["asm"]["_CsoundObj_render"].apply(null, arguments) };
 var _CsoundObj_prepareRT = Module["_CsoundObj_prepareRT"] = function() { return Module["asm"]["_CsoundObj_prepareRT"].apply(null, arguments) };
+var _CsoundObj_midiInClose = Module["_CsoundObj_midiInClose"] = function() { return Module["asm"]["_CsoundObj_midiInClose"].apply(null, arguments) };
 var _pthread_mutex_trylock = Module["_pthread_mutex_trylock"] = function() { return Module["asm"]["_pthread_mutex_trylock"].apply(null, arguments) };
 var _CsoundObj_pause = Module["_CsoundObj_pause"] = function() { return Module["asm"]["_CsoundObj_pause"].apply(null, arguments) };
 var _CsoundObj_compileOrc = Module["_CsoundObj_compileOrc"] = function() { return Module["asm"]["_CsoundObj_compileOrc"].apply(null, arguments) };
@@ -11879,6 +10105,7 @@ var ___errno_location = Module["___errno_location"] = function() { return Module
 var _CsoundObj_setStringChannel = Module["_CsoundObj_setStringChannel"] = function() { return Module["asm"]["_CsoundObj_setStringChannel"].apply(null, arguments) };
 var _CsoundObj_getOutputChannelCount = Module["_CsoundObj_getOutputChannelCount"] = function() { return Module["asm"]["_CsoundObj_getOutputChannelCount"].apply(null, arguments) };
 var _CsoundObj_getTableLength = Module["_CsoundObj_getTableLength"] = function() { return Module["asm"]["_CsoundObj_getTableLength"].apply(null, arguments) };
+var stackSave = Module["stackSave"] = function() { return Module["asm"]["stackSave"].apply(null, arguments) };
 var stackAlloc = Module["stackAlloc"] = function() { return Module["asm"]["stackAlloc"].apply(null, arguments) };
 var _CsoundObj_evaluateCode = Module["_CsoundObj_evaluateCode"] = function() { return Module["asm"]["_CsoundObj_evaluateCode"].apply(null, arguments) };
 var _CsoundObj_getOutputBuffer = Module["_CsoundObj_getOutputBuffer"] = function() { return Module["asm"]["_CsoundObj_getOutputBuffer"].apply(null, arguments) };
@@ -11888,7 +10115,7 @@ var _htonl = Module["_htonl"] = function() { return Module["asm"]["_htonl"].appl
 var _realloc = Module["_realloc"] = function() { return Module["asm"]["_realloc"].apply(null, arguments) };
 var _CsoundObj_getScoreTime = Module["_CsoundObj_getScoreTime"] = function() { return Module["asm"]["_CsoundObj_getScoreTime"].apply(null, arguments) };
 var _pthread_mutex_unlock = Module["_pthread_mutex_unlock"] = function() { return Module["asm"]["_pthread_mutex_unlock"].apply(null, arguments) };
-var stackSave = Module["stackSave"] = function() { return Module["asm"]["stackSave"].apply(null, arguments) };
+var _CsoundObj_midiInOpen = Module["_CsoundObj_midiInOpen"] = function() { return Module["asm"]["_CsoundObj_midiInOpen"].apply(null, arguments) };
 var __GLOBAL__I_000101 = Module["__GLOBAL__I_000101"] = function() { return Module["asm"]["__GLOBAL__I_000101"].apply(null, arguments) };
 var _llvm_bswap_i16 = Module["_llvm_bswap_i16"] = function() { return Module["asm"]["_llvm_bswap_i16"].apply(null, arguments) };
 var _emscripten_get_global_libc = Module["_emscripten_get_global_libc"] = function() { return Module["asm"]["_emscripten_get_global_libc"].apply(null, arguments) };
@@ -11989,6 +10216,9 @@ if (memoryInitializer) {
     addRunDependency('memory initializer');
     var applyMemoryInitializer = function(data) {
       if (data.byteLength) data = new Uint8Array(data);
+      for (var i = 0; i < data.length; i++) {
+        assert(HEAPU8[Runtime.GLOBAL_BASE + i] === 0, "area for memory initializer should not have been touched before it's loaded");
+      }
       HEAPU8.set(data, Runtime.GLOBAL_BASE);
       // Delete the typed array that contains the large blob of the memory initializer request response so that
       // we won't keep unnecessary memory lying around. However, keep the XHR object itself alive so that e.g.
@@ -12052,6 +10282,8 @@ dependenciesFulfilled = function runCaller() {
 }
 
 Module['callMain'] = Module.callMain = function callMain(args) {
+  assert(runDependencies == 0, 'cannot call main when async dependencies remain! (listen on __ATMAIN__)');
+  assert(__ATPRERUN__.length == 0, 'cannot call main when preRun functions remain to be called');
 
   args = args || [];
 
@@ -12116,6 +10348,7 @@ function run(args) {
     return;
   }
 
+  writeStackCookie();
 
   preRun();
 
@@ -12132,6 +10365,9 @@ function run(args) {
 
     preMain();
 
+    if (ENVIRONMENT_IS_WEB && preloadStartTime !== null) {
+      Module.printErr('pre-main prep time: ' + (Date.now() - preloadStartTime) + ' ms');
+    }
 
     if (Module['onRuntimeInitialized']) Module['onRuntimeInitialized']();
 
@@ -12151,15 +10387,18 @@ function run(args) {
   } else {
     doRun();
   }
+  checkStackCookie();
 }
 Module['run'] = Module.run = run;
 
 function exit(status, implicit) {
   if (implicit && Module['noExitRuntime']) {
+    Module.printErr('exit(' + status + ') implicitly called by end of main(), but noExitRuntime, so not exiting the runtime (you can use emscripten_force_exit, if you want to force a true shutdown)');
     return;
   }
 
   if (Module['noExitRuntime']) {
+    Module.printErr('exit(' + status + ') called, but noExitRuntime, so halting execution but not exiting the runtime or preventing further async execution (you can use emscripten_force_exit, if you want to force a true shutdown)');
   } else {
 
     ABORT = true;
@@ -12192,7 +10431,7 @@ function abort(what) {
   ABORT = true;
   EXITSTATUS = 1;
 
-  var extra = '\nIf this abort() is unexpected, build with -s ASSERTIONS=1 which can give more information.';
+  var extra = '';
 
   var output = 'abort(' + what + ') at ' + stackTrace() + extra;
   if (abortDecorators) {
