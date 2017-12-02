@@ -353,6 +353,18 @@ instr Sub2
 	outc(asig, asig)
 endin
 
+
+/* Subtractive Synth, three detuned saws, swells in */
+instr Sub3 
+  asig = vco2(p5, p4)
+  asig += vco2(p5, p4 * 1.01)
+  asig += vco2(p5, p4 * 0.995)
+  asig *= 0.33 
+  asig = zdf_ladder(asig, expon(100, p3, 22000), 12) 
+  asig = declick(asig)
+  outc(asig, asig)
+endin
+
 /* FM 3:1 C:M ratio, 2->0.025 index, nice for bass */
 instr FM1 
   icar = xchan("FM1.car", 1)
