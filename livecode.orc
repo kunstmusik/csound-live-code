@@ -579,6 +579,40 @@ instr	CHH	;CLOSED HIGH HAT
   outs	aL,aR				;SEND TO OUTPUTS
 endin
 
+giTR808RimShot	ftgen	0,0,1024,10, 0.971,0.269,0.041,0.054,0.011,0.013,0.08,0.0065,0.005,0.004,0.003,0.003,0.002,0.002,0.002,0.002,0.002,0.001,0.001,0.001,0.001,0.001,0.002,0.001,0.001	;WAVEFORM FOR TR808 RIMSHOT
+
+instr	Rimshot	;RIM SHOT
+
+  idur = xchan("Rimshot.decay", 1.0)	
+  ilevel = xchan("Rimshot.level", 1) 
+  itune = xchan("Rimshot.tune", 0)
+  ipan = xchan("Rimshot.pan", 0.5)
+
+	idur 	=	0.027*idur 		;NOTE DURATION
+	p3	limit	idur,0.1,10			;LIMIT THE MINIMUM DURATION OF THE NOTE (VERY SHORT NOTES CAN RESULT IN THE INDICATOR LIGHT ON-OFF NOTE BEING TO0 SHORT)
+
+	;RING
+	aenv1	expsega	1,idur,0.001,1,0.001		;AMPLITUDE ENVELOPE FOR SUSTAIN ELEMENT OF SOUND
+	ifrq1	=	1700*octave(itune)		;FREQUENCY OF SUSTAIN ELEMENT OF SOUND
+	aring	oscili	1,ifrq1,giTR808RimShot,0		;CREATE SUSTAIN ELEMENT OF SOUND	
+	aring	butbp	aring,ifrq1,ifrq1*8	
+	aring	=	aring*(aenv1-0.001)*0.5			;APPLY AMPLITUDE ENVELOPE
+
+	;NOISE
+	anoise	noise	1,0					;CREATE A NOISE SIGNAL
+	aenv2	expsega	1, 0.002, 0.8, 0.005, 0.5, idur-0.002-0.005, 0.0001, 1, 0.0001	;CREATE AMPLITUDE ENVELOPE
+	anoise	buthp	anoise,800			;HIGHPASS FILTER THE NOISE SOUND
+	kcf	expseg	4000,idur,20				;CUTOFF FREQUENCY FUNCTION FOR LOWPASS FILTER
+	anoise	butlp	anoise,kcf			;LOWPASS FILTER THE SOUND
+	anoise	=	anoise*(aenv2-0.001)	;APPLY ENVELOPE TO NOISE SIGNAL
+
+	;MIX
+	amix	=	(aring+anoise)*ilevel*p5*0.8
+	aL,aR	pan2	amix,ipan			;PAN MONOPHONIC SIGNAL  
+		outs	aL,aR				;SEND TO OUTPUTS
+endin
+
+
 ;; INITIALIZATION OF SYSTEM
 
 schedule("Clock", 0, -1)
