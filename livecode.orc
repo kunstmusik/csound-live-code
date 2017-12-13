@@ -579,6 +579,8 @@ instr	CHH	;CLOSED HIGH HAT
   outs	aL,aR				;SEND TO OUTPUTS
 endin
 
+
+;; Rimshot - From Iain McCurdy's TR-808.csd
 giTR808RimShot	ftgen	0,0,1024,10, 0.971,0.269,0.041,0.054,0.011,0.013,0.08,0.0065,0.005,0.004,0.003,0.003,0.002,0.002,0.002,0.002,0.002,0.001,0.001,0.001,0.001,0.001,0.002,0.001,0.001	;WAVEFORM FOR TR808 RIMSHOT
 
 instr	Rimshot	;RIM SHOT
@@ -610,6 +612,60 @@ instr	Rimshot	;RIM SHOT
 	amix	=	(aring+anoise)*ilevel*p5*0.8
 	aL,aR	pan2	amix,ipan			;PAN MONOPHONIC SIGNAL  
 		outs	aL,aR				;SEND TO OUTPUTS
+endin
+
+
+;; Claves - From Iain McCurdy's TR-808.csd
+instr	Claves	
+
+  idur = xchan("Claves.decay", 1.0)	
+  ilevel = xchan("Claves.level", 1) 
+  itune = xchan("Claves.tune", 0)
+  ipan = xchan("Claves.pan", 0.5)
+
+	ifrq	=	2500*octave(itune)	;FREQUENCY OF OSCILLATOR
+	idur	=	0.045 	* idur		;DURATION OF THE NOTE
+	p3	limit	idur,0.1,10			;LIMIT THE MINIMUM DURATION OF THE NOTE (VERY SHORT NOTES CAN RESULT IN THE INDICATOR LIGHT ON-OFF NOTE BEING TO0 SHORT)			
+	aenv	expsega	1,idur,0.001,1,0.001		;AMPLITUDE ENVELOPE
+	afmod	expsega	3,0.00005,1,1,1			;FREQUENCY MODULATION ENVELOPE. GIVES THE SOUND A LITTLE MORE ATTACK.
+	asig	oscili	-(aenv-0.001),ifrq*afmod,gi_808_sine,0	;AUDIO OSCILLATOR
+	asig	=	asig * 0.4 * ilevel * p5		;RESCALE AMPLITUDE
+	aL,aR	pan2	asig,ipan			;PAN MONOPHONIC AUDIO SIGNAL
+		outs	aL,aR				;SEND AUDIO TO OUTPUTS
+endin
+
+
+;; Cowbell - From Iain McCurdy's TR-808.csd
+instr Cowbell	
+  idur = xchan("Cowbell.decay", 1.0)	
+  ilevel = xchan("Cowbell.level", 1) 
+  itune = xchan("Cowbell.tune", 0)
+  ipan = xchan("Cowbell.pan", 0.5)
+
+	ifrq1	=	562 * octave(itune)	;FREQUENCIES OF THE TWO OSCILLATORS
+	ifrq2	=	845 * octave(itune)	;
+	ipw  	=	0.5 				;PULSE WIDTH OF THE OSCILLATOR	
+	ishp 	=	-30 	
+	idur 	=	0.7 				;NOTE DURATION
+	p3	=	0.7*idur			;LIMIT THE MINIMUM DURATION OF THE NOTE (VERY SHORT NOTES CAN RESULT IN THE INDICATOR LIGHT ON-OFF NOTE BEING TO0 SHORT)
+	ishape	=	-30				;SHAPE OF THE CURVES IN THE AMPLITUDE ENVELOPE
+	kenv1	transeg	1,p3*0.3,ishape,0.2, p3*0.7,ishape,0.2	;FIRST AMPLITUDE ENVELOPE - PRINCIPALLY THE ATTACK OF THE NOTE
+	kenv2	expon	1,p3,0.0005				;SECOND AMPLITUDE ENVELOPE - THE SUSTAIN PORTION OF THE NOTE
+	kenv	=	kenv1*kenv2			;COMBINE THE TWO ENVELOPES
+	itype	=	2				;WAVEFORM FOR VCO2 (2=PULSE)
+	a1	vco2	0.65,ifrq1,itype,ipw		;CREATE THE TWO OSCILLATORS
+	a2	vco2	0.65,ifrq2,itype,ipw
+	amix	=	a1+a2				;MIX THE TWO OSCILLATORS 
+	iLPF2	=	10000				;LOWPASS FILTER RESTING FREQUENCY
+	kcf	expseg	12000,0.07,iLPF2,1,iLPF2	;LOWPASS FILTER CUTOFF FREQUENCY ENVELOPE
+	alpf	butlp	amix,kcf			;LOWPASS FILTER THE MIX OF THE TWO OSCILLATORS (CREATE A NEW SIGNAL)
+	abpf	reson	amix, ifrq2, 25			;BANDPASS FILTER THE MIX OF THE TWO OSCILLATORS (CREATE A NEW SIGNAL)
+	amix	dcblock2	(abpf*0.06*kenv1)+(alpf*0.5)+(amix*0.9)	;MIX ALL SIGNALS AND BLOCK DC OFFSET
+	amix	buthp	amix,700			;HIGHPASS FILTER THE MIX OF ALL SIGNALS
+	amix	=	amix * 0.07 * kenv * p5 * ilevel	;RESCALE AMPLITUDE
+	aL,aR	pan2	amix,ipan			;PAN THE MONOPHONIC AUDIO SIGNAL
+
+		outs	aL,aR				;SEND AUDIO TO OUTPUTS
 endin
 
 
