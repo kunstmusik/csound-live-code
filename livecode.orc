@@ -580,6 +580,95 @@ instr	CHH	;CLOSED HIGH HAT
 endin
 
 
+instr	HiTom	;HIGH TOM
+  idur = xchan("HiTom.decay", 1.0)	
+  ilevel = xchan("HiTom.level", 1) 
+  itune = xchan("HiTom.tune", 0)
+  ipan = xchan("HiTom.pan", 0.5)
+  ioct = octave:i(itune)
+
+	ifrq     	=	200 * ioct	;FREQUENCY
+	p3	  	=	0.5 * idur			;DURATION OF THIS NOTE
+
+	;SINE TONE SIGNAL
+	aAmpEnv	transeg	1,p3,-10,0.001				;AMPLITUDE ENVELOPE FOR SINE TONE SIGNAL
+	afmod	expsega	5,0.125/ifrq,1,1,1			;FREQUENCY MODULATION ENVELOPE. GIVES THE TONE MORE OF AN ATTACK.
+	asig	oscili	-aAmpEnv*0.6,ifrq*afmod,gi_808_sine		;SINE TONE SIGNAL
+
+	;NOISE SIGNAL
+	aEnvNse	transeg	1,p3,-6,0.001				;AMPLITUDE ENVELOPE FOR NOISE SIGNAL
+	anoise	dust2	0.4, 8000				;GENERATE NOISE SIGNAL
+	anoise	reson	anoise,400*ioct,800,1	;BANDPASS FILTER THE NOISE SIGNAL
+	anoise	buthp	anoise,100*ioct		;HIGHPASS FILTER THE NOSIE SIGNAL
+	anoise	butlp	anoise,1000*ioct		;LOWPASS FILTER THE NOISE SIGNAL
+	anoise	=	anoise * aEnvNse			;SCALE NOISE SIGNAL WITH AMPLITUDE ENVELOPE
+	
+	;MIX THE TWO SOUND COMPONENTS
+	amix	=	(asig + anoise)*ilevel*p5
+	aL,aR	pan2	amix,ipan				;PAN MONOPHONIC SIGNAL
+		outs	aL,aR					;SEND AUDIO TO OUTPUTS
+endin
+
+instr	MidTom ;MID TOM
+  idur = xchan("MidTom.decay", 1.0)	
+  ilevel = xchan("MidTom.level", 1) 
+  itune = xchan("MidTom.tune", 0)
+  ipan = xchan("MidTom.pan", 0.5)
+  ioct = octave:i(itune)
+
+	ifrq     	=	133*ioct 		;FREQUENCY
+	p3	  	=	0.6 * idur			;DURATION OF THIS NOTE
+
+	;SINE TONE SIGNAL
+	aAmpEnv	transeg	1,p3,-10,0.001				;AMPLITUDE ENVELOPE FOR SINE TONE SIGNAL
+	afmod	expsega	5,0.125/ifrq,1,1,1			;FREQUENCY MODULATION ENVELOPE. GIVES THE TONE MORE OF AN ATTACK.
+	asig	oscili	-aAmpEnv*0.6,ifrq*afmod,gi_808_sine		;SINE TONE SIGNAL
+
+	;NOISE SIGNAL
+	aEnvNse	transeg	1,p3,-6,0.001				;AMPLITUDE ENVELOPE FOR NOISE SIGNAL
+	anoise	dust2	0.4, 8000				;GENERATE NOISE SIGNAL
+	anoise	reson	anoise, 400*ioct,800,1	;BANDPASS FILTER THE NOISE SIGNAL
+	anoise	buthp	anoise,100*ioct		;HIGHPASS FILTER THE NOSIE SIGNAL
+	anoise	butlp	anoise,600*ioct		;LOWPASS FILTER THE NOISE SIGNAL
+	anoise	=	anoise * aEnvNse			;SCALE NOISE SIGNAL WITH AMPLITUDE ENVELOPE
+	
+	;MIX THE TWO SOUND COMPONENTS
+	amix	=	(asig + anoise)*ilevel*p5
+	aL,aR	pan2	amix,ipan			;PAN MONOPHONIC SIGNAL
+		outs	aL,aR					;SEND AUDIO TO OUTPUTS
+endin
+
+instr	LowTom	;LOW TOM
+  idur = xchan("LowTom.decay", 1.0)	
+  ilevel = xchan("LowTom.level", 1) 
+  itune = xchan("LowTom.tune", 0)
+  ipan = xchan("LowTom.pan", 0.5)
+  ioct = octave:i(itune)
+
+	ifrq     	=	90 * ioct	;FREQUENCY
+	p3 	 	=	0.7*idur 		;DURATION OF THIS NOTE
+
+	;SINE TONE SIGNAL
+	aAmpEnv	transeg	1,p3,-10,0.001				;AMPLITUDE ENVELOPE FOR SINE TONE SIGNAL
+	afmod	expsega	5,0.125/ifrq,1,1,1			;FREQUENCY MODULATION ENVELOPE. GIVES THE TONE MORE OF AN ATTACK.
+	asig	oscili	-aAmpEnv*0.6,ifrq*afmod,gi_808_sine		;SINE TONE SIGNAL
+
+	;NOISE SIGNAL
+	aEnvNse	transeg	1,p3,-6,0.001				;AMPLITUDE ENVELOPE FOR NOISE SIGNAL
+	anoise	dust2	0.4, 8000				;GENERATE NOISE SIGNAL
+	anoise	reson	anoise,40*ioct,800,1		;BANDPASS FILTER THE NOISE SIGNAL
+	anoise	buthp	anoise,100*ioct		;HIGHPASS FILTER THE NOSIE SIGNAL
+	anoise	butlp	anoise,600*ioct		;LOWPASS FILTER THE NOISE SIGNAL
+	anoise	=	anoise * aEnvNse			;SCALE NOISE SIGNAL WITH AMPLITUDE ENVELOPE
+	
+	;MIX THE TWO SOUND COMPONENTS
+	amix	=	(asig + anoise)*ilevel*p5
+	aL,aR	pan2	amix,ipan				;PAN MONOPHONIC SIGNAL
+		outs	aL,aR					;SEND AUDIO TO OUTPUTS
+endin
+
+
+
 ;; Cymbal - From Iain McCurdy's TR-808.csd
 instr	Cymbal	;CYMBAL
   idur = xchan("Cymbal.decay", 1.0)	
