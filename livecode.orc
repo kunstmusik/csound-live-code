@@ -807,6 +807,84 @@ instr Cowbell
 endin
 
 
+instr	Maraca	;MARACA
+  idur = xchan("Maraca.decay", 1.0)	
+  ilevel = xchan("Maraca.level", 1) 
+  itune = xchan("Maraca.tune", 0)
+  ipan = xchan("Maraca.pan", 0.5)
+  ioct = octave:i(itune)
+
+	idur	=	0.07*idur				;DURATION 3
+	p3	limit	idur,0.1,10				;LIMIT THE MINIMUM DURATION OF THE NOTE (VERY SHORT NOTES CAN RESULT IN THE INDICATOR LIGHT ON-OFF NOTE BEING TO0 SHORT)
+	iHPF 	limit	6000*ioct,20,sr/2	;HIGHPASS FILTER FREQUENCY	
+	iLPF 	limit	12000*ioct,20,sr/3	;LOWPASS FILTER FREQUENCY. (LIMIT MAXIMUM TO PREVENT OUT OF RANGE VALUES)
+	;AMPLITUDE ENVELOPE
+	iBP1 	=	0.4					;BREAK-POINT 1
+	iDur1	=	0.014*idur 			;DURATION 1
+	iBP2 	=	1					;BREAKPOINT 2
+	iDur2	=	0.01 *idur			;DURATION 2
+	iBP3 	=	0.05 					;BREAKPOINT 3
+	p3	limit	idur,0.1,10				;LIMIT THE MINIMUM DURATION OF THE NOTE (VERY SHORT NOTES CAN RESULT IN THE INDICATOR LIGHT ON-OFF NOTE BEING TO0 SHORT)
+	aenv	expsega	iBP1,iDur1,iBP2,iDur2,iBP3		;CREATE AMPLITUDE ENVELOPE
+	anoise	noise	0.75,0					;CREATE A NOISE SIGNAL
+	anoise	buthp	anoise,iHPF				;HIGHPASS FILTER THE SOUND
+	anoise	butlp	anoise,iLPF				;LOWPASS FILTER THE SOUND
+	anoise	=	anoise*aenv*p5*ilevel	;SCALE THE AMPLITUDE
+	aL,aR	pan2	anoise,ipan			;PAN THE MONOPONIC SIGNAL
+		outs	aL,aR					;SEND AUDIO TO OUTPUTS
+endin
+
+instr	HiConga	;HIGH CONGA
+  idur = xchan("HiConga.decay", 1.0)	
+  ilevel = xchan("HiConga.level", 1) 
+  itune = xchan("HiConga.tune", 0)
+  ipan = xchan("HiConga.pan", 0.5)
+  ioct = octave:i(itune)
+
+	ifrq  	=	420*ioct		;FREQUENCY OF NOTE
+	p3  	=	0.22*idur			;DURATION OF NOTE
+	aenv	transeg	0.7,1/ifrq,1,1,p3,-6,0.001	;AMPLITUDE ENVELOPE
+	afrq	expsega	ifrq*3,0.25/ifrq,ifrq,1,ifrq	;FREQUENCY ENVELOPE (CREATE A SHARPER ATTACK)
+	asig	oscili	-aenv*0.25,afrq,gi_808_sine		;CREATE THE AUDIO OSCILLATOR
+	asig	=	asig*p5*ilevel	;SCALE THE AMPLITUDE
+	aL,aR	pan2	asig,ipan			;PAN THE MONOPHONIC AUDIO SIGNAL
+		outs	aL,aR				;SEND AUDIO TO THE OUTPUTS
+endin
+
+instr	MidConga	;MID CONGA
+  idur = xchan("MidConga.decay", 1.0)	
+  ilevel = xchan("MidConga.level", 1) 
+  itune = xchan("MidConga.tune", 0)
+  ipan = xchan("MidConga.pan", 0.5)
+  ioct = octave:i(itune)
+
+	ifrq   	=	310*ioct		;FREQUENCY OF NOTE
+	p3   	=	0.33*idur			;DURATION OF NOTE
+	aenv	transeg	0.7,1/ifrq,1,1,p3,-6,0.001	;AMPLITUDE ENVELOPE	
+	afrq	expsega	ifrq*3,0.25/ifrq,ifrq,1,ifrq	;FREQUENCY ENVELOPE (CREATE A SHARPER ATTACK)
+	asig	oscili	-aenv*0.25,afrq,gi_808_sine		;CREATE THE AUDIO OSCILLATOR
+	asig	=	asig*p5*ilevel		;SCALE THE AMPLITUDE
+	aL,aR	pan2	asig,ipan			;PAN THE MONOPHONIC AUDIO SIGNAL
+		outs	aL,aR				;SEND AUDIO TO THE OUTPUTS
+endin
+
+instr	LowConga	;LOW CONGA
+  idur = xchan("MidConga.decay", 1.0)	
+  ilevel = xchan("MidConga.level", 1) 
+  itune = xchan("MidConga.tune", 0)
+  ipan = xchan("MidConga.pan", 0.5)
+  ioct = octave:i(itune)
+
+	ifrq   	=	227*ioct		;FREQUENCY OF NOTE
+	p3   	=	0.41*idur			;DURATION OF NOTE 	
+	aenv	transeg	0.7,1/ifrq,1,1,p3,-6,0.001	;AMPLITUDE ENVELOPE	
+	afrq	expsega	ifrq*3,0.25/ifrq,ifrq,1,ifrq	;FREQUENCY ENVELOPE (CREATE A SHARPER ATTACK)
+	asig	oscili	-aenv*0.25,afrq,gi_808_sine		;CREATE THE AUDIO OSCILLATOR
+	asig	=	asig*p5*ilevel	;SCALE THE AMPLITUDE
+	aL,aR	pan2	asig,ipan			;PAN THE MONOPHONIC AUDIO SIGNAL
+		outs	aL,aR				;SEND AUDIO TO THE OUTPUTS
+endin
+
 ;; INITIALIZATION OF SYSTEM
 
 schedule("Clock", 0, -1)
