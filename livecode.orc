@@ -580,6 +580,55 @@ instr	CHH	;CLOSED HIGH HAT
 endin
 
 
+;; Cymbal - From Iain McCurdy's TR-808.csd
+instr	Cymbal	;CYMBAL
+  idur = xchan("Cymbal.decay", 1.0)	
+  ilevel = xchan("Cymbal.level", 1) 
+  itune = xchan("Cymbal.tune", 0)
+  ipan = xchan("Cymbal.pan", 0.5)
+  ioct = octave:i(itune)
+
+	iFrq1	=	296*ioct 	;FREQUENCIES OF THE 6 OSCILLATORS
+	iFrq2	=	285*ioct
+	iFrq3	=	365*ioct
+	iFrq4	=	348*ioct     
+	iFrq5	=	420*ioct
+	iFrq6	=	835*ioct
+	p3	=	2*idur	;DURATION OF THE NOTE
+
+	;SOUND CONSISTS OF 6 PULSE OSCILLATORS MIXED WITH A NOISE COMPONENT
+	;PITCHED ELEMENT
+	aenv	expon	1,p3,0.0001		;AMPLITUDE ENVELOPE FOR THE PULSE OSCILLATORS 
+	ipw	=	0.25			;PULSE WIDTH      
+	a1	vco2	0.5,iFrq1,2,ipw		;PULSE OSCILLATORS...  
+	a2	vco2	0.5,iFrq2,2,ipw
+	a3	vco2	0.5,iFrq3,2,ipw
+	a4	vco2	0.5,iFrq4,2,ipw
+	a5	vco2	0.5,iFrq5,2,ipw 
+	a6	vco2	0.5,iFrq6,2,ipw
+
+	amix	sum	a1,a2,a3,a4,a5,a6		;MIX THE PULSE OSCILLATORS
+	amix	reson	amix,5000 * ioct,5000,1	;BANDPASS FILTER THE MIXTURE
+	amix	buthp	amix,10000			;HIGHPASS FILTER THE SOUND
+	amix	butlp	amix,12000			;LOWPASS FILTER THE SOUND...
+	amix	butlp	amix,12000			;AND AGAIN...
+	amix	=	amix*aenv			;APPLY THE AMPLITUDE ENVELOPE
+	
+	;NOISE ELEMENT
+	anoise	noise	0.8,0				;GENERATE SOME WHITE NOISE
+	aenv	expsega	1,0.3,0.07,p3-0.1,0.00001	;CREATE AN AMPLITUDE ENVELOPE
+	kcf	expseg	14000,0.7,7000,p3-0.1,5000	;CREATE A CUTOFF FREQ. ENVELOPE
+	anoise	butlp	anoise,kcf			;LOWPASS FILTER THE NOISE SIGNAL
+	anoise	buthp	anoise,8000			;HIGHPASS FILTER THE NOISE SIGNAL
+	anoise	=	anoise*aenv			;APPLY THE AMPLITUDE ENVELOPE            
+
+	;MIX PULSE OSCILLATOR AND NOISE COMPONENTS
+	amix	=	(amix+anoise)*ilevel*p5*0.85
+	aL,aR	pan2	amix,ipan		;PAN MONOPHONIC SIGNAL
+		outs	aL,aR				;SEND TO OUTPUTS
+endin
+
+
 ;; Rimshot - From Iain McCurdy's TR-808.csd
 giTR808RimShot	ftgen	0,0,1024,10, 0.971,0.269,0.041,0.054,0.011,0.013,0.08,0.0065,0.005,0.004,0.003,0.003,0.002,0.002,0.002,0.002,0.002,0.001,0.001,0.001,0.001,0.001,0.002,0.001,0.001	;WAVEFORM FOR TR808 RIMSHOT
 
