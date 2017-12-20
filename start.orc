@@ -1,34 +1,37 @@
+set_tempo(85)
 
 instr P1 
   ibeat = p4
-
-  chnset(xcos(bphs(ibeat, 32)) * 8000 + 12000,
-        "Sub2.cut")
-
-  hexplay("a222222aa222222b", ibeat, 
-      "Sub2", p3, 
-      in_scale(-1, 3 + int(xlin(bphs(ibeat, 32), 0, 3))),
-      fade_in(2, 128) * ampdbfs(xosci(bphs(ibeat, 64), array(-12, -6))))
-
-  hexplay("820008808200088a", ibeat,
-      "Sub1", p3,
-      in_scale(1, 0),
-      fade_in(6, 128) * ampdbfs(-12))
-
-  hexplay("9090909f", ibeat, 
-      "FM1", p3, 
+  
+  hexplay("ffe00000", ibeat,
+      "FM1", p3,
       in_scale(-2, 0),
-      fade_in(2, 128) * ampdbfs(-12))
-
-  hexplay("0f0e0f0f", ibeat,
-      "Clap", p3,
+      fade_in(9, 128) * ampdbfs(-12))
+  
+  hexplay("8208820a", ibeat,
+      "Claves", p3,
       in_scale(-1, 0),
-      fade_in(5, 128) * ampdbfs(-12))
+      fade_in(11, 128) * ampdbfs(-12))
+  
+  hexplay("0000000b", ibeat,
+      "Rimshot", p3,
+      in_scale(-1, 0),
+      fade_in(8, 128) * ampdbfs(-12))
+  
+  hexplay("8000", ibeat,
+      "OHH", p3,
+      in_scale(-1, 0),
+      fade_in(13, 128) * ampdbfs(-12))
 
-  hexplay("ff80ff8a", ibeat, 
-      "SD", p3, 
-      0,
-      fade_in(3, 128) * ampdbfs(-9 + xlin(bphs(ibeat, 8), 0, 3)))
+  hexplay("7fff3fff", ibeat,
+      "CHH", p3,
+      in_scale(-1, 0),
+      fade_in(7, 128) * ampdbfs(-12))
+
+  hexplay("0808080c", ibeat,
+      "SD", p3,
+      in_scale(-1, 0),
+      fade_in(6, 128) * ampdbfs(-12))
 
   hexplay("8", ibeat, 
       "BD", p3, 
@@ -36,4 +39,5 @@ instr P1
       fade_in(4, 128) * ampdbfs(-3))
 
 endin
+
 
