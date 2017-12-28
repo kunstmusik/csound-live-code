@@ -42,16 +42,21 @@ instr Perform
   schedule("P1", 0, p3, ibeat) 
 endin
 
+gk_clock_beat init 0
+
+opcode reset_clock, 0, 0
+  gk_clock_beat init 0
+endop
+
 instr Clock ;; our clock  
-  kbeat init 0
   kfreq = gktempo / 60 * 4
   kdur = 1 / kfreq
   ktrig = metro(kfreq)
 
-  schedkwhen(ktrig, 0, 0, "Perform", 0, kdur, kbeat)
+  schedkwhen(ktrig, 0, 0, "Perform", 0, kdur, gk_clock_beat)
 
   if (ktrig == 1) then
-    kbeat += 1
+    gk_clock_beat += 1
   endif
 
 endin

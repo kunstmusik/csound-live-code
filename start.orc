@@ -1,3 +1,4 @@
+reset_clock()
 set_tempo(85)
 
 instr P1 
