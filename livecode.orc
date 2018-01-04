@@ -370,6 +370,29 @@ instr Sub3
   outc(asig, asig)
 endin
 
+/* VoxHumana Patch */
+
+instr VoxHumana 
+  ipch = p4 
+  iamp = p5 
+  aenv = transegr:a(0, 0.453, 1, 1.0, 2.242, -1, 0)
+
+  klfo_pulse_width = lfo(0.125, 5.72, 1)
+  klfo_saw = lfo(0.021, 5.04, 1)
+  klfo_pulse = lfo(0.013, 3.5, 1)
+
+  asaw = vco2(iamp, ipch * (1 + klfo_saw))
+  apulse = vco2(iamp, ipch * (1.00004 + klfo_pulse), 2, 0.625 + klfo_pulse_width)
+
+  aout = sum(asaw, apulse) * 0.5 * aenv
+
+  ikeyfollow = 1 + exp( (ipch - 50) / 10000)
+
+  aout = butterlp(aout, 1986 * ikeyfollow)
+
+  outc(aout, aout)
+endin
+
 /* FM 3:1 C:M ratio, 2->0.025 index, nice for bass */
 instr FM1 
   icar = xchan("FM1.car", 1)

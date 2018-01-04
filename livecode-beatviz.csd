@@ -11,7 +11,7 @@
 
 <CsoundSynthesizer>
 <CsOptions>
---port=10000 -o dac -m0 -b256 -B1024
+--port=10000 -o dac -m0 
 </CsOptions>
 <CsInstruments>
 
