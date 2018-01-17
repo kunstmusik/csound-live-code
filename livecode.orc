@@ -219,6 +219,30 @@ opcode xlin, i, iii
   xout istart + (iend - istart) * iphase
 endop
 
+;; String functions
+
+/** Repeats a given String x number of times. For example:
+
+  Sval = strrep("ab6a", 2)
+
+  will produce the value of "ab6aab6a"
+
+  Useful in working with Hex beat strings  
+*/
+opcode strrep, S, Si
+  Sval, inum xin
+    
+  Sout = Sval
+  indx = 1
+  while (indx < inum) do
+    Sout = strcat(Sout, Sval) 
+    indx += 1
+  od
+
+  xout Sout
+endop
+
+
 ;; Channel Helper
 
 /** xchan 
