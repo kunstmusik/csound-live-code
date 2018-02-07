@@ -61,6 +61,21 @@ instr Clock ;; our clock
 
 endin
 
+;; Randomization
+
+/** Given a random chance value between 0 and 1, calculates a random value and
+returns 1 if value is less than chance value. For example, giving a value of 0.7,
+it can read as "70 percent of time, return 1; else 0" */
+opcode choose, i, i
+  iamount xin
+  ival = 0
+
+  if(random(0,1) < limit:i(iamount, 0, 1)) then
+    ival = 1 
+  endif
+  xout ival
+endop
+
 
 ;; Beats
 
