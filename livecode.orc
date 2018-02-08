@@ -201,14 +201,32 @@ endop
 
 ;; Phase-based Oscillators 
 
+/** Returns cosine of given phase (0-1.0) */
 opcode xcos, i,i
   iphase  xin
   xout cos(2 * $M_PI * iphase)
 endop
 
+/** Range version of xcos, similar to Impromptu's cosr 
+  xcos(iphase, ioffset, irange)
+  */
+opcode xcos, i,iii
+  iphase, ioffset, irange  xin
+  xout ioffset + (cos(2 * $M_PI * iphase) * irange)
+endop
+
+/** Returns sine of given phase (0-1.0) */
 opcode xsin, i,i
   iphase  xin
-  xout cos(2 * $M_PI * iphase)
+  xout sin(2 * $M_PI * iphase)
+endop
+
+/** Range version of xcos, similar to Impromptu's cosr 
+  xcos(iphase, ioffset, irange)
+  */
+opcode xsin, i,iii
+  iphase, ioffset, irange  xin
+  xout ioffset + (sin(2 * $M_PI * iphase) * irange)
 endop
 
 opcode xosc, i, ik[]
@@ -331,13 +349,12 @@ opcode in_scale, i, ii
 
   idegrees = lenarray(gi_cur_scale)
 
-  if (idegree < 0) then
-    ioct = (1 + int(abs:i(idegree) / idegrees))
-    indx = idegree + (ioct * idegrees)
-    ioct *= -1
-  else 
-    ioct = int(idegree / idegrees)
-    indx = idegree % idegrees
+  ioct = int(idegree / idegrees)
+  indx = idegree % idegrees
+
+  if(indx < 0) then
+    ioct -= 1
+    indx += idegrees
   endif
 
   xout cpsmidinn(ibase + (ioct * 12) + gi_cur_scale[indx]) 
