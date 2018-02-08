@@ -236,6 +236,21 @@ endop
 
 ;; String functions
 
+/** 
+  rotate - Rotates string by irot number of values. 
+  
+  Inspired by rotate from Charlie Roberts' Gibber.
+*/
+opcode rotate, S, Si
+  Sval, irot xin
+
+  ilen = strlen(Sval)
+  irot = irot % ilen
+  Sout = strcat(strsub(Sval, irot, ilen), strsub(Sval, 0, irot))
+  xout Sout
+endop
+
+
 /** Repeats a given String x number of times. For example:
 
   Sval = strrep("ab6a", 2)
