@@ -14,25 +14,25 @@ endin
 
 ;; TIME
 
-gktempo init 120 
+gk_tempo init 120 
 
 opcode set_tempo,0,i
   itempo xin
-  gktempo init itempo
+  gk_tempo init itempo
 endop
 
 opcode go_tempo, 0, ii
   inewtempo, incr xin
 
-  icurtempo = i(gktempo)
+  icurtempo = i(gk_tempo)
   itemp init icurtempo 
 
   if(inewtempo > icurtempo) ithen
     itemp = min:i(inewtempo, icurtempo + abs(incr))
-    gktempo init itemp 
+    gk_tempo init itemp 
   elseif (inewtempo < icurtempo) ithen
     itemp = max:i(inewtempo, icurtempo - abs(incr))
-    gktempo init itemp 
+    gk_tempo init itemp 
   endif
 endop
 
@@ -42,23 +42,43 @@ instr Perform
   schedule("P1", 0, p3, ibeat) 
 endin
 
-gk_clock_beat init 0
+gk_clock_tick init 0
+gk_now init 0
+
+/** Returns value of now beat time
+   (Code used from Thorin Kerr's LivecodLib.csd */
+opcode now, i, 0
+  xout i(gk_now)
+endop
+
+/** Returns duration of time in given number of beats (quarter notes) */
+opcode beats, i, i
+  inumbeats xin
+  ibeatdur = divz(60, i(gk_tempo), -1)
+  xout ibeatdur * inumbeats
+endop
+
+/** Returns duration of time in given number of ticks (16th notes) */
+opcode ticks, i, i
+  inumbeats xin
+  ibeatdur = divz(60, i(gk_tempo), -1)
+  ibeatdur = ibeatdur / 4
+  xout ibeatdur * inumbeats
+endop
 
 opcode reset_clock, 0, 0
-  gk_clock_beat init 0
+  gk_clock_tick init 0
 endop
 
 instr Clock ;; our clock  
-  kfreq = gktempo / 60 * 4
+  ;; tick at 1/16th note
+  kfreq = gk_tempo / 60 * 4
+  gk_now += (gk_tempo / 60) / kr
   kdur = 1 / kfreq
   ktrig = metro(kfreq)
+  gk_clock_tick += ktrig
 
-  schedkwhen(ktrig, 0, 0, "Perform", 0, kdur, gk_clock_beat)
-
-  if (ktrig == 1) then
-    gk_clock_beat += 1
-  endif
-
+  schedkwhen(ktrig, 0, 0, "Perform", 0, kdur, gk_clock_tick)
 endin
 
 ;; Randomization
@@ -73,6 +93,23 @@ opcode choose, i, i
   if(random(0,1) < limit:i(iamount, 0, 1)) then
     ival = 1 
   endif
+  xout ival
+endop
+
+;; Array Functions
+
+/** Cycles through karray using index. */
+opcode cycle, i, ik[]
+  indx, kvals[] xin
+  ival = i(kvals, indx % lenarray(kvals))
+  xout ival
+endop
+
+/** Returns random item from karray. */
+opcode rand, i, k[]
+  kvals[] xin
+  indx = int(random(0, lenarray(kvals)))
+  ival = i(kvals, indx)
   xout ival
 endop
 
