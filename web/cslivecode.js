@@ -27,6 +27,7 @@ function insertEuclidplay() {
   doc.replaceRange(hexCode, doc.getCursor());
 }
 
+
 let editor = CodeMirror.fromTextArea(
 	document.getElementById("csoundCodeEditor"), 
 	{
@@ -40,6 +41,7 @@ let editor = CodeMirror.fromTextArea(
 			"Ctrl-E": evalCode,
 			"Ctrl-H": insertHexplay,
 			"Ctrl-J": insertEuclidplay,
+      "Ctrl-;": CodeMirror.commands.toggleComment,
 		},
 	});
 
