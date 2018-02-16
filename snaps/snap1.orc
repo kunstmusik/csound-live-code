@@ -1,4 +1,6 @@
 ;; Select this code and press ctrl-e to evaluate
+set_tempo(120)
+set_scale("min")
 
 instr S1
   asig = vco2(ampdbfs(-12), p4) 
@@ -23,34 +25,34 @@ instr S3
 endin
 
 instr P1 
-  ibeat = p4
+  itick = p4
   
-  hexplay("2892", ibeat,
+  hexplay("2892",
       "S1", p3,
       in_scale(-1, 0),
       fade_in(10, 128) * ampdbfs(-12))
   
-  hexplay("88a2222a", ibeat,
+  hexplay("88a2222a",
       "S2", p3 * 2,
-      in_scale(-2, xosci(bphs(ibeat, 16), array(0,7))),
+      in_scale(-2, xosci(phs(16), array(0,7))),
       fade_in(9, 128) * ampdbfs(-12))
   
-  hexplay("08", ibeat,
+  hexplay("08",
       "Clap", p3,
       in_scale(-1, 0),
       fade_in(12, 128) * ampdbfs(-12))
 
-  hexplay("8", ibeat, 
+  hexplay("8", 
       "BD", p3, 
       0,
       fade_in(4, 128) * ampdbfs(-3))
 
-  hexplay("0008000a0008000d", ibeat,
+  hexplay("0008000a0008000d",
       "S1", p3 * 0.5,
       in_scale(2, 0),
       fade_in(13, 128) * ampdbfs(-15))
 
-  if(ibeat % 64 == 0) then
+  if(itick % 64 == 0) then
     schedule("S3", 0, 1, 0, ampdbfs(-3))
   endif
 

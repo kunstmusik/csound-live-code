@@ -68,6 +68,7 @@ endop
 
 opcode reset_clock, 0, 0
   gk_clock_tick init 0
+  gk_now init 0
 endop
 
 instr Clock ;; our clock  
@@ -117,16 +118,16 @@ endop
 ;; Beats
 
 opcode hexbeat, i, Si
-  Spat, ibeat xin
+  Spat, itick xin
 
   ;; 4 bits/beats per hex value
   ipatlen = strlen(Spat) * 4
   ;; get beat within pattern length
-  ibeat = ibeat % ipatlen
+  itick = itick % ipatlen
   ;; figure which hex value to use from string
-  ipatidx = int(ibeat / 4)
+  ipatidx = int(itick / 4)
   ;; figure out which bit from hex to use
-  ibitidx = ibeat % 4 
+  ibitidx = itick % 4 
   
   ;; convert individual hex from string to decimal/binary
   ibeatPat = strtol(strcat("0x", strsub(Spat, ipatidx, ipatidx + 1))) 
@@ -137,26 +138,42 @@ opcode hexbeat, i, Si
 endop
 
 
+/** Given hex beat pattern, use given itick to fire 
+  events for given instrument, duration, frequency, and
+  amplitude */
 opcode hexplay, 0, SiSiip
-  Spat, ibeat, Sinstr, idur, ifreq, iamp xin
+  Spat, itick, Sinstr, idur, ifreq, iamp xin
 
-  if(hexbeat(Spat, ibeat) == 1) then
+  if(hexbeat(Spat, itick) == 1) then
+    schedule(Sinstr, 0, idur, ifreq, iamp )
+  endif
+endop
+
+/** Given hex beat pattern, use global clock to fire 
+  events for given instrument, duration, frequency, and
+  amplitude */
+opcode hexplay, 0, SSiip
+  Spat, Sinstr, idur, ifreq, iamp xin
+
+  itick = i(gk_clock_tick)
+
+  if(hexbeat(Spat, itick) == 1) then
     schedule(Sinstr, 0, idur, ifreq, iamp )
   endif
 endop
 
 
 opcode octalbeat, i, Si
-  Spat, ibeat xin
+  Spat, itick xin
 
   ;; 3 bits/beats per octal value
   ipatlen = strlen(Spat) * 4
   ;; get beat within pattern length
-  ibeat = ibeat % ipatlen
+  itick = itick % ipatlen
   ;; figure which octal value to use from string
-  ipatidx = int(ibeat / 3)
+  ipatidx = int(itick / 3)
   ;; figure out which bit from octal to use
-  ibitidx = ibeat % 3 
+  ibitidx = itick % 3 
   
   ;; convert individual octal from string to decimal/binary
   ibeatPat = strtol(strcat("0", strsub(Spat, ipatidx, ipatidx + 1))) 
@@ -174,10 +191,45 @@ opcode octalplay, 0, SiSiip
   endif
 endop
 
-;; Beat Phase
-opcode bphs, i, ii
-  ibeat, imax xin
-  xout (ibeat % imax) / imax
+opcode octalplay, 0, SSiip
+  Spat, Sinstr, idur, ifreq, iamp xin
+
+  itick = i(gk_clock_tick)
+
+  if(octalbeat(Spat, itick) == 1) then
+    schedule(Sinstr, 0, idur, ifreq, iamp )
+  endif
+endop
+
+;; Phase Functions
+
+/** Given period in ticks, return current phase of global
+  clock in range [0-1) */
+opcode phs, i, i
+  iticks xin
+  xout (i(gk_clock_tick) % iticks) / iticks
+endop
+
+/** Given period in beats, return current phase of global
+  clock in range [0-1) */
+opcode phsb, i, i
+  ibeats xin
+  iticks = ibeats * 4
+  xout (i(gk_clock_tick) % iticks) / iticks
+endop
+
+/** Given period in measures, return current phase of global
+  clock in range [0-1) */
+opcode phsm, i, i
+  imeasures xin
+  iticks = imeasures * 4 * 4
+  xout (i(gk_clock_tick) % iticks) / iticks
+endop
+
+/** Given count and period, return phase value in range [0-1) */
+opcode phs, i, ii
+  icount, iperiod xin
+  xout (icount % iperiod) / iperiod 
 endop
 
 
@@ -222,16 +274,27 @@ opcode euclid_str, S, ii
 endop
 
 opcode euclid, i, iii
-  ibeat, ihits, isteps xin
+  itick, ihits, isteps xin
   Sval = euclid_str(ihits, isteps)
-  indx = ibeat % strlen(Sval)
+  indx = itick % strlen(Sval)
   xout strtol(strsub(Sval, indx, indx + 1))
 endop
 
 opcode euclidplay, 0, iiiSiip
-  ihits, isteps, ibeat, Sinstr, idur, ifreq, iamp xin
+  ihits, isteps, itick, Sinstr, idur, ifreq, iamp xin
 
-  if(euclid(ibeat, ihits, isteps) == 1) then
+  if(euclid(itick, ihits, isteps) == 1) then
+    schedule(Sinstr, 0, idur, ifreq, iamp)
+  endif
+endop
+
+
+opcode euclidplay, 0, iiSiip
+  ihits, isteps, Sinstr, idur, ifreq, iamp xin
+
+  itick = i(gk_clock_tick)
+
+  if(euclid(itick, ihits, isteps) == 1) then
     schedule(Sinstr, 0, idur, ifreq, iamp)
   endif
 endop

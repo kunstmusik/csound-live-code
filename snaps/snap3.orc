@@ -1,3 +1,6 @@
+set_tempo(112) 
+set_scale("maj")
+
 instr S1
   asig = vco2(ampdbfs(-12), p4) 
   asig += vco2(ampdbfs(-12), p4 * 1.01, 10) 
@@ -17,9 +20,9 @@ instr P1
   ibeat = p4
 
   if(hexbeat("888a888f", ibeat) == 1) then
-    ipch = xosci(bphs(ibeat, 32), array(0, 5, 0, 4, 0, 7, 0, 11))
-    ipch += xosc(bphs(ibeat, 64), array(0, 0, 2, 3))
-    ipch += xosc(bphs(ibeat, 128), array(0, 0, 0, 2))
+    ipch = xosci(phs(32), array(0, 5, 0, 4, 0, 7, 0, 11))
+    ipch += xosc(phs(64), array(0, 0, 2, 3))
+    ipch += xosc(phs(128), array(0, 0, 0, 2))
     
     schedule("S2", 0, p3, 
       in_scale(-1, ipch),
@@ -38,17 +41,15 @@ instr P1
       fade_in(6, 128) * ampdbfs(-18))
   endif
   
-  hexplay("0808080a", ibeat,
+  hexplay("0808080a",
       "Clap", p3,
       in_scale(-1, 0),
       fade_in(11, 128) * ampdbfs(-12))
 
-  hexplay("8", ibeat,
+  hexplay("8",
       "BD", p3,
       in_scale(-1, 0),
       fade_in(9, 128) * ampdbfs(-9)) 
 
 endin
 
-set_scale("maj")
-set_tempo(112) 
