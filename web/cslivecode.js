@@ -6,7 +6,7 @@ function evalCode() {
 }
 
 function insertHexplay() {
-  let hexCode = "hexplay(\"fade\", ibeat,\n" +
+  let hexCode = "hexplay(\"fade\",\n" +
       "      \"S1\", p3,\n" +
       "      in_scale(-1, 0),\n" +
       "      fade_in(" + fadeCounter + ", 128) * ampdbfs(-12))\n";
@@ -17,7 +17,7 @@ function insertHexplay() {
 }
 
 function insertEuclidplay() {
-  let hexCode = "euclidplay(13, 32, ibeat,\n" +
+  let hexCode = "euclidplay(13, 32,\n" +
       "      \"S1\", p3,\n" +
       "      in_scale(-1, 0),\n" +
       "      fade_in(" + fadeCounter + ", 128) * ampdbfs(-12))\n";
