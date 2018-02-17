@@ -13,11 +13,15 @@
 
 ### The P1 Callback Instrument
 
+### Temporal Recursion
+
 ### Synthesizer Instruments
 
 ### Utility User-defined Opcodes
 
-## Tutorials
 
+## Reference
 
-## User-Defined Opcode Reference
+* [Cheatsheet](cheatsheet.md)
+* [UDO Reference](udoreference.md)
+* [Instrument Reference](instruments.md)
