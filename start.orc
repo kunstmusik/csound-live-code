@@ -1,5 +1,6 @@
 ;; reset_clock()
 set_tempo(122)
+set_scale("min")
 
 instr P1 
 

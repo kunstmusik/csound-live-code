@@ -21,6 +21,10 @@ opcode set_tempo,0,i
   gk_tempo init itempo
 endop
 
+opcode get_tempo,i,0
+  xout i(gk_tempo)
+endop
+
 opcode go_tempo, 0, ii
   inewtempo, incr xin
 
@@ -485,6 +489,16 @@ opcode kill, 0,S
   schedule("KillImpl", 0, 0.01, Sinstr)
 endop
 
+/** Redefines instr to empty body. Useful for killing
+  temporal recursion or clock callback functions */
+opcode clear_instr, 0,S
+  Sinstr xin
+  Sinstr_body = sprintf("instr %s\nendin\n", Sinstr)
+  ires = compilestr(Sinstr_body)
+  prints(sprintf("Cleared instrument definition: %s\n", 
+          Sinstr))
+endop
+
 
 ;; Fades (Experimental)
 
@@ -555,7 +569,7 @@ instr VoxHumana
   asaw = vco2(iamp, ipch * (1 + klfo_saw))
   apulse = vco2(iamp, ipch * (1.00004 + klfo_pulse), 2, 0.625 + klfo_pulse_width)
 
-  aout = sum(asaw, apulse) * 0.5 * aenv
+  aout = sum(asaw, apulse) * 0.0625 * aenv
 
   ikeyfollow = 1 + exp( (ipch - 50) / 10000)
 
