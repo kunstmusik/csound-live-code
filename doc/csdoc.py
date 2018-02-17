@@ -43,6 +43,7 @@ for i in udos:
 f = open("cheatsheet.md", "w")
 f.write("# Live Code User-Defined Opcodes\n\n")
 f.write("|Outputs | Opcode | Inputs |\n")
+f.write("| ---- | ---- | ---- |\n")
 f.write(udoTable)
 f.flush()
 f.close()

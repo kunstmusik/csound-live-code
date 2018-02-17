@@ -1,6 +1,7 @@
 # Live Code User-Defined Opcodes
 
 |Outputs | Opcode | Inputs |
+| ---- | ---- | ---- |
 |  | _ set_tempo_ | itempo  |
 | ival | _ get_tempo_ |  |
 |  | _ go_tempo_ | inewtempo, incr  |
