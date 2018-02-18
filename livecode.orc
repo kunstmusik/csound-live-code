@@ -50,9 +50,14 @@ gk_clock_tick init 0
 gk_now init 0
 
 /** Returns value of now beat time
-   (Code used from Thorin Kerr's LivecodLib.csd */
+   (Code used from Thorin Kerr's LivecodeLib.csd */
 opcode now, i, 0
   xout i(gk_now)
+endop
+
+/** Returns current clock tick at init time */
+opcode now_tick, i, 0
+  xout i(gk_clock_tick)
 endop
 
 /** Returns duration of time in given number of beats (quarter notes) */
