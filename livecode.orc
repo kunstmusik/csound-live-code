@@ -592,6 +592,24 @@ instr FM1
   outc(asig, asig)
 endin
 
+/* Filtered noise */
+instr Noi 
+  p3 = max:i(p3, 0.4) 
+  asig = pinker() * p5 * expon(1, p3, 0.001) * 0.1
+
+  a1 = mode(asig, p4, 80)
+  a2 = mode(asig, p4 * 2, 40)
+  a3 = mode(asig, p4 * 3, 30)
+  a4 = mode(asig, p4 * 4, 20)
+
+  asig sum a1, a2, a3, a4
+
+  asig = declick(asig) * 0.25
+
+  outc(asig, asig)
+endin
+
+
 
 ;; DRUMS
 
