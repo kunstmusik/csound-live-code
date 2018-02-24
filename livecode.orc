@@ -50,7 +50,7 @@ gk_clock_tick init 0
 gk_now init 0
 
 /** Returns value of now beat time
-   (Code used from Thorin Kerr's LivecodeLib.csd */
+   (Code used from Thorin Kerr's LivecodeLib.csd) */
 opcode now, i, 0
   xout i(gk_now)
 endop
@@ -73,6 +73,18 @@ opcode ticks, i, i
   ibeatdur = divz(60, i(gk_tempo), -1)
   ibeatdur = ibeatdur / 4
   xout ibeatdur * inumbeats
+endop
+
+/** Returns time from now for next beat, rounding to align
+    on beat boundary. 
+   (Code used from Thorin Kerr's LivecodeLib.csd) */
+opcode next_beat, i, p
+  ibeatcount xin
+  inow = now()
+  ibc = frac(ibeatcount)
+  inudge = int(ibeatcount)
+  iresult = inudge + ibc + (round(divz(inow, ibc, inow)) * (ibc == 0 ? 1 : ibc)) - inow
+  xout beats(iresult)
 endop
 
 opcode reset_clock, 0, 0
