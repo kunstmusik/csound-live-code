@@ -604,7 +604,7 @@ instr FM1
   outc(asig, asig)
 endin
 
-/* Filtered noise */
+/* Filtered noise, exponential envelope */
 instr Noi 
   p3 = max:i(p3, 0.4) 
   asig = pinker() * p5 * expon(1, p3, 0.001) * 0.1
@@ -621,6 +621,33 @@ instr Noi
   outc(asig, asig)
 endin
 
+
+/* Based on Jacob Joaquin's "Tempo-Synced Wobble Bass" */
+instr Wobble
+  /*p3 = max:i(p3, 0.4) */
+
+  itri = chnget:i("Wobble.triangle")
+  if(itri == 0) then
+    ;; unipolar triangle
+    itri = ftgen(0, 0, 8192, -7, 0, 4096, 1, 4096, 0)
+    chnset(itri, "Wobble.triangle")
+  endif
+
+  ;; dur in ticks (16ths) for wobble lfo 
+  iticks = xchan("Wobble.ticks", 2)
+  ;; modulation max
+  imod = p4 * 8 
+
+  klfo = oscili:k(1, 1 / ticks(iticks), itri)
+
+  asig = vco2(p5, p4 * 2.018)
+  asig += vco2(p5, p4, 10)
+  asig = zdf_ladder(asig, min:k(p4 + (imod * klfo), 22000), 12) 
+  asig *= expon(1, beats(16), 0.001)
+  asig = declick(asig)
+  outc(asig, asig)
+
+endin
 
 
 ;; DRUMS
