@@ -572,6 +572,21 @@ instr Sub3
   outc(asig, asig)
 endin
 
+/* Subtractive Synth, detuned square/saw, stabby. 
+   Nice as a lead in octave 2, nicely grungy in octave -2, -1
+*/
+instr Sub4 
+  asig = vco2(0.5, p4 * 2)
+  asig += vco2(0.5, p4 * 2.01, 10)
+  asig += vco2(1, p4, 10)
+  asig += vco2(1, p4 * 0.99)
+  itarget = p4 * 2
+  asig = zdf_ladder(asig, expseg(20000, 0.25, itarget, 0.1, itarget), 5)
+  asig = declick(asig) * p5 * 0.4
+  outc(asig, asig)
+endin
+
+
 /* VoxHumana Patch */
 
 instr VoxHumana 
