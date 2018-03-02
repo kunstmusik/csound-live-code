@@ -1,44 +1,41 @@
 ;; reset_clock()
-set_tempo(122)
+set_tempo(120)
 set_scale("min")
 
 instr P1 
 
-  hexplay("a000a000b6deb6de", 
-      "Claves", p3, 0,
-      fade_in(5, 128) * ampdbfs(xosc(phs(4), array(-12, -18, -3, -12))))
-  
-  hexplay("ab6aab6aa000d000",
-      "Rimshot", p3,
-      in_scale(-1, 0),
-      fade_in(13, 128) * ampdbfs(-12))
+  hexplay("a222", 
+      "Sub4", p3,
+      in_scale(-2, xosc(phsb(2), array(3,2))),
+      fade_in(22, 128) * ampdbfs(-12))
 
-  hexplay("deaf", 
-      "HiConga", p3,
+  hexplay("aa000000", 
+      "Sub1", p3,
+      in_scale(-2, 0),
+      fade_in(22, 128) * ampdbfs(-12))
+
+  hexplay("82082082", 
+      "Sub2", p3,
+      in_scale(1, 0),
+      fade_in(25, 128) * ampdbfs(-12))
+
+  if(p4 % 64 == 1) then
+    schedule("Sub3", 0, beats(8),
+      in_scale(-2, 0),
+      ampdbfs(-12))
+  endif
+
+  hexplay("f", 
+      "CHH", p3,
       in_scale(-1, 0),
-      fade_in(16, 128) * ampdbfs(-12))
-  
-  hexplay("babe", 
-      "LowConga", p3,
-      in_scale(-1, 0),
-      fade_in(17, 128) * ampdbfs(-12))
-  
-  hexplay("2", 
-      "Cymbal", p3,
-      in_scale(-1, 0),
-      fade_in(20, 128) * ampdbfs(-12))
-  
-  hexplay("080808080808080c",
+      fade_in(23, 128) * ampdbfs(-12))
+
+  hexplay("08", 
       "SD", p3,
       in_scale(-1, 0),
-      ampdbfs(-6))
-  
-  hexplay("0008000d", 
-      "Clap", p3,
-      in_scale(-1, 0),
-      fade_in(21, 128) * ampdbfs(-12))
+      fade_in(24, 128) * ampdbfs(-12))
 
-  hexplay("8888888a",
+  hexplay("8",
       "BD", p3,
       in_scale(-1, 0),
       ampdbfs(-3))

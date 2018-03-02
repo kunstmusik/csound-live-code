@@ -581,8 +581,8 @@ instr Sub4
   asig += vco2(1, p4, 10)
   asig += vco2(1, p4 * 0.99)
   itarget = p4 * 2
-  asig = zdf_ladder(asig, expseg(20000, 0.25, itarget, 0.1, itarget), 5)
-  asig = declick(asig) * p5 * 0.4
+  asig = zdf_ladder(asig, expseg(20000, 0.15, itarget, 0.1, itarget), 5)
+  asig = declick(asig) * p5 * 0.35
   outc(asig, asig)
 endin
 
