@@ -520,22 +520,29 @@ endop
 ;; Fades (Experimental)
 
 opcode fade_in, i, ii
-  ident, inumbeats xin
+  ident, inumticks xin
   Schan = sprintf("fade_chan_%d", ident)
-  ival = limit:i(chnget:i(Schan) + 1, 0, inumbeats) 
+  ival = limit:i(chnget:i(Schan) + 1, 0, inumticks) 
   chnset(ival, Schan)
 
-  xout ival / inumbeats 
+  xout ival / inumticks 
 endop
 
 opcode fade_out, i, ii
-  ident, inumbeats xin
+  ident, inumticks xin
   Schan = sprintf("fade_chan_%d", ident)
-  ival = limit:i(chnget:i(Schan) - 1, 0, inumbeats) 
+  ival = limit:i(chnget:i(Schan) - 1, 0, inumticks) 
   chnset(ival, Schan)
 
-  xout ival / inumbeats 
+  xout ival / inumticks 
 endop
+
+/*opcode set_fade, 0,ii*/
+/*  ident, ival xin*/
+/*  Schan = sprintf("fade_chan_%d", ident)*/
+/*  ival = limit:i(chnget:i(Schan) - 1, 0, inumticks) */
+/*  chnset(ival, Schan)*/
+/*endop*/
 
 ;; SYNTHS
 
