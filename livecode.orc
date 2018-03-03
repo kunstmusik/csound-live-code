@@ -587,6 +587,20 @@ instr Sub4
 endin
 
 
+/** Plucky sound */
+instr Plk 
+  asig = rand:a(1.0) * expon(0.25, 0.1, 0.001)
+  asig = zdf_ladder(asig, 2500, 15)
+  asig = comb(asig, 2, 1 / p4) 
+  asig += vco2(p5, p4) * expon(0.5, 0.2, 0.001)
+  asig = zdf_ladder(asig, expon(8000, 0.12, p4 * 2), 1)
+  asig = declick(asig) * 0.8 
+
+  outc(asig, asig)
+endin
+
+
+
 /* VoxHumana Patch */
 
 instr VoxHumana 
