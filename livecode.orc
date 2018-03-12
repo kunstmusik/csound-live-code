@@ -606,6 +606,20 @@ instr Plk
   outc(asig, asig)
 endin
 
+/** 303-style Bass sound */
+
+instr Bass
+
+  acut = 200 + expon(1, p3, 0.001) * 16000
+  asig = vco2(1, p4)
+  asig = diode_ladder(asig, acut, 10, 1, 4) 
+  asig = tanh(asig * 4) * p5 * 0.5
+  asig = declick(asig) 
+
+
+  outc(asig, asig)
+
+endin
 
 
 /* VoxHumana Patch */
