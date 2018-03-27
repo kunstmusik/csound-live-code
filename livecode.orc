@@ -594,6 +594,16 @@ instr Sub4
 endin
 
 
+/* Subtractive Synth, detuned square/triangle */
+instr Sub5
+  asig = vco2(0.5, p4, 10)
+  asig += vco2(0.25, p4 * 2.0001, 12)
+  asig = zdf_ladder(asig, expseg(10000, 0.1, 500, 0.1, 500), 2)
+  asig = declick(asig) * p5 * 0.75
+  outc(asig, asig)
+endin
+
+
 /** Plucky sound */
 instr Plk 
   asig = rand:a(1.0) * expon(0.25, 0.1, 0.001)
