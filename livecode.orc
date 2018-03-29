@@ -141,20 +141,28 @@ endop
 opcode hexbeat, i, Si
   Spat, itick xin
 
-  ;; 4 bits/beats per hex value
-  ipatlen = strlen(Spat) * 4
-  ;; get beat within pattern length
-  itick = itick % ipatlen
-  ;; figure which hex value to use from string
-  ipatidx = int(itick / 4)
-  ;; figure out which bit from hex to use
-  ibitidx = itick % 4 
-  
-  ;; convert individual hex from string to decimal/binary
-  ibeatPat = strtol(strcat("0x", strsub(Spat, ipatidx, ipatidx + 1))) 
+  istrlen = strlen(Spat)
 
-  ;; bit shift/mask to check onset from hex's bits
-  xout (ibeatPat >> (3 - ibitidx)) & 1 
+  iout = 0
+
+  if (istrlen > 0) then
+    ;; 4 bits/beats per hex value
+    ipatlen = strlen(Spat) * 4
+    ;; get beat within pattern length
+    itick = itick % ipatlen
+    ;; figure which hex value to use from string
+    ipatidx = int(itick / 4)
+    ;; figure out which bit from hex to use
+    ibitidx = itick % 4 
+    
+    ;; convert individual hex from string to decimal/binary
+    ibeatPat = strtol(strcat("0x", strsub(Spat, ipatidx, ipatidx + 1))) 
+
+    ;; bit shift/mask to check onset from hex's bits
+    iout = (ibeatPat >> (3 - ibitidx)) & 1 
+  endif
+
+  xout iout
 
 endop
 
