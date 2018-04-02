@@ -48,7 +48,9 @@ let editor = CodeMirror.fromTextArea(
 fetch('start.orc').then(function(response) {
   return response.text().then(function(v) {
     editor.setValue(
-      ";; Select this code and press ctrl-e to evaluate\n" + v);
+      ";; Select this code and press ctrl-e to evaluate\n" + 
+      ";; https://github.com/kunstmusik/csound-live-code/blob/master/doc/intro.md\n" +
+      v);
     editor.clearHistory()
   });
 });
