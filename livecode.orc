@@ -485,7 +485,11 @@ endop
 
 opcode declick, a, a
   ain xin
-  aenv = linseg:a(0, 0.01, 1, p3 - 0.02, 1, 0.01, 0, 0.01, 0)
+  /*if (p3 > 0) then*/
+  /*  aenv = linseg:a(0, 0.01, 1, p3 - 0.02, 1, 0.01, 0, 0.01, 0)*/
+  /*else*/
+    aenv = linsegr:a(0, 0.01, 1, 0.01, 0)
+  /*endif*/
   xout ain * aenv
 endop
 
@@ -546,12 +550,27 @@ endop
 
 ;; SYNTHS
 
+opcode procmidi, ii, ii
+  ip4, ip5 xin
+  icps = cpsmidi()
+  if(icps > 0) then
+    ip4 = icps  
+    ip5 = ampmidi(1)
+  endif
+  xout ip4, ip5
+endop
+
+opcode procdur, i, ii
+  ival, idefault xin
+  xout (ival < 0) ? idefault : ival
+endop
+
 /* Substractive Synth, 3osc */
 instr Sub1
   asig = vco2(ampdbfs(-12), p4)
   asig += vco2(ampdbfs(-12), p4 * 1.01, 10)
   asig += vco2(ampdbfs(-12), p4 * 2, 10)
-  asig = zdf_ladder(asig, expon(10000, p3, 400), 5)
+  asig = zdf_ladder(asig, expon(10000, procdur(p3, 1), 400), 5)
   asig = declick(asig) * p5
   outc(asig, asig)
 endin
@@ -559,10 +578,11 @@ endin
 
 /* Subtractive Synth, two saws, fifth freq apart */
 instr Sub2
+  p4, p5 procmidi p4, p5
   icut = xchan("Sub2.cut", sr / 3)
   asig = vco2(ampdbfs(-12), p4) 
   asig += vco2(ampdbfs(-12), p4 * 1.5) 
-  asig = zdf_ladder(asig, expon(icut, p3, 400), 5)
+  asig = zdf_ladder(asig, expon(icut, procdur(p3, 1), 400), 5)
   asig = declick(asig) * p5
   outc(asig, asig)
 endin
@@ -1211,4 +1231,6 @@ endin
 
 ;; INITIALIZATION OF SYSTEM
 
-schedule("Clock", 0, -1)
+if(chnget:i("LC:DisableClock") == 0) then
+  schedule("Clock", 0, -1)
+endif
