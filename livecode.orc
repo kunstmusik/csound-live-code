@@ -67,6 +67,12 @@ opcode beats, i, i
   xout ibeatdur * inumbeats
 endop
 
+/** Returns duration of time in given number of measures (4 quarter notes) */
+opcode measures, i, i
+  inummeasures xin
+  xout beats(inummeasures * 4)
+endop
+
 /** Returns duration of time in given number of ticks (16th notes) */
 opcode ticks, i, i
   inumbeats xin
@@ -85,6 +91,18 @@ opcode next_beat, i, p
   inudge = int(ibeatcount)
   iresult = inudge + ibc + (round(divz(inow, ibc, inow)) * (ibc == 0 ? 1 : ibc)) - inow
   xout beats(iresult)
+endop
+
+/** Returns time from now for next measure, rounding to align to measure  
+    boundary. */
+opcode next_measure, i,0
+  inow = now() % 4
+  ival = 4 - inow 
+  if(ival < 0.25) then
+    ival += 4
+  endif
+  inext = beats(ival)
+  xout inext
 endop
 
 opcode reset_clock, 0, 0

@@ -15,27 +15,32 @@ nchnls	=	2
 #include "livecode.orc"
 
 instr TRe
-  indx = p4
+  ifreq = p4
+  iphs = p5
 
-  ;ioff = cycle(indx, array(3.5, 0.5))
-  ;idur = rand(array(0.5, 0.25, 1/3))
-  /*idur = cycle(indx, array(1/2, 1/4, 1/4))*/
-  /*idur = beats(idur)*/
+  if(choose(0.25) == 1) then 
+    schedule("Sub1", 0, 
+      beats(rand(array(3,7,11))), 
+      ifreq * xosc(iphs / 16, array(0.5, 1, 1.5)), 
+      ampdbfs(rand(array(-18, -21, -24))))
+  endif
 
-  idur = cycle(indx, array(8,1,1))
-  idur = ticks(idur)
-
-  inn = rand(array(0, 2, 4, 6, 8, 10))
-  iamp = cycle(indx, array(0.125, 0.0625))
-
-  schedule("Sub2", 0, idur * 0.8, in_scale(0, inn), iamp)
-
-  schedule(p1, idur, idur, indx + 1 )
+  schedule(p1, beats(rand(array(2.5, 1, 1.5))), p3, ifreq,  (iphs + 1) % 16)
 
 endin
-set_scale("maj")
-set_tempo(138)
-schedule("TRe", 0, 1, 0)
+
+instr Start
+  set_scale("maj")
+  set_tempo(84)
+  schedule("TRe", next_measure(), 1, 420, 0)
+  schedule("TRe", next_measure() + measures(8), 1, 120, 0)
+  schedule("TRe", next_measure() + measures(14), 1, 360, 0)
+  schedule("TRe", next_measure() + measures(20), 1, 800, 0)
+endin
+
+schedule("Start", 0, 1)
+
+/*clear_instr("TRe")*/
 
 </CsInstruments>
 ; ==============================================
