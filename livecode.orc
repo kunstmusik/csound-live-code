@@ -250,6 +250,12 @@ endop
 
 ;; Phase Functions
 
+/** Given count and period, return phase value in range [0-1) */
+opcode phs, i, ii
+  icount, iperiod xin
+  xout (icount % iperiod) / iperiod 
+endop
+
 /** Given period in ticks, return current phase of global
   clock in range [0-1) */
 opcode phs, i, i
@@ -271,12 +277,6 @@ opcode phsm, i, i
   imeasures xin
   iticks = imeasures * 4 * 4
   xout (i(gk_clock_tick) % iticks) / iticks
-endop
-
-/** Given count and period, return phase value in range [0-1) */
-opcode phs, i, ii
-  icount, iperiod xin
-  xout (icount % iperiod) / iperiod 
 endop
 
 

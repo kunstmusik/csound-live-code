@@ -21,21 +21,44 @@ instr TRe
   if(choose(0.25) == 1) then 
     schedule("Sub1", 0, 
       beats(rand(array(3,7,11))), 
-      ifreq * xosc(iphs / 16, array(0.5, 1, 1.5)), 
+      ifreq * xosc(phs(iphs, 16), array(0.5, 1, 1.5)), 
       ampdbfs(rand(array(-18, -21, -24))))
   endif
 
-  schedule(p1, beats(rand(array(2.5, 1, 1.5))), p3, ifreq,  (iphs + 1) % 16)
+  schedule(p1, beats(rand(array(2.5, 1, 1.5))), p3, ifreq,  iphs + 1)
 
 endin
 
+
+instr Melodic
+  iphs = p4
+
+  if(choose(.7) == 1) then 
+    schedule("Sub4", 0, 
+      beats(8), 
+      in_scale(rand(array(1,2)), xosc(phs(iphs, 13), array(2,4,6,8, 6, 4))), 
+      ampdbfs(-18))
+  endif
+
+  idur = beats(xosc(phs(iphs, 7), array(1, 1.5, 2)))
+
+  schedule(p1, idur, p3, iphs + 1)
+
+endin
+
+
+
+/* PROJECT MAIN */
+
 instr Start
+  seed(0)
   set_scale("maj")
   set_tempo(84)
-  schedule("TRe", next_measure(), 1, 420, 0)
-  schedule("TRe", next_measure() + measures(8), 1, 120, 0)
-  schedule("TRe", next_measure() + measures(14), 1, 360, 0)
-  schedule("TRe", next_measure() + measures(20), 1, 800, 0)
+  schedule("TRe", 0, 1, 420, 0)
+  schedule("TRe", measures(8), 1, 120, 0)
+  schedule("TRe", measures(14), 1, 360, 0)
+  schedule("TRe", measures(20), 1, 800, 0)
+  schedule("Melodic", 0, 1, 0)
 endin
 
 schedule("Start", 0, 1)
@@ -43,11 +66,5 @@ schedule("Start", 0, 1)
 /*clear_instr("TRe")*/
 
 </CsInstruments>
-; ==============================================
-<CsScore>
-
-
-
-</CsScore>
 </CsoundSynthesizer>
 
