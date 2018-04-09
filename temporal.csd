@@ -87,6 +87,11 @@ instr Mel2
   ;; i.e. slicearray perf run
   turnoff
 
+
+  ;; From the array note numbers, take a random 
+  ;; slice, and start at a random index for the 
+  ;; slice
+
   knn[] = array(7,0,6,1)
   ilen = lenarray(knn)
   /*kvals[] alg0 ilen, array(2,5,7,1)*/
@@ -98,16 +103,22 @@ instr Mel2
   kvals[] slicearray knn, istart, iend
 
   istart = 0
+  ival_indx = int(random(0, inum))
   indx = 0
 
   while (indx < inum) do
-    inn = i(kvals, indx)
+    inn = i(kvals, ival_indx)
 
     schedule("Sub1", istart, 
       beats(8), 
       in_scale(2, inn), 
       ampdbfs(-18))
-    istart += beats(random(2, 4))
+    if(choose(0.75) == 1) then
+      istart += beats(random(2, 4))
+    else 
+      istart += beats(random(0.25, 1))
+    endif
+    ival_indx = (ival_indx + 1) % inum
     indx += 1
   od
 
@@ -128,7 +139,7 @@ instr Start
   schedule("TRe", measures(8), 1, 120, 0)
   schedule("TRe", measures(14), 1, 360, 0)
   schedule("TRe", measures(20), 1, 800, 0)
-  schedule("Melodic", 0, 1, 0)
+  ;;schedule("Melodic", 0, 1, 0)
   schedule("Mel2", 0, 1)
 endin
 
