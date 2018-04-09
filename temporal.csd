@@ -2,7 +2,7 @@
 ;; temporal recursion
 <CsoundSynthesizer>
 <CsOptions>
--o dac -d --port=10000
+-o dac -d --port=10000 -m1
 </CsOptions>
 ; ==============================================
 <CsInstruments>
@@ -30,6 +30,42 @@ instr TRe
 endin
 
 
+opcode alg0, k[], ik[]
+  // rand slice that is rand rotated
+  inum, kin[] xin
+  
+  ilen = lenarray:i(kin)
+  istart = int(random(0, ilen - inum))
+  iend = istart + inum
+
+  kvals[] init inum
+
+  indx = 0
+  while (istart < iend) do
+    kvals[indx] = i(kvals, istart)
+
+    print istart
+    print i(kvals, istart) 
+
+    istart += 1
+    indx += 1
+  od 
+
+  kout[] init inum
+  indx = 0
+  iread = int(random(0, inum))
+
+  print inum
+
+  while (indx < inum) do
+    kout[indx] = i(kvals, iread)
+    iread = (iread + 1) % inum
+    indx += 1
+  od
+
+  xout kout
+endop
+
 instr Melodic
   iphs = p4
 
@@ -46,7 +82,41 @@ instr Melodic
 
 endin
 
+instr Mel2
+  ;; put this here to make sure no perf code happens
+  ;; i.e. slicearray perf run
+  turnoff
 
+  knn[] = array(7,0,6,1)
+  ilen = lenarray(knn)
+  /*kvals[] alg0 ilen, array(2,5,7,1)*/
+
+  inum = int(random(1, ilen)) 
+  istart = int(random(0, ilen - inum))
+  iend = istart + inum - 1 
+
+  kvals[] slicearray knn, istart, iend
+
+  istart = 0
+  indx = 0
+
+  while (indx < inum) do
+    inn = i(kvals, indx)
+
+    schedule("Sub1", istart, 
+      beats(8), 
+      in_scale(2, inn), 
+      ampdbfs(-18))
+    istart += beats(random(2, 4))
+    indx += 1
+  od
+
+
+  schedule(p1, istart + beats(random(3, 7)), p3)
+endin
+
+/*clear_instr("TRe")*/
+/*schedule("Mel2", 0, 1)*/
 
 /* PROJECT MAIN */
 
@@ -59,11 +129,13 @@ instr Start
   schedule("TRe", measures(14), 1, 360, 0)
   schedule("TRe", measures(20), 1, 800, 0)
   schedule("Melodic", 0, 1, 0)
+  schedule("Mel2", 0, 1)
 endin
 
 schedule("Start", 0, 1)
 
 /*clear_instr("TRe")*/
+/*clear_instr("Melodic")*/
 
 </CsInstruments>
 </CsoundSynthesizer>
