@@ -1,4 +1,4 @@
-var cacheName = 'csound-live-code-0';
+var cacheName = 'csound-live-code-1';
 var filesToCache = [
   '/', 
   '/index.html',
@@ -18,6 +18,7 @@ var filesToCache = [
   '/web/wasm/CsoundObj.js',
   '/web/wasm/libcsound.wasm',
   '/livecode.orc',
+  '/start.orc',
 
 ];
 
