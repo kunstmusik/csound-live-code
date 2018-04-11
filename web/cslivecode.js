@@ -68,27 +68,26 @@ function loadCSD(editor, csdFile) {
 
 
 function onRuntimeInitialized() {
-  var client = new XMLHttpRequest();
-  client.open('GET', 'livecode.orc', true);
-  client.onreadystatechange = function() {
-    var txt = client.responseText;
-    //editor.setValue(txt);
-    cs = new CsoundObj();
-    cs.setOption("-m0");
-    cs.compileOrc(
-      "sr=48000\nksmps=32\n0dbfs=1\nnchnls=2\n" + 
-    txt);
-    //cs.compileCSD(editor.getValue());
-    cs.start();
-    var ld = document.getElementById("loadDiv");
-    if(ld != null) {
-      ld.remove();
-    }
-    editor.refresh();
-    editor.focus();
-    editor.setCursor(0,0);
-  }
-  client.send();
+
+  fetch('livecode.orc').then(function(response) {
+    return response.text().then(function(v) {
+      cs = new CsoundObj();
+      cs.setOption("-m0");
+      cs.compileOrc(
+        "sr=48000\nksmps=32\n0dbfs=1\nnchnls=2\n" + 
+      v);
+
+      cs.start();
+      var ld = document.getElementById("loadDiv");
+      if(ld != null) {
+        ld.remove();
+      }
+      editor.refresh();
+      editor.focus();
+      editor.setCursor(0,0);
+    });
+  });
+
 
 }
 
