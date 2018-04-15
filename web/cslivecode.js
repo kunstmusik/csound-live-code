@@ -68,7 +68,6 @@ function loadCSD(editor, csdFile) {
 
 
 function onRuntimeInitialized() {
-
   fetch('livecode.orc').then(function(response) {
     return response.text().then(function(v) {
       cs = new CsoundObj();
@@ -93,10 +92,14 @@ function onRuntimeInitialized() {
 
 // Initialize Module before WASM loads
 
+function wasmLog(msg) {
+  console.log(msg);
+}
+
 Module = {};
 Module['wasmBinaryFile'] = 'web/wasm/libcsound.wasm';
-Module['print'] = console.log;
-Module['printErr'] = console.log;
+Module['print'] = wasmLog;
+Module['printErr'] = wasmLog;
 Module['onRuntimeInitialized'] = onRuntimeInitialized;
 
 // Prevent Refresh
