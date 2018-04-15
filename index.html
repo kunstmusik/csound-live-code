@@ -1,36 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 
-	<head>
-		<title>Live Coding with Csound</title>
+  <head>
+    <title>Live Coding with Csound</title>
 
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#000000">
 
-    <meta property="og:title" content="Live Coding with Csound" />
-    <meta property="og:description" content="Live code music in WebAssembly-enabled browsers using Csound." />
-    <meta property="og:image" content="http://live.csound.com/web/og_image.png" />
-    <meta property="og:url" content="http://live.csound.com"/>
+    <meta property="og:title" content="Live Coding with Csound">
+    <meta property="og:description" content="Live code music in WebAssembly-enabled browsers using Csound.">
+    <meta property="og:image" content="http://live.csound.com/web/og_image.png">
+    <meta property="og:url" content="http://live.csound.com">
 
-		<link rel="stylesheet" href="web/codemirror.css">
-		<link rel="stylesheet" href="web/theme/monokai.css">
-		<link rel="stylesheet" href="web/cslivecode.css">
-		<script src="web/codemirror.js"></script>
-		<script src="web/mode/csound/csound.js"></script>
-		<script src="web/addon/comment/comment.js"></script>
-		<script src="web/addon/edit/matchbrackets.js"></script>
-		<script src="web/addon/edit/closebrackets.js"></script>
-		<script src="web/keymap/vim.js"></script>
-		<script src="web/keymap/emacs.js"></script>
+    <link rel="stylesheet" href="web/codemirror.css">
+    <link rel="stylesheet" href="web/theme/monokai.css">
+    <link rel="stylesheet" href="web/cslivecode.css">
+    <script src="web/codemirror.js"></script>
+    <script src="web/mode/csound/csound.js"></script>
+    <script src="web/addon/comment/comment.js"></script>
+    <script src="web/addon/edit/matchbrackets.js"></script>
+    <script src="web/addon/edit/closebrackets.js"></script>
+    <script src="web/keymap/vim.js"></script>
+    <script src="web/keymap/emacs.js"></script>
 
     <link rel="manifest" href="web/manifest.json">
-	</head>
+  </head>
 
-	<body>
+  <body>
     <div id="loadDiv">
       <code>... L O A D I N G &nbsp; C S O U N D ...</code>
     </div>
-		<textarea id="csoundCodeEditor">
+    <textarea id="csoundCodeEditor">
 ;; FETCHING start.orc code...
     </textarea>
 
@@ -39,6 +40,5 @@
     <script src="web/wasm/CsoundObj.js"></script>
     <script src="web/cslivecode.js"></script>
     <script src="web/wasm/libcsound.js"></script>
-
-	</body>
+  </body>
 </html>
