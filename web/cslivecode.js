@@ -72,8 +72,9 @@ function onRuntimeInitialized() {
     return response.text().then(function(v) {
       cs = new CsoundObj();
       cs.setOption("-m0");
+      cs.setOption("-odac");
       cs.compileOrc(
-        "sr=48000\nksmps=32\n0dbfs=1\nnchnls=2\n" + 
+        "sr=48000\nksmps=32\n0dbfs=1\nnchnls=2\nnchnls_i=1\n" + 
       v);
 
       cs.start();
@@ -90,17 +91,6 @@ function onRuntimeInitialized() {
 
 }
 
-// Initialize Module before WASM loads
-
-function wasmLog(msg) {
-  console.log(msg);
-}
-
-Module = {};
-Module['wasmBinaryFile'] = 'web/wasm/libcsound.wasm';
-Module['print'] = wasmLog;
-Module['printErr'] = wasmLog;
-Module['onRuntimeInitialized'] = onRuntimeInitialized;
 
 // Prevent Refresh
 
@@ -114,3 +104,10 @@ if ('serviceWorker' in navigator) {
     .register('./service-worker.js')
     .then(function() { console.log('Service Worker Registered'); });
 }
+
+
+// Initialize Csound and load
+CsoundObj.importScripts("./web/csound/").then(() => {
+  onRuntimeInitialized();
+});
+
