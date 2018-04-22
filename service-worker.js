@@ -1,4 +1,4 @@
-var cacheName = 'csound-live-code-5';
+var cacheName = 'csound-live-code-6';
 var filesToCache = [
   '/', 
   '/index.html',
@@ -14,10 +14,10 @@ var filesToCache = [
   '/web/keymap/emacs.js',
   '/web/cslivecode.js',
   '/web/csound/CsoundObj.js',
-  '/web/csound/CsoundProcessor.js',
+  //'/web/csound/CsoundProcessor.js',
   '/web/csound/FileList.js',
-  '/web/csound/libcsound-worklet.base64.js',
-  '/web/csound/libcsound-worklet.js',
+  //'/web/csound/libcsound-worklet.base64.js',
+  //'/web/csound/libcsound-worklet.js',
   '/web/csound/libcsound.js',
   '/web/csound/libcsound.wasm',
   '/livecode.orc',

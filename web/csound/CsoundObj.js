@@ -36,7 +36,8 @@ var AudioWorkletGlobalScope = AudioWorkletGlobalScope || {};
 /* AUDIO WORKLET CSOUNDOBJ IMPLEMENTATION */ 
 /******************************************/
 if(typeof AudioWorkletNode !== 'undefined' &&
-  CSOUND_AUDIO_CONTEXT.audioWorklet != null) {
+  CSOUND_AUDIO_CONTEXT.audioWorklet != null &&
+  navigator.onLine) {
 
   console.log("Using WASM + AudioWorklet Csound implementation");
 
