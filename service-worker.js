@@ -1,4 +1,4 @@
-var cacheName = 'csound-live-code-7';
+var cacheName = 'csound-live-code-8';
 var filesToCache = [
   '/', 
   '/index.html',
@@ -16,7 +16,7 @@ var filesToCache = [
   '/web/csound/CsoundObj.js',
   '/web/csound/CsoundProcessor.js',
   '/web/csound/FileList.js',
-  '/web/csound/libcsound-worklet.base64.js',
+  '/web/csound/libcsound-worklet.wasm.js',
   '/web/csound/libcsound-worklet.js',
   '/web/csound/libcsound.js',
   '/web/csound/libcsound.wasm',
