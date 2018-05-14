@@ -1641,7 +1641,7 @@ var ASM_CONSTS = [];
 
 STATIC_BASE = GLOBAL_BASE;
 
-STATICTOP = STATIC_BASE + 535360;
+STATICTOP = STATIC_BASE + 536064;
 /* global initializers */  __ATINIT__.push();
 
 
@@ -1650,7 +1650,7 @@ STATICTOP = STATIC_BASE + 535360;
 
 
 
-var STATIC_BUMP = 535360;
+var STATIC_BUMP = 536064;
 Module["STATIC_BASE"] = STATIC_BASE;
 Module["STATIC_BUMP"] = STATIC_BUMP;
 
@@ -9230,7 +9230,7 @@ Module["cwrap"] = cwrap;
 
 
 
-
+Module["FS"] = FS;
 
 
 

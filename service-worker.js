@@ -1,4 +1,4 @@
-var cacheName = 'csound-live-code-8';
+var cacheName = 'csound-live-code-9';
 var filesToCache = [
   '/', 
   '/index.html',
@@ -13,9 +13,10 @@ var filesToCache = [
   '/web/keymap/vim.js',
   '/web/keymap/emacs.js',
   '/web/cslivecode.js',
+  '/web/csound/CsoundNode.js',
   '/web/csound/CsoundObj.js',
   '/web/csound/CsoundProcessor.js',
-  '/web/csound/FileList.js',
+  '/web/csound/CsoundScriptProcessorNode.js',
   '/web/csound/libcsound-worklet.wasm.js',
   '/web/csound/libcsound-worklet.js',
   '/web/csound/libcsound.js',

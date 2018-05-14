@@ -79,6 +79,27 @@ instr Melodic
 
 endin
 
+opcode play_chord,0,Siik[]i
+  Sinstr, idur, ibase, kvals[], iamp xin
+
+  turnoff
+
+  indx = 0
+  while (indx < lenarray:i(kvals)) do
+    schedule(Sinstr, 0, idur, cpsmidinn(ibase + i(kvals, indx)), ampdbfs(iamp))
+    indx += 1
+  od
+
+endop
+
+/*
+play_chord("Sub1", beats(8), 72, array(0,2,4,5,7,9), -24)
+play_chord("Sub1", beats(8), 67, array(0,2,4,5,7,9), -24)
+play_chord("Sub1", beats(8), 62, array(0,1,3,5,6,8,10, 11), -28)
+play_chord("Sub1", beats(8), 48, array(0,1,3,5,6,8,10, 11), -28)
+*/
+
+
 instr Mel2
   ;; put this here to make sure no perf code happens
   turnoff
@@ -89,6 +110,7 @@ instr Mel2
   ;; slice
 
   /*knn[] = array(0,2,4,5,7,8,11,13)*/
+  /*knn[] = array(7, 0, 1, 8)*/
   knn[] = array(2,5,7,1)
 
   ilen = lenarray(knn)
