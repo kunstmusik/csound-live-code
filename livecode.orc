@@ -3,6 +3,7 @@
   Author: Steven Yi
 */ 
 
+
 instr S1
   ifreq = p4
   iamp = p5
@@ -67,6 +68,12 @@ opcode beats, i, i
   xout ibeatdur * inumbeats
 endop
 
+/** Returns duration of time in given number of measures (4 quarter notes) */
+opcode measures, i, i
+  inummeasures xin
+  xout beats(inummeasures * 4)
+endop
+
 /** Returns duration of time in given number of ticks (16th notes) */
 opcode ticks, i, i
   inumbeats xin
@@ -85,6 +92,18 @@ opcode next_beat, i, p
   inudge = int(ibeatcount)
   iresult = inudge + ibc + (round(divz(inow, ibc, inow)) * (ibc == 0 ? 1 : ibc)) - inow
   xout beats(iresult)
+endop
+
+/** Returns time from now for next measure, rounding to align to measure  
+    boundary. */
+opcode next_measure, i,0
+  inow = now() % 4
+  ival = 4 - inow 
+  if(ival < 0.25) then
+    ival += 4
+  endif
+  inext = beats(ival)
+  xout inext
 endop
 
 opcode reset_clock, 0, 0
@@ -141,20 +160,28 @@ endop
 opcode hexbeat, i, Si
   Spat, itick xin
 
-  ;; 4 bits/beats per hex value
-  ipatlen = strlen(Spat) * 4
-  ;; get beat within pattern length
-  itick = itick % ipatlen
-  ;; figure which hex value to use from string
-  ipatidx = int(itick / 4)
-  ;; figure out which bit from hex to use
-  ibitidx = itick % 4 
-  
-  ;; convert individual hex from string to decimal/binary
-  ibeatPat = strtol(strcat("0x", strsub(Spat, ipatidx, ipatidx + 1))) 
+  istrlen = strlen(Spat)
 
-  ;; bit shift/mask to check onset from hex's bits
-  xout (ibeatPat >> (3 - ibitidx)) & 1 
+  iout = 0
+
+  if (istrlen > 0) then
+    ;; 4 bits/beats per hex value
+    ipatlen = strlen(Spat) * 4
+    ;; get beat within pattern length
+    itick = itick % ipatlen
+    ;; figure which hex value to use from string
+    ipatidx = int(itick / 4)
+    ;; figure out which bit from hex to use
+    ibitidx = itick % 4 
+    
+    ;; convert individual hex from string to decimal/binary
+    ibeatPat = strtol(strcat("0x", strsub(Spat, ipatidx, ipatidx + 1))) 
+
+    ;; bit shift/mask to check onset from hex's bits
+    iout = (ibeatPat >> (3 - ibitidx)) & 1 
+  endif
+
+  xout iout
 
 endop
 
@@ -224,6 +251,12 @@ endop
 
 ;; Phase Functions
 
+/** Given count and period, return phase value in range [0-1) */
+opcode phs, i, ii
+  icount, iperiod xin
+  xout (icount % iperiod) / iperiod 
+endop
+
 /** Given period in ticks, return current phase of global
   clock in range [0-1) */
 opcode phs, i, i
@@ -245,12 +278,6 @@ opcode phsm, i, i
   imeasures xin
   iticks = imeasures * 4 * 4
   xout (i(gk_clock_tick) % iticks) / iticks
-endop
-
-/** Given count and period, return phase value in range [0-1) */
-opcode phs, i, ii
-  icount, iperiod xin
-  xout (icount % iperiod) / iperiod 
 endop
 
 
@@ -610,6 +637,16 @@ instr Sub4
   itarget = p4 * 2
   asig = zdf_ladder(asig, expseg(20000, 0.15, itarget, 0.1, itarget), 5)
   asig = declick(asig) * p5 * 0.15
+  outc(asig, asig)
+endin
+
+
+/* Subtractive Synth, detuned square/triangle */
+instr Sub5
+  asig = vco2(0.5, p4, 10)
+  asig += vco2(0.25, p4 * 2.0001, 12)
+  asig = zdf_ladder(asig, expseg(10000, 0.1, 500, 0.1, 500), 2)
+  asig = declick(asig) * p5 * 0.75
   outc(asig, asig)
 endin
 
