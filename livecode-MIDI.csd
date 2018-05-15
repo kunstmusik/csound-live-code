@@ -11,12 +11,12 @@
 
 <CsoundSynthesizer>
 <CsOptions>
---port=10000 -o dac -Q2 
+--port=10000 -o dac -M0 -b256 -B1024 -m0
 </CsOptions>
 <CsInstruments>
 
 sr	= 48000	
-ksmps	=	64
+ksmps	= 16	
 nchnls	=	2
 0dbfs	=	1
 
