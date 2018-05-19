@@ -1,4 +1,4 @@
-var cacheName = 'csound-live-code-9';
+var cacheName = 'csound-live-code-10';
 var filesToCache = [
   '/', 
   '/index.html',
