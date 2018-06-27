@@ -544,30 +544,64 @@ opcode clear_instr, 0,S
 endop
 
 
-;; Fades (Experimental)
+;; Fades 
 
+gi_fade_range init -30
+
+
+/* set_fade_range
+  sets the range in db to fade over. By default, range is -30 
+  (i.e., fades from -30dbfs to 0dbfs) */
+opcode set_fade_range, 0, i
+  irange xin
+  gi_fade_range init irange
+endop
+
+/* fade_in
+  takes in fade channel identifier (number) and number of ticks to fade over time
+  will fade using gi_fade_range, which by default starts fading in at -30dBfs and 
+  stops at 0dbfs */
 opcode fade_in, i, ii
   ident, inumticks xin
   Schan = sprintf("fade_chan_%d", ident)
-  ival = limit:i(chnget:i(Schan) + 1, 0, inumticks) 
-  chnset(ival, Schan)
+  ival = chnget:i(Schan)
+  if(ival < 1.0) then
+    ival = limit:i(ival + (1 / inumticks), 0, 1.0) 
+    chnset(ival, Schan)
+    iret = ampdbfs((1- ival) * gi_fade_range)
+  else
+    iret = ival
+  endif
 
-  xout ival / inumticks 
+  xout iret 
 endop
 
+/* fade_out
+  takes in fade channel identifier (number) and number of ticks to fade over time
+  will fade using gi_fade_range, which by default starts fading out at 0dBfs and 
+  stops at -30dbfs */
 opcode fade_out, i, ii
   ident, inumticks xin
   Schan = sprintf("fade_chan_%d", ident)
-  ival = limit:i(chnget:i(Schan) - 1, 0, inumticks) 
-  chnset(ival, Schan)
 
-  xout ival / inumticks 
+  ival = chnget:i(Schan)
+  iret init 0
+
+  if(ival > 0.0) then
+    ival = limit:i(ival - (1 / inumticks), 0, 1.0) 
+    chnset(ival, Schan)
+    iret = ampdbfs((1- ival) * gi_fade_range)
+  else
+    iret = ival
+  endif
+
+  xout iret 
 endop
 
 /*opcode set_fade, 0,ii*/
 /*  ident, ival xin*/
 /*  Schan = sprintf("fade_chan_%d", ident)*/
-/*  ival = limit:i(chnget:i(Schan) - 1, 0, inumticks) */
+/*  ival = limit:i(ival, 0, 1.0) */
 /*  chnset(ival, Schan)*/
 /*endop*/
 
