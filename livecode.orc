@@ -481,6 +481,17 @@ gi_cur_scale[] = gi_scale_minor
 gi_scale_base = 60
 gi_chord_offset = 0
 
+opcode set_root, 0,i 
+  iscale_root xin
+  gi_scale_base = iscale_root
+endop
+
+opcode from_root, i, ii
+  ioct, ipc xin
+  ival = gi_scale_base + (ioct * 12) + ipc
+  xout cpsmidinn(ival)
+endop
+
 opcode set_scale, 0,S
   Scale xin
   if(strcmp("maj", Scale) == 0) then
@@ -506,6 +517,46 @@ opcode in_scale, i, ii
   endif
 
   xout cpsmidinn(ibase + (ioct * 12) + gi_cur_scale[indx]) 
+endop
+
+/* BELOW CHORD SYSTEM IS EXPERIMENTAL */
+
+gi_chord_base = 0 
+gi_chord_maj[] = array(0,4,7)
+gi_chord_maj7[] = array(0,4,7,11)
+gi_chord_min[] = array(0,3,7)
+gi_chord_min7[] = array(0,3,7,10)
+gi_chord_dim[] = array(0,3,6)
+gi_chord_dim7[] = array(0,3,6,9)
+gi_chord_aug[] = array(0,4,8)
+gi_chord_current[] = gi_chord_maj 
+
+opcode set_chord, 0, ii[]
+  ichord_root, ichord_intervals[] xin
+  gi_chord_base = ichord_root
+  gi_chord_current = ichord_intervals
+endop
+
+opcode set_chord, 0, S 
+  Schord xin
+endop
+
+opcode in_chord, i, ii
+  ioct, idegree xin
+
+  ibase = gi_scale_base + (ioct * 12) + gi_chord_base
+
+  idegrees = lenarray(gi_chord_current)
+
+  ioct = int(idegree / idegrees)
+  indx = idegree % idegrees
+
+  if(indx < 0) then
+    ioct -= 1
+    indx += idegrees
+  endif
+
+  xout cpsmidinn(ibase + (ioct * 12) + gi_chord_current[indx]) 
 endop
 
 ;; AUDIO
@@ -598,12 +649,12 @@ opcode fade_out, i, ii
   xout iret 
 endop
 
-/*opcode set_fade, 0,ii*/
-/*  ident, ival xin*/
-/*  Schan = sprintf("fade_chan_%d", ident)*/
-/*  ival = limit:i(ival, 0, 1.0) */
-/*  chnset(ival, Schan)*/
-/*endop*/
+opcode set_fade, 0,ii
+  ident, ival xin
+  Schan = sprintf("fade_chan_%d", ident)
+  ival = limit:i(ival, 0, 1.0) 
+  chnset(ival, Schan)
+endop
 
 ;; SYNTHS
 
