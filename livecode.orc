@@ -154,11 +154,24 @@ opcode rand, i, k[]
   xout ival
 endop
 
+;; Event
+
+/** Wrapper opcode that calls schedule only if iamp > 0. */
+opcode cause, 0, Siiii
+  Sinstr, istart, idur, ifreq, iamp xin
+  if(iamp > 0) then
+    schedule(Sinstr, istart, idur, ifreq, iamp)
+  endif
+endop
 
 ;; Beats
 
-opcode hexbeat, i, Si
+opcode hexbeat, i, So
   Spat, itick xin
+
+  if(itick <= 0) then
+    itick = now_tick()
+  endif
 
   istrlen = strlen(Spat)
 
@@ -321,8 +334,14 @@ opcode euclid_str, S, ii
   xout Sout
 endop
 
-opcode euclid, i, iii
-  itick, ihits, isteps xin
+
+opcode euclid, i, iio
+  ihits, isteps, itick  xin
+
+  if(itick <= 0) then
+    itick = now_tick()
+  endif
+
   Sval = euclid_str(ihits, isteps)
   indx = itick % strlen(Sval)
   xout strtol(strsub(Sval, indx, indx + 1))
@@ -331,7 +350,7 @@ endop
 opcode euclidplay, 0, iiiSiip
   ihits, isteps, itick, Sinstr, idur, ifreq, iamp xin
 
-  if(euclid(itick, ihits, isteps) == 1) then
+  if(euclid(ihits, isteps, itick) == 1) then
     schedule(Sinstr, 0, idur, ifreq, iamp)
   endif
 endop
@@ -342,7 +361,7 @@ opcode euclidplay, 0, iiSiip
 
   itick = i(gk_clock_tick)
 
-  if(euclid(itick, ihits, isteps) == 1) then
+  if(euclid(ihits, isteps, itick) == 1) then
     schedule(Sinstr, 0, idur, ifreq, iamp)
   endif
 endop
