@@ -154,6 +154,14 @@ opcode rand, i, k[]
   xout ival
 endop
 
+/** Returns random item from String array. */
+opcode rand, S, S[]
+  Svals[] xin
+  indx = int(random(0, lenarray(Svals)))
+  Sval = Svals[indx]
+  xout Sval
+endop
+
 ;; Event
 
 /** Wrapper opcode that calls schedule only if iamp > 0. */
