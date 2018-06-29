@@ -1,4 +1,4 @@
-var cacheName = 'csound-live-code-10';
+var cacheName = 'csound-live-code-11';
 var filesToCache = [
   '/', 
   '/index.html',
@@ -52,10 +52,16 @@ self.addEventListener('activate', function(e) {
 });
 
 self.addEventListener('fetch', function(e) {
-  console.log('[ServiceWorker] Fetch', e.request.url);
-  e.respondWith(
-    caches.match(e.request).then(function(response) {
-      return response || fetch(e.request);
-    })
-  );
+    console.log('[ServiceWorker] Fetch', e.request.url);
+    e.respondWith(
+        // Cache then Network
+        //caches.match(e.request).then(function(response) {
+        //  return response || fetch(e.request);
+        //})
+
+        // Network then Cache
+        fetch(event.request).catch(function() {
+            return caches.match(event.request);
+        })
+    );
 });
