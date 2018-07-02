@@ -60,8 +60,8 @@ self.addEventListener('fetch', function(e) {
         //})
 
         // Network then Cache
-        fetch(event.request).catch(function() {
-            return caches.match(event.request);
+        fetch(e.request).catch(function() {
+            return caches.match(e.request);
         })
     );
 });
