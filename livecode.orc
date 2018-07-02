@@ -3,7 +3,6 @@
   Author: Steven Yi
 */ 
 
-
 instr S1
   ifreq = p4
   iamp = p5
@@ -46,6 +45,7 @@ instr Perform
 
   schedule("P1", 0, p3, ibeat) 
 endin
+
 
 gk_clock_tick init 0
 gk_now init 0
@@ -114,12 +114,18 @@ endop
 instr Clock ;; our clock  
   ;; tick at 1/16th note
   kfreq = gk_tempo / 60 * 4
-  gk_now += (gk_tempo / 60) / kr
-  kdur = 1 / kfreq
-  ktrig = metro(kfreq)
-  gk_clock_tick += ktrig
+  kstep = (gk_tempo / 60) / kr
+  gk_now += kstep 
+  gk_tmp = gk_now * 4
 
-  schedkwhen(ktrig, 0, 0, "Perform", 0, kdur, gk_clock_tick)
+  // checks if next buffer will be one where clock will
+  // trigger.  If so, then schedule event for time 0 
+  // which will get processed next buffer. 
+  if(int(gk_tmp + kstep) != gk_clock_tick ) then
+    kdur = 1 / kfreq
+    gk_clock_tick += 1 
+    event("i", "Perform", 0, kdur, gk_clock_tick)
+  endif
 endin
 
 ;; Randomization
