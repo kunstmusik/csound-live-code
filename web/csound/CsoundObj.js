@@ -45,7 +45,7 @@ var CSOUND_NODE_SCRIPT;
 
 /* SETUP NODE TYPE */
 if(typeof AudioWorkletNode !== 'undefined' &&
-   CSOUND_AUDIO_CONTEXT.audioWorklet !== null) {
+   CSOUND_AUDIO_CONTEXT.audioWorklet !== undefined) {
     console.log("Using WASM + AudioWorklet Csound implementation");
     CSOUND_NODE_SCRIPT = 'CsoundNode.js';
     CSOUND_AUDIO_CONTEXT.hasAudioWorklet = true;
@@ -307,6 +307,43 @@ class CsoundObj {
         }
     }
 
+    enableMidiInput(midiInputCallback) {
+        const that = this;
+        const handleMidiInput = function(event) {
+            that.midiMessage(event.data[0], event.data[1], event.data[2]);
+            //console.log("midievent: " + event.data[0] + ", " + event.data[1] + ", " + event.data[2]);
+        };
+        const midiSuccess = function(midiInterface) {
+
+            const inputs = midiInterface.inputs.values();
+
+            for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
+                input = input.value;
+                input.onmidimessage = handleMidiInput;
+            }
+            if (midiInputCallback) {
+                midiInputCallback(true);
+            }
+        };
+
+        const midiFail = function(error) {
+
+            Module['print']("MIDI failed to start, error:" + error);
+            if (midiInputCallback) {
+                midiInputCallback(false);
+            }
+        };
+
+
+        if (navigator.requestMIDIAccess) {
+            navigator.requestMIDIAccess().then(midiSuccess, midiFail);
+        } else {
+            Module['print']("MIDI not supported in this browser");
+            if (midiInputCallback) {
+                midiInputCallback(false);
+            }
+        }
+    }
     
     /** 
      * This static method is used to asynchronously setup the Csound
