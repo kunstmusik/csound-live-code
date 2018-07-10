@@ -748,6 +748,20 @@ instr Sub5
   outc(asig, asig)
 endin
 
+/* SynthBrass subtractive synth */ 
+instr SynBrass
+  ipch = p4
+  ipan = xchan("SynBrass.pan", 0.5)
+
+  asig = vco2(0.25, ipch)
+  asig += vco2(0.25, ipch * 2.00)
+  asig = zdf_ladder(asig, expseg(12000, 0.25, 500, 0.05, 500), 4)
+  asig = declick(asig * p5)
+
+  aL,aR pan2  asig,ipan             
+  outc(aL,aR)             
+endin
+
 
 /** Plucky sound */
 instr Plk 
