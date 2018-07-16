@@ -600,18 +600,21 @@ opcode declick, a, a
   xout ain * aenv
 endop
 
+
+
 ;; KILLING INSTANCES
 
 instr KillImpl
   Sinstr = p4 
-  ktrig init 0
-
-  if(ktrig == 0) then
-    turnoff2(Sinstr, 0, 0)
-    ktrig += 1
-  endif
+  turnoff2(Sinstr, 0, 0)
+  turnoff
 endin
 
+/** Turns off running instances of named instruments.  Useful when livecoding
+  audio and control signal process instruments. May not be effective if for
+  temporal recursion instruments as they may be non-running but scheduled in the
+  event system. In those situations, try using clear_instr to overwrite the
+  instrument definition. */
 opcode kill, 0,S
   Sinstr xin
   schedule("KillImpl", 0, 0.01, Sinstr)
@@ -626,6 +629,16 @@ opcode clear_instr, 0,S
   prints(sprintf("Cleared instrument definition: %s\n", 
           Sinstr))
 endop
+
+/** Starts running a named instrument for indefinite time using p2=0 and p3=-1. 
+  Will first turnoff any instances of existing named instrument first.  Useful
+  when livecoding always-on audio and control signal process instruments. */
+opcode start, 0,S
+  Sinstr xin
+  kill(Sinstr)
+  schedule(Sinstr, ksmps / sr,-1)
+endop
+
 
 
 ;; Fades 
