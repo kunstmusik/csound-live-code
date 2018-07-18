@@ -106,10 +106,19 @@ opcode next_measure, i,0
   xout inext
 endop
 
+/** Reset clock so that next tick starts at 0 */
 opcode reset_clock, 0, 0
-  gk_clock_tick init 0
-  gk_now init 0
+  gk_clock_tick init -1 
+  gk_now init -(ksmps / sr)
 endop
+
+/** Adjust clock by iadjust number of beats.
+    Value may be positive or negative. */
+opcode adjust_clock, 0, i 
+  iadjust xin
+  gk_now init i(gk_now) + iadjust 
+endop
+
 
 instr Clock ;; our clock  
   ;; tick at 1/16th note
