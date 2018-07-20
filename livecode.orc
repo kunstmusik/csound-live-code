@@ -723,7 +723,7 @@ opcode sbus_mix, 0,iaa
 endop
 
 /** Clear audio signals from bus channel */
-opcode sbus_clear, 0, 0
+opcode sbus_clear, 0, i
   ibus xin
   aclear init 0
   ga_sbus[ibus][0] = aclear
