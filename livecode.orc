@@ -711,9 +711,37 @@ opcode set_fade, 0,ii
   chnset(ival, Schan)
 endop
 
+;; Stereo Audio Bus
+
+ga_sbus[] init 16, 2
+
+/** Mix two audio signals into stereo bus at given index */
+opcode sbus_mix, 0,iaa
+  ibus, al, ar xin
+  ga_sbus[ibus][0] = ga_sbus[ibus][0] + al
+  ga_sbus[ibus][1] = ga_sbus[ibus][1] + ar
+endop
+
+/** Clear audio signals from bus channel */
+opcode sbus_clear, 0, 0
+  ibus xin
+  aclear init 0
+  ga_sbus[ibus][0] = aclear
+  ga_sbus[ibus][1] = aclear
+endop
+
+/** Read audio signals from bus channel */
+opcode sbus_read, aa, i
+  ibus xin
+  aclear init 0
+  al = ga_sbus[ibus][0] 
+  ar = ga_sbus[ibus][1] 
+  xout al, ar
+endop
+
 ;; SYNTHS
 
-/* Substractive Synth, 3osc */
+/** Substractive Synth, 3osc */
 instr Sub1
   asig = vco2(ampdbfs(-12), p4)
   asig += vco2(ampdbfs(-12), p4 * 1.01, 10)
