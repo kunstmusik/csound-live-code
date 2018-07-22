@@ -5,21 +5,80 @@
 html, body {
     min-height: 100% !important;
     height: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    display: block;
 }
 
 .CodeMirror {
-	height:100%;
+  height:100%;
 }
 
 #loadDiv {
- z-index: 100; 
- float:left; 
- width: 100%; 
- height: 100%;
- display: flex;
- align-items: center;
- justify-content: center;
- background: black;
- color: white;
- font-family: Monospace;
+  z-index: 100;
+  float:left;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: black;
+  color: white;
+  font-family: Monospace;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
+
+header {
+  height: 3em;
+  width:100%;
+  background: #272822;
+  border-bottom: 1px solid #333333;
+  color: #ccc;
+  box-sizing: border-box;
+  padding-top: 0.75em;
+  padding-left: 1em;
+  padding-right: 1em;
+}
+
+header>h1 {
+  font-family: 'Raleway', sans-serif;
+  font-size: 1em;
+  display: inline-block;
+  /*color: #505050;*/
+}
+
+header>nav {
+  /*padding-top: 0.5em;*/
+  margin-left: 1em;
+  font-family: 'Roboto', sans-serif;
+  /*height: 1.5em;*/
+  background: transparent;
+  border-radius: 0px;
+  display: inline-block;
+}
+
+header>nav>i {
+  margin-right: 0.2em;
+  font-size: 1.5em;
+}
+
+#playPauseButton {
+  font-size: 1.5em;
+  cursor: pointer;
+}
+#helpButton {
+  font-size: 1.5em;
+  cursor: pointer;
+}
+
+
+#csoundCodeEditor {
+  height:calc(100% - 3em);
+  width:100%;
+  box-sizing: border-box;
+}
+
+
+

@@ -13,6 +13,8 @@
     <meta property="og:image" content="http://live.csound.com/web/og_image.png">
     <meta property="og:url" content="http://live.csound.com">
 
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.1/css/all.css" integrity="sha384-O8whS3fhG2OnA5Kas0Y9l3cfpmYjapjI0E4theH4iuMD+pLhbf6JI0jIMfYcK3yZ" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Raleway|Roboto:400,700" rel="stylesheet">
     <link rel="stylesheet" href="web/codemirror.css">
     <link rel="stylesheet" href="web/theme/monokai.css">
     <link rel="stylesheet" href="web/cslivecode.css">
@@ -31,9 +33,16 @@
     <div id="loadDiv">
       <code>... L O A D I N G &nbsp; C S O U N D ...</code>
     </div>
-    <textarea id="csoundCodeEditor">
-;; FETCHING start.orc code...
-    </textarea>
+    <header>
+      <h1>csound-live-code</h1>
+      <nav>
+        <i id="playPauseButton" class="fas fa-pause-circle"></i>
+        <!--<i class="fas fa-redo-alt"></i>-->
+      </nav>
+      <i id="helpButton" class="fas fa-question-circle" style="float:right"></i>
+
+    </header>
+    <div id="csoundCodeEditor"></div>
 
     <script src="web/csound/CsoundObj.js"></script>
     <script src="web/cslivecode.js"></script>

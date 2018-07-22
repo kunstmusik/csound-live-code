@@ -28,8 +28,7 @@ function insertEuclidplay() {
 }
 
 
-let editor = CodeMirror.fromTextArea(
-    document.getElementById("csoundCodeEditor"), 
+let editor = CodeMirror(document.getElementById("csoundCodeEditor"), 
     {
         lineNumbers: true,
         matchBrackets: true,
@@ -127,3 +126,27 @@ CsoundObj.importScripts("./web/csound/").then(() => {
     onRuntimeInitialized();
 });
 
+
+// UI CALLBACKS
+
+let playPauseButton = document.getElementById("playPauseButton"),
+    helpButton = document.getElementById("helpButton");
+
+
+function openHelp() {
+    let url = "https://github.com/kunstmusik/csound-live-code/blob/master/doc/intro.md";
+    window.open(url);
+}
+
+const playPause = () => {
+   if(CSOUND_AUDIO_CONTEXT.state == "running") {
+       CSOUND_AUDIO_CONTEXT.suspend();
+       playPauseButton.className = "fas fa-play-circle";
+   } else {
+       CSOUND_AUDIO_CONTEXT.resume();
+       playPauseButton.className = "fas fa-pause-circle";
+   }
+}
+
+helpButton.addEventListener("click", openHelp);
+playPauseButton.addEventListener("click", playPause);
