@@ -1,4 +1,4 @@
-# csound-live code 
+# csound-live-code 
 
 Author: Steven Yi\<stevenyi@gmail.com\>
 
