@@ -14,6 +14,7 @@ __Getting Started__
 
 __Concepts__
 
+* [Basic Introduction to Csound](csound_basics.md)
 * Live Coding Concepts 
 * Session Lifecycle 
 * Central Clock 
@@ -22,13 +23,13 @@ __Concepts__
 * Synthesizer Instruments
 * Utility User-defined Opcodes
 
+* [Hexadecimal Beats](hexadecimal_beats.md)
+
 __Reference__
 
 * [Cheatsheet](cheatsheet.md)
 * [UDO Reference](udoreference.md)
 * [Instrument Reference](instruments.md)
-
-
 
 
 
