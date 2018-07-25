@@ -131,3 +131,28 @@ instr P1
 
 endin
 ```
+
+## Hacking Pitch Curves
+
+In the previous example, numeric computations were used to determine if a particular tick was found and, if so, to generate one scale degree:
+
+```csound
+  hexplay("f00c",
+      "Sub5", p3,
+      in_scale(-2, ((p4 % 16) == 13) ? 7 : 0),
+      fade_in(10, 128) * ampdbfs(-12))
+```
+
+The computation checks if the `p4` (the current tick or 16th note) is equal to 13 (which corresponds to the second hit from the `c` hex pattern) and, if so, to generate a 7, otherwise a 0. This means that we want all notes to be 0 except for a 7 when were are on tick 13.
+
+Another way to express the same computation would be to use `hexbeat()` to generate a 1 or 0 and then to multiply by 7, as follows:
+
+
+```csound
+  hexplay("f00c",
+      "Sub5", p3,
+      in_scale(-2, hexbeat("0004") * 7),
+      fade_in(10, 128) * ampdbfs(-12))
+```
+
+Using `hexbeat()` in this way can be a quick way to generate pitch patterns that alternate between two values. `hexbeat()` could be further employed for affecting duration, octave, accent, etc. 
