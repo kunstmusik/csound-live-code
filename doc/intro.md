@@ -14,16 +14,32 @@ __Getting Started__
 
 __Concepts__
 
-* [Basic Introduction to Csound](csound_basics.md)
 * Live Coding Concepts 
 * Session Lifecycle 
+* [Basic Introduction to Csound](csound_basics.md)
 * Central Clock 
-* Callback Instrument
-* Temporal Recursion
-* Synthesizer Instruments
 * Utility User-defined Opcodes
+* Synthesizer Instruments
 
+* Temporal Recursion
+* Callback Instrument
+
+* [Event Time Oscillators](oscillators.md)
 * [Hexadecimal Beats](hexadecimal_beats.md)
+
+<!-- 
+__Tutorial__
+
+* [Let's make a sound!](tutorial1.md)
+* [Events 1: Simple Events](tutorial2.md)
+* [Events 2: Compound Events](tutorial3.md)
+* [Events 3: Generating Notes with Loops](tutorial4.md)
+* [Realtime Process Score Generation](tutorial5.md)
+* [Temporal Recursion](tutorial6.md)
+* [Callback Instrument](tutorial7.md)
+* [Hex Beats](tutorial8.md)
+* [Hex Melodic Lines](tutorial9.md)
+-->
 
 __Reference__
 
