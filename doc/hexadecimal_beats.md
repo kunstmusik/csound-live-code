@@ -41,7 +41,8 @@ Notation in Hex can take some pratice, but once mastered can be very quick for n
 
 ## Drawbacks of Hex Beat Notation
 
-1. Hexadecimal betas only works with 16th note divisions for a beat. (Though there are tricks to developing 32nd note patterns--commonly found in Trap music--when in slow tempos)
+1. Hexadecimal beats only works with 16th note divisions for a beat. (Though there are tricks to developing 32nd note patterns, see "Hacking 32nd Notes" below)
+
 
 ## hexbeat() and hexplay()
 
@@ -87,7 +88,7 @@ The suggested learning path for Hexadecimal Beat notation is to start off simple
 5. Finally, experiment with the three-note 16th note rhythms (`b`, `d`, `e`) and the all 16th-note rhythm (`f`). 
 
 
-## Hacking 32nd Notes (Trap beat)
+## Hacking 32nd Notes
 
 While Hex Beats works at 16th note resolution, a hack is available to develop 32nd note rhythms by using a start time offset.  In the example below, there are two patterns setup for triggering the _CHH_ (Closed High Hat) instrument. The first uses a standard hexplay() call to generate the usual 16th notes.  The second uses a cause() call together with a `p3 / 2` start time (p3 is equal to the current tick length, or the duration of one 16th note). The two together will give the generated rhythm a 32nd note fill on the fourth beat of every other measure. 
 
