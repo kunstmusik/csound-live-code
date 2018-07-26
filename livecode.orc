@@ -161,11 +161,28 @@ opcode cycle, i, ik[]
   xout ival
 endop
 
+/** Checks to see if item exists within array. Returns 1 if
+  true and 0 if false. */
+opcode contains, i, ik[]
+  ival, karr[] xin
+  indx = 0
+  iret = 0
+  while (indx < lenarray:i(karr)) do
+    if (i(karr,indx) == ival) then
+      iret = 1
+      igoto end
+    endif
+    indx += 1
+  od
+end:
+  xout iret
+endop 
+
 /** Create a new array by removing all instances of a
 given number from an existing array. */ 
 opcode remove, k[], ik[]
   ival, karr[] xin
-  
+ 
   ifound = 0
   indx = 0
   while (indx < lenarray:i(karr)) do
