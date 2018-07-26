@@ -161,6 +161,24 @@ opcode cycle, i, ik[]
   xout ival
 endop
 
+
+/** Checks to see if item exists within array. Returns 1 if
+  true and 0 if false. */
+opcode contains, i, ii[]
+  ival, iarr[] xin
+  indx = 0
+  iret = 0
+  while (indx < lenarray:i(iarr)) do
+    if (iarr[indx] == ival) then
+      iret = 1
+      igoto end
+    endif
+    indx += 1
+  od
+end:
+  xout iret
+endop 
+
 /** Checks to see if item exists within array. Returns 1 if
   true and 0 if false. */
 opcode contains, i, ik[]
@@ -608,6 +626,38 @@ opcode in_scale, i, ii
 
   xout cpsmidinn(ibase + (ioct * 12) + gi_cur_scale[indx]) 
 endop
+
+/** Quantizes given MIDI note number to the given scale 
+    (Base on pc:quantize from Extempore) */
+opcode pc_quantize, i, ii[]
+  ipitch_in, iscale[] xin
+  inotenum = round:i(ipitch_in)
+  ipc = inotenum % 12
+  iout = inotenum
+  
+  
+  indx = 0
+  while (indx < 7) do
+    if(contains(ipc + indx, iscale) == 1) then
+      iout = inotenum + indx
+      goto end
+    elseif (contains(ipc - indx, iscale) == 1) then
+      iout = inotenum - indx
+      goto end
+    endif
+    indx += 1
+  od
+  end:
+  xout iout
+endop
+
+/** Quantizes given MIDI note number to the current active scale 
+    (Base on pc:quantize from Extempore) */
+opcode pc_quantize, i, i
+  ipitch_in xin
+  ival = pc_quantize(ipitch_in, gi_cur_scale)
+  xout ival
+endop  
 
 /* BELOW CHORD SYSTEM IS EXPERIMENTAL */
 
