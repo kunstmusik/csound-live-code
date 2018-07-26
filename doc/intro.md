@@ -44,8 +44,7 @@ __Tutorial__
 __Reference__
 
 * [Cheatsheet](cheatsheet.md)
-* [UDO Reference](udoreference.md)
-* [Instrument Reference](instruments.md)
+* [Reference](reference.md)
 
 
 

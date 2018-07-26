@@ -1,4 +1,6 @@
-# Live Code User-Defined Opcodes
+# Live Code Cheatsheet
+
+## User-Defined Opcodes
 
 |Outputs | Opcode | Inputs |
 | ---- | ---- | ---- |
@@ -62,3 +64,39 @@
 |  | **sbus_mix** | ibus, al, ar  |
 |  | **sbus_clear** | ibus  |
 | aaval | **sbus_read** | ibus  |
+## Instruments
+
+|Instrument Name | Description |
+| ---- | ---- | 
+|  S1 |  | 
+|  P1 |  | 
+|  Perform |  | 
+|  Clock  |  | 
+|  KillImpl |  | 
+|  Sub1 |  | 
+|  Sub2 |  | 
+|  Sub3 |  | 
+|  Sub4 |  | 
+|  Sub5 |  | 
+|  SynBrass |  | 
+|  Plk |  | 
+|  Bass |  | 
+|  VoxHumana |  | 
+|  FM1 |  | 
+|  Noi |  | 
+|  Clap |  | 
+|  BD   |  | 
+|  SD   |  | 
+|  OHH  |  | 
+|  CHH  |  | 
+|  HiTom  |  | 
+|  MidTom  |  | 
+|  LowTom   |  | 
+|  Cymbal   |  | 
+|  Rimshot  |  | 
+|  Claves |  | 
+|  Cowbell |  | 
+|  Maraca   |  | 
+|  HiConga  |  | 
+|  MidConga   |  | 
+|  LowConga   |  | 
