@@ -161,6 +161,37 @@ opcode cycle, i, ik[]
   xout ival
 endop
 
+/** Create a new array by removing all instances of a
+given number from an existing array. */ 
+opcode remove, k[], ik[]
+  ival, karr[] xin
+  
+  ifound = 0
+  indx = 0
+  while (indx < lenarray:i(karr)) do
+  	if(i(karr, indx) == ival) then
+      ifound += 1
+    endif
+    indx += 1
+  od
+
+  kout[] init (lenarray:i(karr) - ifound)
+    
+  indx = 0
+  iwriteIndx = 0
+  
+  while (indx < lenarray:i(karr)) do
+    iv = i(karr, indx)
+    if(iv != ival) then
+      kout[iwriteIndx] init iv
+      iwriteIndx += 1
+    endif
+    indx += 1
+  od
+    
+  xout kout
+endop
+
 /** Returns random item from karray. */
 opcode rand, i, k[]
   kvals[] xin
