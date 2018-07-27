@@ -68,9 +68,96 @@ welcome to live coding with Csound!
 Now, there is a lot going on here that requires explanation. First, we just
 wrote text in the Csound Orchestra Language to both define a new kind of
 instrument, named "Add", and schedule running an instance of that instrument
-at 0 second from now and for 2 seconds duration.
+at 0 second from now and for 2 seconds duration. The next few sub sections
+get into a bit more detail about what this all means. The details are great,
+but feel free to jump ahead to to the next section, "Developing the
+Instrument", and see if it intuitively makes sense. If not, you can always
+come back here later!
 
-... continue here ...
+### Defining an Instrument
+
+In Csound, _instruments_ are defined by users as processes which the Csound
+engine will run. The definition of the instrument describes what processing
+will happen when an instance of a instrument is run. In the above code, we
+see the line beginning with `instr` followed by a name `Add`. The word
+`instr` starts a new instrument definition and the word or number after
+`instr` defines what the name or number of the instrument will be.
+(Classically, Csound used only numbered instruments, but named instruments
+can be a lot more convenient and it will be what we use in these tutorials.)
+Jumping forward, the line that starts with `endin` finishes the definition of
+the instrument. Every line of text in between the lines with `instr` and
+`endin` are considered code that defines what processing the instrument will
+do when it runs.
+
+The _body_ of the instrument definition consists of two lines. Notice that
+they are visually indented. We'll be using this practice whenever we
+introduce new _blocks_ of code (such as instrument definition blocks,
+conditional and iteration blocks, etc.) as it helps to see what code is
+associated with what is currently being defined. 
+
+As for the two lines of code, we can read them as follows:
+
+1. First, we want an `oscili` opcode that is configured with parameters 0.25
+and 440 and whose output will be assigned to the variable `asig`. 
+2. Next, we want an `out` opcode that uses the values in `asig` and sends it
+to Csound's output (i.e., to the sound card output).
+
+But what is an _opcode_? Well, opcodes are individual units of processing
+that can generate or process data or perform some kind of operation. Opcodes
+may take in zero to many inputs and output zero to many outputs, as well as
+have their own internal state data. In the language of classical computer
+music, Csound's opcodes are _unit generators_.
+
+We define instruments using series of opcodes that we configure and connect
+together through constant values and variables. We can think of each opcode
+as a module in a modular synthesizer, and an instrument as an entire
+synthesizer.
+
+Now, to use an opcode, we use the form of text as first the name of the
+opcode; an opening parenthesis; an optional comma-separated list of words,
+numbers, expressions, and other opcode calls; and a final closing
+parenthesis. We call the inputs within the parentheses the opcode's
+_arguments_ or _inputs_. 
+
+To recap, we define instruments as processes. Instruments are made up of
+opcodes, each capable of doing some sort of processing. Defining instruments
+only defines what we want to do, but does not actually do anything. To run
+the instrument, we need to create _instance_ of the instrument and tell
+Csound to run it, and to do all that we need to use _events_.
+
+#### Classical Syntax vs. Modern Syntax
+
+One additional point though: the code I presented above is using a modern
+version of Csound's Orchestra language that became available in Csound 6. In
+the classical Csound syntax, we might write the above instrument as follows:
+
+```csound
+      instr   Add
+asig  oscili  0.25, 440
+      outc    asig, asig
+      endin
+```
+
+This style uses one opcode call per line of text and has the general form of:
+
+```
+[outputs] opcode_name [inputs]
+```
+
+where outputs and inputs are commma-separated lists of words and numbers. 
+
+I'll be using the modern syntax in this tutorial. It has some quirks due being added to a language and system that's over 30 years old (and because we fully support backwards compatibility and need to suppor the older style within the system), but hopefully you'll find it intuitive to use as we work through exercises. 
+
+I would note that there is one scenario where we must use the older style syntax, which is when opcodes output multiple output values. You'll find that in these situations I will switch to using the older style syntax, but only in these situations.  (This is a limitation in Csound 6 that has been changed already in code destined for Csound 7.)
+
+
+### Scheduling events
+
+
+
+## Developing the instrument
+
+At this point, the `Add` instrument works and we can schedule a the instrument to run and generate a 440 hertz sine tone.  If we select
 
 ## Full Example
 
