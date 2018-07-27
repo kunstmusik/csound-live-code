@@ -64,15 +64,14 @@ header>nav>i {
   font-size: 1.5em;
 }
 
-#playPauseButton {
-  font-size: 1.5em;
-  cursor: pointer;
-}
-#helpButton {
+.bar-btn {
   font-size: 1.5em;
   cursor: pointer;
 }
 
+.bar-btn:hover {
+  color: aliceblue;
+}
 
 #csoundCodeEditor {
   height:calc(100% - 3em);

@@ -1,8 +1,19 @@
 var cs;
+var livecodeOrc = "";
 var fadeCounter = 5;
 
 function evalCode() {
     cs.compileOrc(editor.getSelection());
+}
+
+function restart() {
+    cs.reset();
+    cs.setOption("-m0");
+    cs.setOption("-odac");
+    cs.compileOrc(
+        "sr=48000\nksmps=32\n0dbfs=1\nnchnls=2\nnchnls_i=1\n" + 
+        livecodeOrc);
+    cs.start();
 }
 
 function insertHexplay() {
@@ -69,18 +80,19 @@ function loadCSD(editor, csdFile) {
 function onRuntimeInitialized() {
     fetch('livecode.orc').then(function(response) {
         return response.text().then(function(v) {
-
+            livecodeOrc = v;
             let ld = document.getElementById("loadDiv");
 
             let finishLoadCsObj = function() {
                 cs = new CsoundObj();
-                cs.setOption("-m0");
-                cs.setOption("-odac");
-                cs.compileOrc(
-                    "sr=48000\nksmps=32\n0dbfs=1\nnchnls=2\nnchnls_i=1\n" + 
-                    v);
+                //cs.setOption("-m0");
+                //cs.setOption("-odac");
+                //cs.compileOrc(
+                //    "sr=48000\nksmps=32\n0dbfs=1\nnchnls=2\nnchnls_i=1\n" + 
+                //    v);
 
-                cs.start();
+                //cs.start();
+                restart();
 
                 if(ld != null) {
                     ld.remove();
@@ -130,6 +142,7 @@ CsoundObj.importScripts("./web/csound/").then(() => {
 // UI CALLBACKS
 
 let playPauseButton = document.getElementById("playPauseButton"),
+    restartButton = document.getElementById("restartButton"),
     helpButton = document.getElementById("helpButton");
 
 
@@ -141,12 +154,16 @@ function openHelp() {
 const playPause = () => {
    if(CSOUND_AUDIO_CONTEXT.state == "running") {
        CSOUND_AUDIO_CONTEXT.suspend();
-       playPauseButton.className = "fas fa-play-circle";
+       playPauseButton.className = "bar-btn fas fa-play-circle";
+       playPauseButton.title = "Resume Engine";
    } else {
        CSOUND_AUDIO_CONTEXT.resume();
-       playPauseButton.className = "fas fa-pause-circle";
+       playPauseButton.className = "bar-btn fas fa-pause-circle";
+       playPauseButton.title = "Pause Engine";
    }
 }
 
+        
 helpButton.addEventListener("click", openHelp);
 playPauseButton.addEventListener("click", playPause);
+restartButton.addEventListener("click", restart);
