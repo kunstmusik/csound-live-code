@@ -17,7 +17,8 @@ Browsers that support PWAs usually have some kind of menu option that says somet
 
 The live.csound.com application has a minimal interface consisting of:
 
-* A pause/play button that can stop and resume the WebAudio engine for the page. 
+* A pause/play button that can pause and resume the WebAudio engine for the page. 
+* A restart button that reset and restart Csound, reloading livecode.orc.  
 * A help button that links to this documentation.
 * The main code editor for live coding using the Csound Orchestra language.
 
