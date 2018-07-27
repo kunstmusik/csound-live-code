@@ -11,7 +11,7 @@ function restart() {
     cs.setOption("-m0");
     cs.setOption("-odac");
     cs.compileOrc(
-        "sr=48000\nksmps=32\n0dbfs=1\nnchnls=2\nnchnls_i=1\n" + 
+        "ksmps=32\n0dbfs=1\nnchnls=2\nnchnls_i=1\n" + 
         livecodeOrc);
     cs.start();
 }
@@ -59,22 +59,10 @@ fetch('start.orc').then(function(response) {
     return response.text().then(function(v) {
         editor.setValue(
             ";; Select this code and press ctrl-e to evaluate\n" + 
-            ";; https://github.com/kunstmusik/csound-live-code/blob/master/doc/intro.md\n" +
             v);
         editor.clearHistory()
     });
 });
-
-
-function loadCSD(editor, csdFile) {
-    var client = new XMLHttpRequest();
-
-    client.open('GET', csdFile, true);
-    client.onreadystatechange = function() {
-        editor.setValue(client.responseText);
-    }
-    client.send();
-}
 
 
 function onRuntimeInitialized() {
@@ -139,7 +127,7 @@ CsoundObj.importScripts("./web/csound/").then(() => {
 });
 
 
-// UI CALLBACKS
+/* UI SETUP */
 
 let playPauseButton = document.getElementById("playPauseButton"),
     restartButton = document.getElementById("restartButton"),
