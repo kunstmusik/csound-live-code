@@ -27,10 +27,11 @@ __Concepts__
 * [Event Time Oscillators](oscillators.md)
 * [Hexadecimal Beats](hexadecimal_beats.md)
 
-<!-- 
 __Tutorial__
 
-* [Let's make a sound!](tutorial1.md)
+* [Tutorial 1: Let's make a sound!](tutorial1.md)
+
+<!-- 
 * [Events 1: Simple Events](tutorial2.md)
 * [Events 2: Compound Events](tutorial3.md)
 * [Events 3: Generating Notes with Loops](tutorial4.md)
