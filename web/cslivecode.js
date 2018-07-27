@@ -2,6 +2,23 @@ var cs;
 var livecodeOrc = "";
 var fadeCounter = 5;
 
+// UI Elements 
+
+let playPauseButton = document.getElementById("playPauseButton"),
+    restartButton = document.getElementById("restartButton"),
+    helpButton = document.getElementById("helpButton");
+
+
+const updatePlayPauseUI = () => {
+    if(CSOUND_AUDIO_CONTEXT.state == "running") {
+        playPauseButton.className = "bar-btn fas fa-pause-circle";
+        playPauseButton.title = "Pause Engine";
+    } else {
+        playPauseButton.className = "bar-btn fas fa-play-circle";
+        playPauseButton.title = "Resume Engine";
+    }
+}
+
 function evalCode() {
     cs.compileOrc(editor.getSelection());
 }
@@ -49,17 +66,19 @@ let editor = CodeMirror(document.getElementById("csoundCodeEditor"),
         //keyMap: "vim",
         extraKeys: {
             "Ctrl-E": evalCode,
-                "Ctrl-H": insertHexplay,
-                "Ctrl-J": insertEuclidplay,
-                "Ctrl-;": CodeMirror.commands.toggleComment,
+            "Cmd-E": evalCode,
+            "Ctrl-H": insertHexplay,
+            "Cmd-H": insertHexplay,
+            "Ctrl-J": insertEuclidplay,
+            "Cmd-J": insertEuclidplay,
+            "Ctrl-;": CodeMirror.commands.toggleComment,
+            "Cmd-;": CodeMirror.commands.toggleComment,
         },
     });
 
 fetch('start.orc').then(function(response) {
     return response.text().then(function(v) {
-        editor.setValue(
-            ";; Select this code and press ctrl-e to evaluate\n" + 
-            v);
+        editor.setValue(";; Select this code and press ctrl-e to evaluate\n" + v);
         editor.clearHistory()
     });
 });
@@ -72,22 +91,19 @@ function onRuntimeInitialized() {
             let ld = document.getElementById("loadDiv");
 
             let finishLoadCsObj = function() {
-                cs = new CsoundObj();
-                //cs.setOption("-m0");
-                //cs.setOption("-odac");
-                //cs.compileOrc(
-                //    "sr=48000\nksmps=32\n0dbfs=1\nnchnls=2\nnchnls_i=1\n" + 
-                //    v);
+                CSOUND_AUDIO_CONTEXT.resume().then( () => {
+                    cs = new CsoundObj();
+                    restart();
 
-                //cs.start();
-                restart();
+                    if(ld != null) {
+                        ld.remove();
+                    }
+                    editor.refresh();
+                    editor.focus();
+                    editor.setCursor(0,0);
 
-                if(ld != null) {
-                    ld.remove();
-                }
-                editor.refresh();
-                editor.focus();
-                editor.setCursor(0,0);
+                    updatePlayPauseUI();
+                });
             }
 
 
@@ -129,29 +145,21 @@ CsoundObj.importScripts("./web/csound/").then(() => {
 
 /* UI SETUP */
 
-let playPauseButton = document.getElementById("playPauseButton"),
-    restartButton = document.getElementById("restartButton"),
-    helpButton = document.getElementById("helpButton");
-
-
 function openHelp() {
     let url = "https://github.com/kunstmusik/csound-live-code/blob/master/doc/intro.md";
     window.open(url);
 }
 
 const playPause = () => {
-   if(CSOUND_AUDIO_CONTEXT.state == "running") {
-       CSOUND_AUDIO_CONTEXT.suspend();
-       playPauseButton.className = "bar-btn fas fa-play-circle";
-       playPauseButton.title = "Resume Engine";
-   } else {
-       CSOUND_AUDIO_CONTEXT.resume();
-       playPauseButton.className = "bar-btn fas fa-pause-circle";
-       playPauseButton.title = "Pause Engine";
-   }
+    if(CSOUND_AUDIO_CONTEXT.state == "running") {
+        CSOUND_AUDIO_CONTEXT.suspend().then(updatePlayPauseUI);
+    } else {
+        CSOUND_AUDIO_CONTEXT.resume().then(updatePlayPauseUI);
+    }
+
 }
 
-        
+
 helpButton.addEventListener("click", openHelp);
 playPauseButton.addEventListener("click", playPause);
 restartButton.addEventListener("click", restart);
