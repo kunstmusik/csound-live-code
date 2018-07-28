@@ -707,6 +707,15 @@ opcode declick, a, a
   xout ain * aenv
 endop
 
+/** Custom non-interpolating oscil that takes in kfrequency and array to use as oscillator table
+data. Outputs k-rate signal. */
+opcode oscil, k, kk[]
+  kfreq, kin[] xin
+  ilen = lenarray(kin)
+  kphs = phasor:k(kfreq)
+  kout = kin[int(kphs * ilen)]
+  xout kout
+endop
 
 
 ;; KILLING INSTANCES
@@ -812,6 +821,13 @@ endop
 ;; Stereo Audio Bus
 
 ga_sbus[] init 16, 2
+
+/** Write two audio signals into stereo bus at given index */
+opcode sbus_write, 0,iaa
+  ibus, al, ar xin
+  ga_sbus[ibus][0] = al
+  ga_sbus[ibus][1] = ar
+endop
 
 /** Mix two audio signals into stereo bus at given index */
 opcode sbus_mix, 0,iaa
