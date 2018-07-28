@@ -19,8 +19,70 @@ const updatePlayPauseUI = () => {
     }
 }
 
+let starts = [
+    [/^\s*instr/, "instr"], 
+    [/^\s*endin/, "endin"], 
+    [/^\s*opcode/, "opcode"], 
+    [/^\s*endop/, "endop"]];
+const startsWithOneOfThese = function(txt) {
+   for(let i = 0; i < starts.length; i++) {
+        if(txt.match(starts[i][0]) != null) {
+            return starts[i][1];
+        }
+   }
+   return null;
+}
+
+const findLineWithBlock = function(start, direction, limit) {
+    for(let i = start; i != limit; i += direction) {
+        let find = startsWithOneOfThese(editor.getLine(i));
+        if(find != null) {
+            return [i, find];
+        }
+    }
+    return null;
+}
+
+const getEvalText = function() {
+    let text = editor.getSelection();
+    let from = editor.getCursor("from");
+    let to = editor.getCursor("to");
+
+    if(text === "") {
+
+        let prevBlockMark = findLineWithBlock(from.line, -1, -1);
+        let nextBlockMark = findLineWithBlock(from.line, 1, editor.lineCount());
+
+        console.log(prevBlockMark);
+        console.log(nextBlockMark);
+
+
+        if(prevBlockMark != null && nextBlockMark != null &&
+            ((prevBlockMark[1] === "instr" && nextBlockMark[1] === "endin") || 
+            (prevBlockMark[1] === "opcode" && nextBlockMark[1] === "endop"))) {
+            let handle = editor.getLineHandle(nextBlockMark[0]);
+            from = {line: prevBlockMark[0], ch: 0};
+            to = { line: nextBlockMark[0], ch: handle.text.length};
+            text = editor.getRange(from, to);
+        } else {
+            let handle = editor.getLineHandle(from.line);
+            text = editor.getLine(from.line);
+            from = { line: from.line, ch: 0 };
+            to = { line: from.line, ch: handle.text.length };
+        }
+    } 
+    return { text, from, to };
+}
+
+const flash = function(txt) {
+    let sel = editor.markText(txt.from, txt.to, { className:"CodeMirror-highlight" })
+    setTimeout(() => { sel.clear() }, 250);
+}
+
 function evalCode() {
-    cs.compileOrc(editor.getSelection());
+    let selectedText = getEvalText();
+    flash(selectedText);
+    cs.compileOrc(selectedText.text);
 }
 
 function restart() {
@@ -34,8 +96,8 @@ function restart() {
 }
 
 function insertHexplay() {
-    let hexCode = "hexplay(\"fade\",\n" +
-        "      \"S1\", p3,\n" +
+    let hexCode = "hexplay(\"8\",\n" +
+        "      \"Sub5\", p3,\n" +
         "      in_scale(-1, 0),\n" +
         "      fade_in(" + fadeCounter + ", 128) * ampdbfs(-12))\n";
     fadeCounter += 1;
@@ -46,7 +108,7 @@ function insertHexplay() {
 
 function insertEuclidplay() {
     let hexCode = "euclidplay(13, 32,\n" +
-        "      \"S1\", p3,\n" +
+        "      \"Sub5\", p3,\n" +
         "      in_scale(-1, 0),\n" +
         "      fade_in(" + fadeCounter + ", 128) * ampdbfs(-12))\n";
     fadeCounter += 1;

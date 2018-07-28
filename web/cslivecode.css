@@ -80,4 +80,7 @@ header>nav>i {
 }
 
 
+.CodeMirror-highlight {
+  background:rgba(255,255,255,.5)
+}
 
