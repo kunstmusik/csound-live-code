@@ -15,7 +15,7 @@ __Getting Started__
 __Concepts__
 
 * Live Coding Concepts 
-* Session Lifecycle 
+* [Session Lifecycle](session_lifecycle.md)
 * [Basic Introduction to Csound](csound_basics.md)
 * Central Clock 
 * Utility User-defined Opcodes
