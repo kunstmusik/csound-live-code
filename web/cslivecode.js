@@ -53,10 +53,6 @@ const getEvalText = function() {
         let prevBlockMark = findLineWithBlock(from.line, -1, -1);
         let nextBlockMark = findLineWithBlock(from.line, 1, editor.lineCount());
 
-        console.log(prevBlockMark);
-        console.log(nextBlockMark);
-
-
         if(prevBlockMark != null && nextBlockMark != null &&
             ((prevBlockMark[1] === "instr" && nextBlockMark[1] === "endin") || 
             (prevBlockMark[1] === "opcode" && nextBlockMark[1] === "endop"))) {
@@ -74,15 +70,23 @@ const getEvalText = function() {
     return { text, from, to };
 }
 
-const flash = function(txt) {
-    let sel = editor.markText(txt.from, txt.to, { className:"CodeMirror-highlight" })
+const flash = function(txt, color) {
+    let sel = editor.markText(txt.from, txt.to, { className: color })
     setTimeout(() => { sel.clear() }, 250);
 }
 
 function evalCode() {
     let selectedText = getEvalText();
-    flash(selectedText);
+    flash(selectedText, "CodeMirror-highlight");
     cs.compileOrc(selectedText.text);
+}
+
+function evalCodeAtMeasure() {
+    let selectedText = getEvalText();
+    flash(selectedText, "CodeMirror-highlight-delayed");
+    let code = `eval_at_time({{${selectedText.text}}}, next_measure())`;
+    console.log("code: \n" + code);
+    cs.compileOrc(code);
 }
 
 function restart() {
@@ -129,6 +133,10 @@ let editor = CodeMirror(document.getElementById("csoundCodeEditor"),
         extraKeys: {
             "Ctrl-E": evalCode,
             "Cmd-E": evalCode,
+            "Ctrl-Enter": evalCode,
+            "Cmd-Enter": evalCode,
+            "Shift-Ctrl-Enter": evalCodeAtMeasure,
+            "Shift-Cmd-Enter": evalCodeAtMeasure,
             "Ctrl-H": insertHexplay,
             "Cmd-H": insertHexplay,
             "Ctrl-J": insertEuclidplay,

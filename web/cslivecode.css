@@ -84,3 +84,6 @@ header>nav>i {
   background:rgba(255,255,255,.5)
 }
 
+.CodeMirror-highlight-delayed {
+  background:rgba(0,192,255,.5)
+}

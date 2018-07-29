@@ -65,7 +65,9 @@ _The following shortcuts will also work with the OSX cmd- key instead of ctrl-._
 
 |Shortcut | Description |
 | ------- | ------------|
-| ctrl-e  | evaluate the selected code |
+| ctrl-e  | evaluate the selected code immediately |
+| ctrl-enter  | evaluate the selected code immediately |
+| ctrl-shift-enter  | evaluate the selected code at next 4/4 measure |
 | ctrl-h  | insert template hexplay() code |
 | ctrl-j  | insert template euclidplay() code |
 | ctrl-;  | toggle line comments |

@@ -755,6 +755,16 @@ opcode start, 0,S
   schedule(Sinstr, ksmps / sr,-1)
 endop
 
+instr CodeEval
+  Scode = p4
+  ires = compilestr(Scode)
+endin
+
+/** Evaluate code at a given time */
+opcode eval_at_time, 0, Si 
+  Scode, istart xin
+  schedule("CodeEval", istart, 0, Scode)
+endop
 
 
 ;; Fades 
