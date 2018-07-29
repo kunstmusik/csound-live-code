@@ -1,6 +1,6 @@
 # Hexadecimal Beats
 
-Hexadecimal Beats is a system for using Hexadecimal notation (base 16) for notating rhythmic onsets. It allows for notating a set of four sixteenth notes using a single character.  
+Hexadecimal Beats is a system for using Hexadecimal notation (base 16) for notating rhythmic onsets. It allows for notating a set of four sixteenth notes using a single character. The system matches up well with drum programming and modular sequencer programming practices and is useful for drum and melodic line programming for synchronized music. 
 
 ## Hexadecimal (Base 16), Binary (Base 2), and Base 10
 
@@ -36,7 +36,7 @@ Notation in Hex can take some pratice, but once mastered can be very quick for n
 ## Values of Hex Beat Notation
 
 1. With practice, one gets famililar with each of the hex values and how to use them to notate a rhythm. 
-2. The hex values stick out and make it easy to remember common rhythms (e.g., `9228` is a 4/4 _Son Clave_ rhythm). 
+2. The hex values stick out and make it easy to remember common rhythms (e.g., `9228` is a 4/4 _Son Clave_ rhythm).
 3. Hexadecimal is a compressed data format. It takes less characters to express a rhythm than it would in a binary representation or [Time Unit Box System (TUBS)](https://en.wikipedia.org/wiki/Time_unit_box_system) notation.
 
 ## Drawbacks of Hex Beat Notation
@@ -86,6 +86,12 @@ The suggested learning path for Hexadecimal Beat notation is to start off simple
 4. Next, try the two-note 16th note rhythms. These would be `a`, `9`, `c`, `6`, `3`, and `5`. 
 
 5. Finally, experiment with the three-note 16th note rhythms (`b`, `d`, `e`) and the all 16th-note rhythm (`f`). 
+
+Additionally, I would highly recommend practicing by:
+
+1. Notating rhythms you hear in music. 
+
+2. Reproducing 808 patterns found at the [808 Drum Patterns](http://808.pixll.de/) website. There are many patterns to choose from and in many different styles.  
 
 
 ## Hacking 32nd Notes
