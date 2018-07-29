@@ -85,7 +85,6 @@ function evalCodeAtMeasure() {
     let selectedText = getEvalText();
     flash(selectedText, "CodeMirror-highlight-delayed");
     let code = `eval_at_time({{${selectedText.text}}}, next_measure())`;
-    console.log("code: \n" + code);
     cs.compileOrc(code);
 }
 
