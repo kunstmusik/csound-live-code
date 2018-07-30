@@ -1,10 +1,10 @@
-var cacheName = 'csound-live-code-11';
+var cacheName = 'csound-live-code-12';
 var filesToCache = [
   '/', 
   '/index.html',
-	'/web/codemirror.css',
-	'/web/theme/monokai.css',
-	'/web/cslivecode.css',
+  '/web/codemirror.css',
+  '/web/theme/monokai.css',
+  '/web/cslivecode.css',
   '/web/codemirror.js',
   '/web/mode/csound/csound.js',
   '/web/addon/comment/comment.js',
@@ -23,7 +23,8 @@ var filesToCache = [
   '/web/csound/libcsound.wasm',
   '/livecode.orc',
   '/start.orc',
-
+  'https://fonts.googleapis.com/css?family=Raleway|Roboto:400,700',
+  'https://use.fontawesome.com/releases/v5.1.1/css/all.css',
 ];
 
 self.addEventListener('install', function(e) {
