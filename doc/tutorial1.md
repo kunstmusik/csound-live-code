@@ -146,24 +146,116 @@ This style uses one opcode call per line of text and has the general form of:
 
 where outputs and inputs are commma-separated lists of words and numbers. 
 
-I'll be using the modern syntax in this tutorial. It has some quirks due being added to a language and system that's over 30 years old (and because we fully support backwards compatibility and need to suppor the older style within the system), but hopefully you'll find it intuitive to use as we work through exercises. 
+I'll be using the modern syntax in this tutorial. It has some quirks due to being added to a language and system that's over 30 years old (and because we fully support backwards compatibility for the original code style), but hopefully you'll find it intuitive to use as we work through exercises. 
 
 I would note that there is one scenario where we must use the older style syntax, which is when opcodes output multiple output values. You'll find that in these situations I will switch to using the older style syntax, but only in these situations.  (This is a limitation in Csound 6 that has been changed already in code destined for Csound 7.)
 
 
 ### Scheduling events
 
+Once we have an instrument defined, we can create events using the schedule() opcode:
+
+```csound
+schedule("Add", 0, 2)
+```
+
+The schedule opcode takes in 3 mandatory arguments and any number of additional
+arguments. What it say is "schedule to run an instance of the Add instrument,
+at time 0, for 2 seconds duration". The call to schedule will then create an
+event, schedule the event with the scheduler using relative start time, then
+return.  It will be the scheduler itself that fires the event once the start
+time has been reached.  (In this case, by using 0, we are saying "schedule an
+event to start 0 seconds from now", which runs the instrument immediately.) 
+
+All instruments have three _pfields_ (parameters) by default. These are:
+
+* p1 - the instrument's numeric ID (named instruments have numeric IDs assigned
+  to them automatically)
+* p2 - the instrument's start time
+* p3 - the instrument's duration
+
+If instruments are designed to use additional pfields, then you will need to
+supply additional values as arguments when you use schedule. We'll see how that
+works in the next section when we add pfields and update our schedule call.  
+ 
+## Parameterizing the instrument
+
+At this point, the `Add` instrument works and we can schedule a the instrument
+to run and generate a 440 hertz sine tone. However, how we "play" the
+instrument is pretty limited, as the instrument only has the default pfields.
+Really, all we can do is change the duration of how long the instrument will
+run.  
+
+Let's make a small change now to add an additional pfield for frequency. We do
+that by putting `p4` in our code where we want to receive a value.
+
+```csound
+instr Add
+  asig = oscili(0.25, p4)
+  out(asig, asig)
+endin
+
+schedule("Add", 0, 2, 440)
+```
+
+In the above, we've made two changes:
+
+1. Updated our instrument to use a p4 value.  Csound's pfields are going to be
+   either numbers or Strings (text data). For this tutorial we will use pfields
+   as numbers. Also, anywhere we have a static number in our code, we can
+   replace it with a pfield. (You could replace the 0.25 with a p5, for
+   example.)
+2. Updated our schedule call to use the value 440 as the fourth argument.  This
+   will be assigned to the p4 variable when the Add instrument is run. 
+
+At this point, we've made the instrument a little more versatile by making the oscilator frequency be a parameter.  Try changing what value you use for p4 (e.g., change 440 to 220, 330, 880, etc.) and re-evaluating the schedule line to hear sines with different frequencies.
 
 
-## Developing the instrument
+## Adding another oscillator 
 
-At this point, the `Add` instrument works and we can schedule a the instrument to run and generate a 440 hertz sine tone.  If we select
+A simple sine is a good place to start, but lets now make the instrument a little more interesting.  
+
+First, let's try changing the instrument to use two oscillators:
+
+```csound
+instr Add
+  asig = oscili(0.25, p4)
+  asig2 = oscili(0.25, p4 * 2)
+  asum = asig + asig2
+  out(asum, asum)
+endin
+```
+
+What we've done here is add an additional `oscili` oscillator, running at two times the frequency value of p4. We then added the two signals together and assigned to the `asum` variable, then use that value as the output. Try evaluating the schedule() call now to hear the new sound.
+
+One thing we can do now is use a slightly different assignment operation to make things a little shorter in code:
+
+```csound
+instr Add
+  asig = oscili(0.25, p4)
+  asig += oscili(0.25, p4 * 2)
+  out(asig, asig)
+endin
+```
+
+This version of the instrument sounds exactly the same as the previous version.  It uses a `+=` assignment to add the value generated on the right side of the `+=` to the value on the left side, then store it back in to the variable on the left.  The line with the `+=` is equivalent to writing `asig = asig + oscili(0.25, p4 *2)`. 
+
+As we go through this tutorial, whenever we make a change to our code, it's important to test the change. In this case, we would re-select the instrument code, evaluate it, then select the schedule() code and evaluate that.  It's best to test often so that you don't make too many changes, find you have a problem, then scratch your head figuring out which of all the new changes made it stop working.  
+
+
+## Shaping the output
+
+
+
+
+
+## Compound Event 
+
 
 ## Full Example
 
 ```csound
 instr Add
-  
   alfo = 1 + oscili(random(0.002, 0.01), random(0.2,3))
   
   asig = oscili(1, p4 * alfo)
@@ -171,7 +263,7 @@ instr Add
   
   asig *= 0.25 * p5 * expon(1, p3, 0.001)
   
-  outc(asig, asig)
+  out(asig, asig)
 endin
 
 instr Chord
