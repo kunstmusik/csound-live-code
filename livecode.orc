@@ -243,6 +243,23 @@ opcode rand, S, S[]
   xout Sval
 endop
 
+/** Returns random item from karray. */
+opcode randk, k, k[]
+  kvals[] xin
+  kndx = int(random:k(0, lenarray:k(kvals)))
+  kval = kvals[kndx]
+  xout kval
+endop
+
+/** Returns random item from karray. */
+opcode randk, S, S[]
+  Svals[] xin
+  kndx = int(random:k(0, lenarray:k(Svals)))
+  Sval = Svals[kndx]
+  xout Sval
+endop
+
+
 ;; Event
 
 /** Wrapper opcode that calls schedule only if iamp > 0. */
@@ -625,6 +642,24 @@ opcode in_scale, i, ii
   endif
 
   xout cpsmidinn(ibase + (ioct * 12) + gi_cur_scale[indx]) 
+endop
+
+opcode in_scale, k, kk 
+  koct, kdegree xin
+
+  kbase = gi_scale_base + (koct * 12)
+
+  idegrees = lenarray(gi_cur_scale)
+
+  koct = int(kdegree / idegrees)
+  kndx = kdegree % idegrees
+
+  if(kndx < 0) then
+    koct -= 1
+    kndx += idegrees
+  endif
+
+  xout cpsmidinn(kbase + (koct * 12) + gi_cur_scale[kndx]) 
 endop
 
 /** Quantizes given MIDI note number to the given scale 
