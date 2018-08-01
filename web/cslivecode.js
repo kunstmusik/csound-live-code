@@ -6,7 +6,9 @@ var fadeCounter = 5;
 
 let playPauseButton = document.getElementById("playPauseButton"),
     restartButton = document.getElementById("restartButton"),
-    helpButton = document.getElementById("helpButton");
+    helpButton = document.getElementById("helpButton"),
+    evalNowButton = document.getElementById("evalNowButton"),
+    evalMeasureButton = document.getElementById("evalMeasureButton");
 
 
 const updatePlayPauseUI = () => {
@@ -232,3 +234,5 @@ const playPause = () => {
 helpButton.addEventListener("click", openHelp);
 playPauseButton.addEventListener("click", playPause);
 restartButton.addEventListener("click", restart);
+evalNowButton.addEventListener("click", evalCode);
+evalMeasureButton.addEventListener("click", evalCodeAtMeasure);

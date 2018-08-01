@@ -33,10 +33,12 @@ documentation for your browser for more information.
 
 ## User Interface
 
-The live.csound.com application has a minimal interface consisting of:
+The live.csound.com application has the following interface elements:
 
 * A pause/play button that can pause and resume the WebAudio engine for the page. 
 * A restart button that reset and restart Csound, reloading livecode.orc.  
+* An "Evaluate Now" button that evaluates code immediately.  
+* An "Evaluate at Measure" button that evaluates code at the next 4/4 measure.  
 * A help button that links to this documentation.
 * The main code editor for live coding using the Csound Orchestra language.
 
