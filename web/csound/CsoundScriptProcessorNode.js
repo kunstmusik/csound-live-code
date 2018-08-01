@@ -133,7 +133,11 @@ class CsoundScriptProcessorNodeFactory {
  *   @returns {object} A new CsoundScriptProcessorNode
  */
 CsoundScriptProcessorNode  = function(context, options) {
-    var spn = context.createScriptProcessor(0, options.numberOfInputs, options.numberOfOutputs);
+    // using 0 here gets a 256 size buffer on iOS, which is too small and yields bad performance
+    // Firefox looks to use 4096 by default, Edge uses 2048, will just hardcode to 4096 for all
+    // ScriptProcessorNode platforms
+    var spn = context.createScriptProcessor(4096, 
+            options.numberOfInputs, options.numberOfOutputs);
     spn.inputCount = options.numberOfInputs;
     spn.outputCount = options.numberOfOutputs;
 
