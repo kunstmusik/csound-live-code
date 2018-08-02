@@ -17,7 +17,7 @@ __Concepts__
 * Live Coding Concepts 
 * [Session Lifecycle](session_lifecycle.md)
 * [Basic Introduction to Csound](csound_basics.md)
-* Central Clock 
+* [Central Clock, Tempo, and Time Values](time.md)
 * Utility User-defined Opcodes
 * Synthesizer Instruments
 
