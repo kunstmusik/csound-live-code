@@ -130,8 +130,9 @@ let editor = CodeMirror(document.getElementById("csoundCodeEditor"),
         autoCloseBrackets: true,
         theme: "monokai",
         mode: "csound",
+        //fallthrough: 'default',
         //keyMap: "vim",
-        extraKeys: {
+        extraKeys: CodeMirror.normalizeKeyMap({
             "Ctrl-E": evalCode,
             "Cmd-E": evalCode,
             "Ctrl-Enter": evalCode,
@@ -144,7 +145,7 @@ let editor = CodeMirror(document.getElementById("csoundCodeEditor"),
             "Cmd-J": insertEuclidplay,
             "Ctrl-;": CodeMirror.commands.toggleComment,
             "Cmd-;": CodeMirror.commands.toggleComment,
-        },
+        }),
     });
 
 fetch('start.orc').then(function(response) {
