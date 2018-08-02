@@ -757,7 +757,9 @@ endop
 
 instr KillImpl
   Sinstr = p4 
-  turnoff2(Sinstr, 0, 0)
+  if (nstrnum(Sinstr) > 0) then
+    turnoff2(Sinstr, 0, 0)
+  endif
   turnoff
 endin
 
@@ -786,8 +788,11 @@ endop
   when livecoding always-on audio and control signal process instruments. */
 opcode start, 0,S
   Sinstr xin
-  kill(Sinstr)
-  schedule(Sinstr, ksmps / sr,-1)
+
+  if (nstrnum(Sinstr) > 0) then
+    kill(Sinstr)
+    schedule(Sinstr, ksmps / sr,-1)
+  endif
 endop
 
 instr CodeEval
