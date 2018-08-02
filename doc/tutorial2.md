@@ -1,4 +1,4 @@
-# Tutorial 1 - Let's make a sound!
+# Tutorial 2 - Let's make our own sound!
 
 ## Introduction
 
