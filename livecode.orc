@@ -962,7 +962,7 @@ instr Sub5
   outc(asig, asig)
 endin
 
-/* SynthBrass subtractive synth */ 
+/** SynthBrass subtractive synth */ 
 instr SynBrass
   ipch = p4
   ipan = xchan("SynBrass.pan", 0.5)
