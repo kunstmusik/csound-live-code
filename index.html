@@ -46,6 +46,22 @@
     </header>
     <div id="csoundCodeEditor"></div>
 
+    <script>
+
+      var CSOUND_AUDIO_CONTEXT = CSOUND_AUDIO_CONTEXT || 
+          (function() {
+
+            try {
+              var AudioContext = window.AudioContext || window.webkitAudioContext;
+              return new AudioContext({latencyHint: 0.05});      
+            }
+            catch(error) {
+
+              console.log('Web Audio API is not supported in this browser');
+            }
+            return null;
+          }());
+    </script>
     <script src="web/csound/CsoundObj.js"></script>
     <script src="web/cslivecode.js"></script>
   </body>
