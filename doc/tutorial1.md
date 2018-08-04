@@ -157,7 +157,7 @@ schedule("Sub1", 0, 2, 440, 0.5)
 schedule("Sub1", 3, 2, 440, 0.5)
 ```
 
-This should play two notes, each two seconds long, with the second note starting 1 second after the end of the first note.
+This should play two notes, each two seconds long, with the second note starting 3 seconds after the end of the first note.
 
 ### Duration
 
