@@ -1,4 +1,4 @@
-/**
+/*
   Live Coding Functions
   Author: Steven Yi
 */ 
@@ -16,15 +16,19 @@ endin
 
 gk_tempo init 120 
 
+
+/** Set tempo of global clock to itempo value in beats per minute. */
 opcode set_tempo,0,i
   itempo xin
   gk_tempo init itempo
 endop
 
+/** Returns tempo of global clock in beats per minute. */
 opcode get_tempo,i,0
   xout i(gk_tempo)
 endop
 
+/** Adjust tempo of global clock towards by inewtempo by incr amount. */
 opcode go_tempo, 0, ii
   inewtempo, incr xin
 
@@ -272,6 +276,10 @@ endop
 
 ;; Beats
 
+/** Given a hexadecimal beat string pattern and optional
+itick (defaults to current now_tick()), returns value 1 if
+the given tick matches a hit in the hexadecimal beat, or 
+returns 0 otherwise. */
 opcode hexbeat, i, So
   Spat, itick xin
 
@@ -330,6 +338,10 @@ opcode hexplay, 0, SSiip
 endop
 
 
+/** Given an octal beat string pattern and optional
+itick (defaults to current now_tick()), returns value 1 if
+the given tick matches a hit in the octal beat, or 
+returns 0 otherwise. */
 opcode octalbeat, i, Si
   Spat, itick xin
 
@@ -441,6 +453,10 @@ opcode euclid_str, S, ii
 endop
 
 
+/** Given number of ihits for a period of isteps and an optional
+itick (defaults to current now_tick()), returns value 1 if
+the given tick matches a hit in the euclidean rhythm, or 
+returns 0 otherwise. */
 opcode euclid, i, iio
   ihits, isteps, itick  xin
 
@@ -480,9 +496,7 @@ opcode xcos, i,i
   xout cos(2 * $M_PI * iphase)
 endop
 
-/** Range version of xcos, similar to Impromptu's cosr 
-  xcos(iphase, ioffset, irange)
-  */
+/** Range version of xcos, similar to Impromptu's cosr */
 opcode xcos, i,iii
   iphase, ioffset, irange  xin
   xout ioffset + (cos(2 * $M_PI * iphase) * irange)
@@ -494,20 +508,22 @@ opcode xsin, i,i
   xout sin(2 * $M_PI * iphase)
 endop
 
-/** Range version of xcos, similar to Impromptu's cosr 
-  xcos(iphase, ioffset, irange)
-  */
+/** Range version of xsin, similar to Impromptu's sinr */
 opcode xsin, i,iii
   iphase, ioffset, irange  xin
   xout ioffset + (sin(2 * $M_PI * iphase) * irange)
 endop
 
+/** Non-interpolating oscillator. Given phase in range 0-1, 
+returns value within the give k-array table. */
 opcode xosc, i, ik[]
   iphase, kvals[]  xin
   indx = int(lenarray:i(kvals) * (iphase % 1))  
   xout i(kvals, indx)
 endop
 
+/** Linearly-interpolating oscillator. Given phase in range 0-1, 
+returns value intepolated within the two closest points of phase within k-array table. */
 opcode xosci, i, ik[]
   iphase, kvals[]  xin
   ilen = lenarray:i(kvals)
@@ -520,6 +536,7 @@ opcode xosci, i, ik[]
   xout iv0 + (iv1 - iv0) * ifrac
 endop
 
+/** Line (Ramp) oscillator. Given phase in range 0-1, return interpolated value between given istart and iend. */
 opcode xlin, i, iii
   iphase, istart, iend xin
   xout istart + (iend - istart) * iphase
@@ -528,9 +545,8 @@ endop
 ;; String functions
 
 /** 
-  rotate - Rotates string by irot number of values. 
-  
-  Inspired by rotate from Charlie Roberts' Gibber.
+  rotate - Rotates string by irot number of values.  
+  (Inspired by rotate from Charlie Roberts' Gibber.)
 */
 opcode rotate, S, Si
   Sval, irot xin
@@ -542,14 +558,7 @@ opcode rotate, S, Si
 endop
 
 
-/** Repeats a given String x number of times. For example:
-
-  Sval = strrep("ab6a", 2)
-
-  will produce the value of "ab6aab6a"
-
-  Useful in working with Hex beat strings  
-*/
+/** Repeats a given String x number of times. For example, `Sval = strrep("ab6a", 2)` will produce the value of "ab6aab6a". Useful in working with Hex beat strings.  */
 opcode strrep, S, Si
   Sval, inum xin
     
@@ -586,6 +595,15 @@ opcode xchan, i,Si
   xout chnget:i(SchanName)
 endop
 
+/** xchan 
+  Initializes a channel with initial value if channel has default value of 0 and
+  then returns the current value from the channel. Useful in live coding to define
+  a dynamic point that will be automated or set outside of the instrument that is
+  using the channel. 
+
+  Opcode is overloaded to return i- or k- value. Be sure to use xchan:i or xchan:k
+  to specify which value to use. 
+*/
 opcode xchan, k,Si
   SchanName, initVal xin
     
@@ -606,17 +624,21 @@ gi_cur_scale[] = gi_scale_minor
 gi_scale_base = 60
 gi_chord_offset = 0
 
+/** Set root note of scale in MIDI note number. */
 opcode set_root, 0,i 
   iscale_root xin
   gi_scale_base = iscale_root
 endop
 
+/** Calculate frequency from root note of scale, using 
+octave and pitch class. */
 opcode from_root, i, ii
   ioct, ipc xin
   ival = gi_scale_base + (ioct * 12) + ipc
   xout cpsmidinn(ival)
 endop
 
+/** Set the global scale.  Currently supports "maj" for major and "min" for minor scales. */
 opcode set_scale, 0,S
   Scale xin
   if(strcmp("maj", Scale) == 0) then
@@ -626,6 +648,8 @@ opcode set_scale, 0,S
   endif
 endop
 
+/** Calculate frequency from root note of scale, using 
+octave and scale degree. */
 opcode in_scale, i, ii
   ioct, idegree xin
 
@@ -644,6 +668,8 @@ opcode in_scale, i, ii
   xout cpsmidinn(ibase + (ioct * 12) + gi_cur_scale[indx]) 
 endop
 
+/** Calculate frequency from root note of scale, using 
+octave and scale degree. (k-rate version of opcode) */
 opcode in_scale, k, kk 
   koct, kdegree xin
 
@@ -736,6 +762,7 @@ endop
 
 ;; AUDIO
 
+/** Utility opcode for declicking an audio signal. Should only be used in instruments that have positive p3 duration. */
 opcode declick, a, a
   ain xin
   aenv = linseg:a(0, 0.01, 1, p3 - 0.02, 1, 0.01, 0, 0.01, 0)
@@ -812,18 +839,13 @@ endop
 gi_fade_range init -30
 
 
-/* set_fade_range
-  sets the range in db to fade over. By default, range is -30 
-  (i.e., fades from -30dbfs to 0dbfs) */
+/** Sets the range in db to fade over. By default, range is -30 (i.e., fades from -30dbfs to 0dbfs) */
 opcode set_fade_range, 0, i
   irange xin
   gi_fade_range init irange
 endop
 
-/* fade_in
-  takes in fade channel identifier (number) and number of ticks to fade over time
-  will fade using gi_fade_range, which by default starts fading in at -30dBfs and 
-  stops at 0dbfs */
+/** Given a fade channel identifier (number) and number of ticks to fade over time, advances from current fade channel value towards 0dbfs (1.0) using the globally set fade range. (By default starts fading in from -30dBfs and stops at 0dbfs.) */
 opcode fade_in, i, ii
   ident, inumticks xin
   Schan = sprintf("fade_chan_%d", ident)
@@ -839,10 +861,7 @@ opcode fade_in, i, ii
   xout iret 
 endop
 
-/* fade_out
-  takes in fade channel identifier (number) and number of ticks to fade over time
-  will fade using gi_fade_range, which by default starts fading out at 0dBfs and 
-  stops at -30dbfs */
+/** Given a fade channel identifier (number) and number of ticks to fade over time, advances from current fade channel value towards 0 using the globally set fade range. (By default starts fading out from 0dBfs and stops at -30dbfs.) */
 opcode fade_out, i, ii
   ident, inumticks xin
   Schan = sprintf("fade_chan_%d", ident)
@@ -861,6 +880,7 @@ opcode fade_out, i, ii
   xout iret 
 endop
 
+/**  Set value for fade channel to given value. Should be in range 0-1.0.  (Typically one sets to either 0 or 1.) */
 opcode set_fade, 0,ii
   ident, ival xin
   Schan = sprintf("fade_chan_%d", ident)
@@ -916,7 +936,7 @@ instr Sub1
 endin
 
 
-/* Subtractive Synth, two saws, fifth freq apart */
+/** Subtractive Synth, two saws, fifth freq apart */
 instr Sub2
   icut = xchan("Sub2.cut", sr / 3)
   asig = vco2(ampdbfs(-12), p4) 
@@ -927,7 +947,7 @@ instr Sub2
 endin
 
 
-/* Subtractive Synth, three detuned saws, swells in */
+/** Subtractive Synth, three detuned saws, swells in */
 instr Sub3 
   asig = vco2(p5, p4)
   asig += vco2(p5, p4 * 1.01)
@@ -938,7 +958,7 @@ instr Sub3
   outc(asig, asig)
 endin
 
-/* Subtractive Synth, detuned square/saw, stabby. 
+/** Subtractive Synth, detuned square/saw, stabby. 
    Nice as a lead in octave 2, nicely grungy in octave -2, -1
 */
 instr Sub4 
@@ -953,7 +973,7 @@ instr Sub4
 endin
 
 
-/* Subtractive Synth, detuned square/triangle */
+/** Subtractive Synth, detuned square/triangle */
 instr Sub5
   asig = vco2(0.5, p4, 10)
   asig += vco2(0.25, p4 * 2.0001, 12)
@@ -1005,7 +1025,7 @@ instr Bass
 endin
 
 
-/* VoxHumana Patch */
+/** VoxHumana Patch */
 
 instr VoxHumana 
   ipch = p4 
@@ -1028,7 +1048,7 @@ instr VoxHumana
   outc(aout, aout)
 endin
 
-/* FM 3:1 C:M ratio, 2->0.025 index, nice for bass */
+/** FM 3:1 C:M ratio, 2->0.025 index, nice for bass */
 instr FM1 
   icar = xchan("FM1.car", 1)
   imod = xchan("FM1.mod", 3)
@@ -1037,7 +1057,7 @@ instr FM1
   outc(asig, asig)
 endin
 
-/* Filtered noise, exponential envelope */
+/** Filtered noise, exponential envelope */
 instr Noi 
   p3 = max:i(p3, 0.4) 
   asig = pinker() * p5 * expon(1, p3, 0.001) * 0.1
@@ -1055,7 +1075,7 @@ instr Noi
 endin
 
 
-/* Based on Jacob Joaquin's "Tempo-Synced Wobble Bass" */
+/** Wobble patched based on Jacob Joaquin's "Tempo-Synced Wobble Bass" */
 instr Wobble
   /*p3 = max:i(p3, 0.4) */
 
@@ -1086,7 +1106,7 @@ endin
 ;; DRUMS
 
 
-;; Modified clap instrument by Istvan Varga (clap1.orc)
+/** Modified clap instrument by Istvan Varga (clap1.orc) */
 instr Clap
   ifreq = p4 ;; ignore
   iamp = p5
@@ -1120,11 +1140,11 @@ instr Clap
 endin
 
 
-;; Bass Drum - From Iain McCurdy's TR-808.csd
 
 gi_808_sine  ftgen 0,0,1024,10,1   ;A SINE WAVE
 gi_808_cos ftgen 0,0,65536,9,1,1,90  ;A COSINE WAVE 
 
+/** Bass Drum - From Iain McCurdy's TR-808.csd */
 instr BD  ;BASS DRUM
   p3  = 2 * xchan("BD.decay", 0.5)              ;NOTE DURATION. SCALED USING GUI 'Decay' KNOB
 
@@ -1152,7 +1172,7 @@ instr BD  ;BASS DRUM
 endin
 
 
-;; Snare Drum - From Iain McCurdy's TR-808.csd
+/** Snare Drum - From Iain McCurdy's TR-808.csd */
 instr SD  ;SNARE DRUM
   
   ;SOUND CONSISTS OF TWO SINE TONES, AN OCTAVE APART AND A NOISE SIGNAL
@@ -1186,7 +1206,7 @@ instr SD  ;SNARE DRUM
 endin
 
 
-;; Open High Hat - From Iain McCurdy's TR-808.csd
+/** Open High Hat - From Iain McCurdy's TR-808.csd */
 instr OHH ;OPEN HIGH HAT
 
   idur = xchan("OHH.decay", 1.0)  
@@ -1235,7 +1255,7 @@ instr OHH ;OPEN HIGH HAT
 endin
 
 
-;; Closed High Hat - From Iain McCurdy's TR-808.csd
+/** Closed High Hat - From Iain McCurdy's TR-808.csd */
 instr CHH ;CLOSED HIGH HAT
   idur = xchan("CHH.decay", 1.0)  
   ilevel = xchan("CHH.level", 1) 
@@ -1287,7 +1307,7 @@ instr CHH ;CLOSED HIGH HAT
   outs  aL,aR       ;SEND TO OUTPUTS
 endin
 
-
+/** High Tom - From Iain McCurdy's TR-808.csd */
 instr HiTom ;HIGH TOM
   idur = xchan("HiTom.decay", 1.0)  
   ilevel = xchan("HiTom.level", 1) 
@@ -1317,6 +1337,7 @@ instr HiTom ;HIGH TOM
   outs  aL,aR         ;SEND AUDIO TO OUTPUTS
 endin
 
+/** Mid Tom - From Iain McCurdy's TR-808.csd */
 instr MidTom ;MID TOM
   idur = xchan("MidTom.decay", 1.0) 
   ilevel = xchan("MidTom.level", 1) 
@@ -1346,6 +1367,7 @@ instr MidTom ;MID TOM
   outs  aL,aR         ;SEND AUDIO TO OUTPUTS
 endin
 
+/** Low Tom - From Iain McCurdy's TR-808.csd */
 instr LowTom  ;LOW TOM
   idur = xchan("LowTom.decay", 1.0) 
   ilevel = xchan("LowTom.level", 1) 
@@ -1377,7 +1399,7 @@ endin
 
 
 
-;; Cymbal - From Iain McCurdy's TR-808.csd
+/** Cymbal - From Iain McCurdy's TR-808.csd */
 instr Cymbal  ;CYMBAL
   idur = xchan("Cymbal.decay", 1.0) 
   ilevel = xchan("Cymbal.level", 1) 
@@ -1425,10 +1447,10 @@ instr Cymbal  ;CYMBAL
   outs  aL,aR       ;SEND TO OUTPUTS
 endin
 
+;WAVEFORM FOR TR808 RIMSHOT
+giTR808RimShot  ftgen 0,0,1024,10, 0.971,0.269,0.041,0.054,0.011,0.013,0.08,0.0065,0.005,0.004,0.003,0.003,0.002,0.002,0.002,0.002,0.002,0.001,0.001,0.001,0.001,0.001,0.002,0.001,0.001  
 
-;; Rimshot - From Iain McCurdy's TR-808.csd
-giTR808RimShot  ftgen 0,0,1024,10, 0.971,0.269,0.041,0.054,0.011,0.013,0.08,0.0065,0.005,0.004,0.003,0.003,0.002,0.002,0.002,0.002,0.002,0.001,0.001,0.001,0.001,0.001,0.002,0.001,0.001  ;WAVEFORM FOR TR808 RIMSHOT
-
+/** Rimshot - From Iain McCurdy's TR-808.csd */
 instr Rimshot ;RIM SHOT
 
   idur = xchan("Rimshot.decay", 1.0)  
@@ -1461,7 +1483,7 @@ instr Rimshot ;RIM SHOT
 endin
 
 
-;; Claves - From Iain McCurdy's TR-808.csd
+/** Claves - From Iain McCurdy's TR-808.csd */
 instr Claves  
   idur = xchan("Claves.decay", 1.0) 
   ilevel = xchan("Claves.level", 1) 
@@ -1480,7 +1502,7 @@ instr Claves
 endin
 
 
-;; Cowbell - From Iain McCurdy's TR-808.csd
+/** Cowbell - From Iain McCurdy's TR-808.csd */
 instr Cowbell 
   idur = xchan("Cowbell.decay", 1.0)  
   ilevel = xchan("Cowbell.level", 1) 
@@ -1513,7 +1535,7 @@ instr Cowbell
   outs  aL,aR       ;SEND AUDIO TO OUTPUTS
 endin
 
-
+/** Maraca - from Iain McCurdy's TR-808.csd */ 
 instr Maraca  ;MARACA
   idur = xchan("Maraca.decay", 1.0) 
   ilevel = xchan("Maraca.level", 1) 
@@ -1541,6 +1563,7 @@ instr Maraca  ;MARACA
   outs  aL,aR         ;SEND AUDIO TO OUTPUTS
 endin
 
+/** High Conga - From Iain McCurdy's TR-808.csd */
 instr HiConga ;HIGH CONGA
   idur = xchan("HiConga.decay", 1.0)  
   ilevel = xchan("HiConga.level", 1) 
@@ -1558,6 +1581,7 @@ instr HiConga ;HIGH CONGA
   outs  aL,aR       ;SEND AUDIO TO THE OUTPUTS
 endin
 
+/** Mid Conga - From Iain McCurdy's TR-808.csd */
 instr MidConga  ;MID CONGA
   idur = xchan("MidConga.decay", 1.0) 
   ilevel = xchan("MidConga.level", 1) 
@@ -1575,6 +1599,7 @@ instr MidConga  ;MID CONGA
   outs  aL,aR       ;SEND AUDIO TO THE OUTPUTS
 endin
 
+/** Low Conga - From Iain McCurdy's TR-808.csd */
 instr LowConga  ;LOW CONGA
   idur = xchan("MidConga.decay", 1.0) 
   ilevel = xchan("MidConga.level", 1) 

@@ -4,22 +4,27 @@
 
 |Outputs | Opcode | Inputs |
 | ---- | ---- | ---- |
-|  | **set_tempo** | itempo  |
-| ival | **get_tempo** |  |
-|  | **go_tempo** | inewtempo, incr  |
+|  | **set\_tempo** | itempo  |
+| ival | **get\_tempo** |  |
+|  | **go\_tempo** | inewtempo, incr  |
 | ival | **now** |  |
-| ival | **now_tick** |  |
+| ival | **now\_tick** |  |
 | ival | **beats** | inumbeats  |
 | ival | **measures** | inummeasures  |
 | ival | **ticks** | inumbeats  |
-| ival | **next_beat** | ibeatcount  |
-| ival | **next_measure** |  |
-|  | **reset_clock** |  |
-|  | **adjust_clock** | iadjust  |
+| ival | **next\_beat** | ibeatcount  |
+| ival | **next\_measure** |  |
+|  | **reset\_clock** |  |
+|  | **adjust\_clock** | iadjust  |
 | ival | **choose** | iamount  |
 | ival | **cycle** | indx, kvals[]  |
+| ival | **contains** | ival, iarr[]  |
+| ival | **contains** | ival, karr[]  |
+| k[]val | **remove** | ival, karr[]  |
 | ival | **rand** | kvals[]  |
 | Sval | **rand** | Svals[]  |
+| kval | **randk** | kvals[]  |
+| Sval | **randk** | Svals[]  |
 |  | **cause** | Sinstr, istart, idur, ifreq, iamp  |
 | ival | **hexbeat** | Spat, itick  |
 |  | **hexplay** | Spat, itick, Sinstr, idur, ifreq, iamp  |
@@ -31,7 +36,7 @@
 | ival | **phs** | iticks  |
 | ival | **phsb** | ibeats  |
 | ival | **phsm** | imeasures  |
-| Sval | **euclid_str** | ihits, isteps  |
+| Sval | **euclid\_str** | ihits, isteps  |
 | ival | **euclid** | ihits, isteps, itick   |
 |  | **euclidplay** | ihits, isteps, itick, Sinstr, idur, ifreq, iamp  |
 |  | **euclidplay** | ihits, isteps, Sinstr, idur, ifreq, iamp  |
@@ -46,57 +51,59 @@
 | Sval | **strrep** | Sval, inum  |
 | ival | **xchan** | SchanName, initVal  |
 | kval | **xchan** | SchanName, initVal  |
-|  | **set_root** | iscale_root  |
-| ival | **from_root** | ioct, ipc  |
-|  | **set_scale** | Scale  |
-| ival | **in_scale** | ioct, idegree  |
-|  | **set_chord** | ichord_root, ichord_intervals[]  |
-|  | **set_chord** | Schord  |
-| ival | **in_chord** | ioct, idegree  |
+|  | **set\_root** | iscale_root  |
+| ival | **from\_root** | ioct, ipc  |
+|  | **set\_scale** | Scale  |
+| ival | **in\_scale** | ioct, idegree  |
+| kval | **in\_scale** | koct, kdegree  |
+| ival | **pc\_quantize** | ipitch_in, iscale[]  |
+| ival | **pc\_quantize** | ipitch_in  |
+|  | **set\_chord** | ichord_root, ichord_intervals[]  |
+|  | **set\_chord** | Schord  |
+| ival | **in\_chord** | ioct, idegree  |
 | aval | **declick** | ain  |
+| kval | **oscil** | kfreq, kin[]  |
 |  | **kill** | Sinstr  |
-|  | **clear_instr** | Sinstr  |
+|  | **clear\_instr** | Sinstr  |
 |  | **start** | Sinstr  |
-|  | **set_fade_range** | irange  |
-| ival | **fade_in** | ident, inumticks  |
-| ival | **fade_out** | ident, inumticks  |
-|  | **set_fade** | ident, ival  |
-|  | **sbus_mix** | ibus, al, ar  |
-|  | **sbus_clear** | ibus  |
-| aaval | **sbus_read** | ibus  |
+|  | **eval\_at\_time** | Scode, istart  |
+|  | **set\_fade\_range** | irange  |
+| ival | **fade\_in** | ident, inumticks  |
+| ival | **fade\_out** | ident, inumticks  |
+|  | **set\_fade** | ident, ival  |
+|  | **sbus\_write** | ibus, al, ar  |
+|  | **sbus\_mix** | ibus, al, ar  |
+|  | **sbus\_clear** | ibus  |
+| aaval | **sbus\_read** | ibus  |
 ## Instruments
 
-|Instrument Name | Description |
-| ---- | ---- | 
-|  S1 |  | 
-|  P1 |  | 
-|  Perform |  | 
-|  Clock  |  | 
-|  KillImpl |  | 
-|  Sub1 |  | 
-|  Sub2 |  | 
-|  Sub3 |  | 
-|  Sub4 |  | 
-|  Sub5 |  | 
-|  SynBrass |  | 
-|  Plk |  | 
-|  Bass |  | 
-|  VoxHumana |  | 
-|  FM1 |  | 
-|  Noi |  | 
-|  Clap |  | 
-|  BD   |  | 
-|  SD   |  | 
-|  OHH  |  | 
-|  CHH  |  | 
-|  HiTom  |  | 
-|  MidTom  |  | 
-|  LowTom   |  | 
-|  Cymbal   |  | 
-|  Rimshot  |  | 
-|  Claves |  | 
-|  Cowbell |  | 
-|  Maraca   |  | 
-|  HiConga  |  | 
-|  MidConga   |  | 
-|  LowConga   |  | 
+|Instrument Name | 
+| ---- | 
+|  Sub1 | 
+|  Sub2 | 
+|  Sub3 | 
+|  Sub4 | 
+|  Sub5 | 
+|  SynBrass | 
+|  Plk | 
+|  Bass | 
+|  VoxHumana | 
+|  FM1 | 
+|  Noi | 
+|  Wobble | 
+|  Clap | 
+|  BD   | 
+|  SD   | 
+|  OHH  | 
+|  CHH  | 
+|  HiTom  | 
+|  MidTom  | 
+|  LowTom   | 
+|  Cymbal   | 
+|  Rimshot  | 
+|  Claves | 
+|  Cowbell | 
+|  Maraca   | 
+|  HiConga  | 
+|  MidConga   | 
+|  LowConga   | 
