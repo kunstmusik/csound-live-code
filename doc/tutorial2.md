@@ -1,5 +1,7 @@
 # Tutorial 2 - Let's make our own sound!
 
+_WARNING: This tutorial is currently being written and contains incomplete material. This notice will be removed once the tutorial is complete. Thank you!_
+
 ## Introduction
 
 In this tutorial, we're going to make our own sounds (instruments) and walk

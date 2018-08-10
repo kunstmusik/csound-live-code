@@ -31,6 +31,8 @@ __Tutorial__
 
 * [Tutorial 1: Let's make a sound!](tutorial1.md)
 * [Tutorial 2: Let's make our own sound!](tutorial2.md)
+* [Tutorial 3: Performing with a Feedback Delay](tutorial3.md)
+* [Tutorial 4: Making Music in a Modular Style](tutorial4.md)
 
 <!-- 
 * [Events 1: Simple Events](tutorial2.md)
