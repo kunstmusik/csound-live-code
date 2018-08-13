@@ -85,6 +85,7 @@
 |  Sub4 | 
 |  Sub5 | 
 |  SynBrass | 
+|  SSaw | 
 |  Plk | 
 |  Bass | 
 |  VoxHumana | 

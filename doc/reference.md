@@ -497,6 +497,7 @@ Read audio signals from bus channel
 |  Sub4 | Subtractive Synth, detuned square/saw, stabby. Nice as a lead in octave 2, nicely grungy in octave -2, -1  | 
 |  Sub5 | Subtractive Synth, detuned square/triangle  | 
 |  SynBrass | SynthBrass subtractive synth  | 
+|  SSaw | SuperSaw sound using 9 bandlimited saws (3 sets of detuned saws at octaves) | 
 |  Plk | Plucky sound  | 
 |  Bass | 303-style Bass sound  | 
 |  VoxHumana | VoxHumana Patch  | 

@@ -996,6 +996,28 @@ instr SynBrass
   outc(aL,aR)             
 endin
 
+/** SuperSaw sound using 9 bandlimited saws (3 sets of detuned saws at octaves)*/
+instr SSaw
+  asig = vco2(1, p4)
+  asig += vco2(1, p4 * cent(9.04234))
+  asig += vco2(1, p4 * cent(-7.214342))
+  
+  asig += vco2(1, p4 * cent(1206.294143))
+  asig += vco2(1, p4 * cent(1193.732))
+  asig += vco2(1, p4 * cent(1200))
+  
+  asig += vco2(1, p4 * cent(2406.294143))
+  asig += vco2(1, p4 * cent(2393.732))
+  asig += vco2(1, p4 * cent(2400))
+  
+  asig *= 0.1
+  asig = zdf_ladder(asig, expseg(16000, p3 - 0.05, 16000, 0.05, 200), 0.5)
+  asig *= p5 
+  asig = declick(asig)
+  
+  out(asig, asig)
+endin
+
 
 /** Plucky sound */
 instr Plk 
