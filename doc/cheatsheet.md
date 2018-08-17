@@ -92,6 +92,8 @@
 |  FM1 | 
 |  Noi | 
 |  Wobble | 
+|  Mono | 
+|  MonoNote | 
 |  Clap | 
 |  BD   | 
 |  SD   | 

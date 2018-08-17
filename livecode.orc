@@ -1015,7 +1015,10 @@ instr SSaw
   asig *= p5 
   asig = declick(asig)
   
-  out(asig, asig)
+  ipan = xchan("SSaw.pan", 0.5)
+  aL,aR pan2  asig,ipan             
+
+  outc(aL,aR)             
 endin
 
 
@@ -1122,6 +1125,27 @@ instr Wobble
   asig = declick(asig)
   outc(asig, asig)
 
+endin
+
+;; MONOPHONIC SYNTHS
+
+/** Monophone synth using sawtooth wave and 4pole lpf. Use "start("Mono") to run the monosynth, then use MonoNote instrument to play the instrument. */
+instr Mono
+  asig = vco2(xchan:k("Mono.amp", 0.0), portk(xchan:k("Mono.freq", 60), xchan:k("Mono.glide", 0.02)))
+  asig = zdf_ladder(asig, xchan:k("Mono.cut", 4000), xchan:k("Mono.Q", 10))
+  
+  kpan = xchan:k("Mono.pan", 0.5)
+  aL,aR pan2  asig,kpan             
+
+  out(aL, aR)
+endin
+maxalloc("Mono", 1)
+
+/** Note playing instrument for Mono synth. Be careful to use this
+and not try to create multiple Mono instruments! */
+instr MonoNote
+  chnset(expon(p5, p3, 0.001), "Mono.amp")
+  chnset(p4, "Mono.freq")
 endin
 
 

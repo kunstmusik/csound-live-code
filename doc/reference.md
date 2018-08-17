@@ -504,6 +504,8 @@ Read audio signals from bus channel
 |  FM1 | FM 3:1 C:M ratio, 2->0.025 index, nice for bass  | 
 |  Noi | Filtered noise, exponential envelope  | 
 |  Wobble | Wobble patched based on Jacob Joaquin's "Tempo-Synced Wobble Bass"  | 
+|  Mono | Monophone synth using sawtooth wave and 4pole lpf. Use "start("Mono") to run the monosynth, then use MonoNote instrument to play the instrument.  | 
+|  MonoNote | Note playing instrument for Mono synth. Be careful to use this and not try to create multiple Mono instruments!  | 
 |  Clap | Modified clap instrument by Istvan Varga (clap1.orc)  | 
 |  BD   | Bass Drum - From Iain McCurdy's TR-808.csd  | 
 |  SD   | Snare Drum - From Iain McCurdy's TR-808.csd  | 
