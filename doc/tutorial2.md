@@ -204,8 +204,43 @@ As we go through this tutorial, whenever we make a change to our code, it's impo
 
 ## Shaping the output
 
+The Add instrument is starting to make interesting sounds, but having it play at full volume for the full duration of the note can be a bit tiring. Let's modify the code now to shape the amplitude of the sound by using an exponential envelope generator, like so:
 
 
+```csound
+instr Add
+  asig = oscili(0.25, p4)
+  asig += oscili(0.25, p4 * 2)
+  asig *= expon(1, p3, 0.001)
+  out(asig, asig)
+endin
+```
+
+The key change was adding one line, `asig *= expon(1, p3, 0.001)`.  This line uses the `*=` assignment which operates like the `+=` but multiplies the left-hand side value (i.e., code to the left to the assignment operator) by the results of the code on the right-hand side. That line is equivalent to `asig = asig * expon(1, p3, 0.001)`.  
+
+`expon` is a classic Csound opcode that takes in 3 values: a start value, a duration, and an end value. The opcode generates an exponential curve going from the start value to the end value over the given duration. (Here we are using p3, the duration of the instrument instance we gave when calling `schedule()`.)  Exponential envelopes can not calculate to zero, so we use 0.001 as a target here. 
+
+The sound is starting to have some life to it.  We could further shape the sound in various ways by changing amplitude values for the oscillators to get a different mix, introduce envelop generators like `expon` or `line` to replace static values (i.e., each oscillator could have a different envelope), make the frequency change over time, and so on.  It's pretty natural in Csound (and really, any synthesis system) to start off simple with static values, then iteratively add and change our code to further shape and contour the sound until we get the desired outcome. 
+
+For now, let's leave the sound design here and take a look at how we're playing the instrument through scheduling events.  
+
+
+## A Palette of Events
+
+Up until now, we've been using a single `schedule()` opcode call to play exactly one instance of our instrument.  This leads to a one-to-one mapping of line of code to generated sound and is an important place to start. Even with this alone, we could sit and code and perform music.  However, if all we did was edit the one line of code and re-evaluate to get different notes at different times, it can be a little slow and probably limit what kinds of music we live code.  
+
+A natural next step is to have multiple lines of code pre-written that we might then select and evaluate.  Think of it like have a piano keyboard in front of you: you have many keys that produce different notes on the same instrument and you select and hit a key to get a different sound. However, in our case, instead of physical keys, we'll have different lines of code we can select and evaluate. Try entering the following code:
+
+```csound
+schedule("Add", 0, 2, 440) 
+schedule("Add", 0, 2, 550)
+schedule("Add", 0, 2, 660)
+schedule("Add", 0, 2, 880)
+```
+
+Now try evaluating each line of code one at a time (without selecting code, you can press ctrl-enter in the live.csound.com editor and it will run just the current line of code when not within an instrument). You should here an A, C#, E, and A one octave above. Each time you evalute the code, it will schedule and `Add` instrument to start immediately, run for two seconds, at the given frequency.  
+
+Writing out multiple lines like this to create a palette of sounds is a good way to start exploring the sonic capabilities of an instrument and start the process of improvisation and performance.  
 
 
 ## Compound Events
