@@ -245,6 +245,38 @@ Writing out multiple lines like this to create a palette of sounds is a good way
 
 ## Compound Events
 
+Using a one-to-one event-to-sound mapping is a starting point. The next step is produce multiple sounds using a one-to-many action.  Let's start off by reusing the last example code. However, instead of evaluating one line at a time, try selecting two consecutive lines and evaluating the code. It's a simple step to take to start producing multiple notes with single gestures.
+
+The next step to take is to modify the start times in our code:
+
+```csound
+schedule("Add", 0, 2, 440) 
+schedule("Add", 2, 2, 550)
+schedule("Add", 4, 2, 660)
+schedule("Add", 6, 2, 880)
+```
+
+Here's I've changed each `schedule()` call to use start times of 0, 2, 4, and 6. If we evaluate the whole block of code, we will get a sequence of notes over time.  Again, we have a one-to-many action producing multiple tones, but now we're starting to extend our thinking process from working with text like and instrument to thinking about musical gestures in time. 
+
+One thing to notice is unlike the step before, the code no longer lends itself to playing notes individually.  If we try to evaluate just the last two notes, it will schedule the first note at 4 seconds from now and the second note 6 seconds from now.  This is to say that the code we wrote has started to have a relationship to each other and needs to be used as a whole rather than as parts. (There are ways to get around this taking different data-based approaches which is beyond the scope of this tutorial.)
+
+Now that we're working with a set of code that is starting to function as a single gesture, let's package our code in a way that expresses that intention using an instrument:  
+
+```csound
+instr Arpeggio 
+  schedule("Add", 0, 2, 440) 
+  schedule("Add", 2, 2, 550)
+  schedule("Add", 4, 2, 660)
+  schedule("Add", 6, 2, 880)
+endin
+
+schedule("Arpeggio", 0, 0)
+```
+
+Try evaluating the Arpeggio instrument and then the `schedule` line.  You should now here the arpeggio gesture run any time you run the one Arpeggio instrument. Also try evaluating the Arpeggio schedule line multiple times while other ones are running to hear the gesture running against itself. 
+
+One interesting part here is that we are using a duration of 0 for the `schedule()` line.  The reason we do this here is that our Arpeggio instrument is made up of code that only runs at initialization time.  However, instruments will typically always run for the given duration when creating an instance of the instrument.  If we don't use the duration of 0, the instrument will run at performance time (like our sounding Add instrument) but it won't really do anything since there is no performance-time code.  Using the 0 duration gives us then two benefits: it ensures we don't waste any computational cycles running an effectively empty instrument at performance time and it also makes it easy to see in our code when we are calling instruments designed to just run at init-time.   
+
 
 ## Full Example
 
