@@ -830,7 +830,10 @@ endin
 /** Evaluate code at a given time */
 opcode eval_at_time, 0, Si 
   Scode, istart xin
-  schedule("CodeEval", istart, 0, Scode)
+  iblock init ksmps / sr
+  ;; adjust one block of time difference since this is
+  ;; will need to be added as an event back on to the scheduler
+  schedule("CodeEval", max:i(0, istart - iblock), 0, Scode)
 endop
 
 
