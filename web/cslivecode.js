@@ -79,15 +79,17 @@ const flash = function(txt, color) {
 
 function evalCode() {
     let selectedText = getEvalText();
-    flash(selectedText, "CodeMirror-highlight");
     cs.compileOrc(selectedText.text);
+    flash(selectedText, "CodeMirror-highlight");
 }
 
 function evalCodeAtMeasure() {
     let selectedText = getEvalText();
-    flash(selectedText, "CodeMirror-highlight-delayed");
-    let code = `eval_at_time({{${selectedText.text}}}, next_measure())`;
+    // adding fudge of ticks(0.5) to ensure evaluated code is compiled before
+    // next measure tick
+    let code = `eval_at_time({{${selectedText.text}}}, next_measure() - ticks(0.5))`;
     cs.compileOrc(code);
+    flash(selectedText, "CodeMirror-highlight-delayed");
 }
 
 function restart() {
