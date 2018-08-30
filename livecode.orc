@@ -1130,6 +1130,12 @@ instr Wobble
 
 endin
 
+/** Simple Sinewave instrument with exponential envelope */
+instr Sine
+  asig = oscili(expon:a(p5, p3, 0.001), p4)
+  out(asig, asig)
+endin
+
 ;; MONOPHONIC SYNTHS
 
 /** Monophone synth using sawtooth wave and 4pole lpf. Use "start("Mono") to run the monosynth, then use MonoNote instrument to play the instrument. */

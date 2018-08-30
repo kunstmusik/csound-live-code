@@ -92,6 +92,7 @@
 |  FM1 | 
 |  Noi | 
 |  Wobble | 
+|  Sine | 
 |  Mono | 
 |  MonoNote | 
 |  Clap | 
