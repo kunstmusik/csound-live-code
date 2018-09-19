@@ -883,6 +883,14 @@ opcode fade_out, i, ii
   xout iret 
 endop
 
+/** Read value from fade channel. Useful if copy/pasting then wanting to just read from fade and control in the original code. */
+opcode fade_read, i, i
+  ident xin
+  Schan = sprintf("fade_chan_%d", ident)
+  iret = chnget:i(Schan)
+  xout iret 
+endop
+
 /**  Set value for fade channel to given value. Should be in range 0-1.0.  (Typically one sets to either 0 or 1.) */
 opcode set_fade, 0,ii
   ident, ival xin
