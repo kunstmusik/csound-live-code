@@ -70,6 +70,7 @@
 |  | **set\_fade\_range** | irange  |
 | ival | **fade\_in** | ident, inumticks  |
 | ival | **fade\_out** | ident, inumticks  |
+| ival | **fade\_read** | ident  |
 |  | **set\_fade** | ident, ival  |
 |  | **sbus\_write** | ibus, al, ar  |
 |  | **sbus\_mix** | ibus, al, ar  |
@@ -86,6 +87,7 @@
 |  Sub5 | 
 |  SynBrass | 
 |  SSaw | 
+|  Mode1 | 
 |  Plk | 
 |  Bass | 
 |  VoxHumana | 

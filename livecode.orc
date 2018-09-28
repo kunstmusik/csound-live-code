@@ -1032,6 +1032,18 @@ instr SSaw
   outc(aL,aR)             
 endin
 
+/** Modal Synthesis Instrument: Percussive/organ-y sound */
+instr Mode1
+  asig = mpulse(p5, 0)
+
+  asig1 = mode(asig, p4, p4 * 0.5)
+  asig1 += mode(asig, p4 * 2, p4 * 0.25)
+  asig1 += mode(asig, p4 * 4, p4 * 0.125)
+
+  asig = declick(asig1) 
+
+  out(asig, asig)
+endin
 
 /** Plucky sound */
 instr Plk 

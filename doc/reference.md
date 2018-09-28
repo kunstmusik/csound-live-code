@@ -457,6 +457,12 @@ Given a fade channel identifier (number) and number of ticks to fade over time, 
 
 ---
 
+ival = **fade\_read**(ident)
+
+Read value from fade channel. Useful if copy/pasting then wanting to just read from fade and control in the original code. 
+
+---
+
 **set\_fade**(ident, ival)
 
  Set value for fade channel to given value. Should be in range 0-1.0.  (Typically one sets to either 0 or 1.) 
@@ -498,6 +504,7 @@ Read audio signals from bus channel
 |  Sub5 | Subtractive Synth, detuned square/triangle  | 
 |  SynBrass | SynthBrass subtractive synth  | 
 |  SSaw | SuperSaw sound using 9 bandlimited saws (3 sets of detuned saws at octaves) | 
+|  Mode1 | Modal Synthesis Instrument: Percussive/organ-y sound  | 
 |  Plk | Plucky sound  | 
 |  Bass | 303-style Bass sound  | 
 |  VoxHumana | VoxHumana Patch  | 
