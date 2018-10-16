@@ -57,7 +57,7 @@ if(typeof AudioWorkletNode !== 'undefined' &&
 
 
 const csound_load_script = function(src, callback) {
-    var script = document.createElement('script');
+    var script = document.createElementNS("http://www.w3.org/1999/xhtml", "script");
     script.src = src;
     script.onload = callback;
     document.head.appendChild(script);
@@ -287,7 +287,7 @@ class CsoundObj {
         let that = this;
 
         if (navigator.getUserMedia === null) {
-            //Module['print']("Audio Input not supported in this browser");
+            console.log("Audio Input not supported in this browser");
             audioInputCallback(false);
         } else {
             let onSuccess = function(stream) {
@@ -297,8 +297,8 @@ class CsoundObj {
 
             let onFailure = function(error) {
                 that.microphoneNode = null;
+                console.log("Could not initialise audio input, error:" + error);
                 audioInputCallback(false);
-                //Module['print']("Could not initialise audio input, error:" + error);
             };
             navigator.getUserMedia({
                 audio: true, 
@@ -308,10 +308,8 @@ class CsoundObj {
     }
 
     enableMidiInput(midiInputCallback) {
-        const that = this;
-        const handleMidiInput = function(event) {
-            that.midiMessage(event.data[0], event.data[1], event.data[2]);
-            //console.log("midievent: " + event.data[0] + ", " + event.data[1] + ", " + event.data[2]);
+        const handleMidiInput = (evt) => {
+            this.midiMessage(evt.data[0], evt.data[1], evt.data[2]);
         };
         const midiSuccess = function(midiInterface) {
 
@@ -327,8 +325,7 @@ class CsoundObj {
         };
 
         const midiFail = function(error) {
-
-            Module['print']("MIDI failed to start, error:" + error);
+            console.log("MIDI failed to start, error:" + error);
             if (midiInputCallback) {
                 midiInputCallback(false);
             }
@@ -338,7 +335,7 @@ class CsoundObj {
         if (navigator.requestMIDIAccess) {
             navigator.requestMIDIAccess().then(midiSuccess, midiFail);
         } else {
-            Module['print']("MIDI not supported in this browser");
+            console.log("MIDI not supported in this browser");
             if (midiInputCallback) {
                 midiInputCallback(false);
             }
