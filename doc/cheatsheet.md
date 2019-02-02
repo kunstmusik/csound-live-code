@@ -90,6 +90,7 @@
 |  Mode1 | 
 |  Plk | 
 |  Bass | 
+|  ms20_bass | 
 |  VoxHumana | 
 |  FM1 | 
 |  Noi | 

@@ -507,6 +507,7 @@ Read audio signals from bus channel
 |  Mode1 | Modal Synthesis Instrument: Percussive/organ-y sound  | 
 |  Plk | Plucky sound  | 
 |  Bass | 303-style Bass sound  | 
+|  ms20_bass | MS20-style Bass Sound  | 
 |  VoxHumana | VoxHumana Patch  | 
 |  FM1 | FM 3:1 C:M ratio, 2->0.025 index, nice for bass  | 
 |  Noi | Filtered noise, exponential envelope  | 
