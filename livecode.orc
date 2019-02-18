@@ -1076,6 +1076,22 @@ instr Bass
 
 endin
 
+/** MS20-style Bass Sound */
+
+instr ms20_bass 
+  ipch = p4 
+  iamp = p5 
+  aenv = expseg(1000, 0.1, ipch * 2, p3 - .05, ipch * 2)
+
+  asig = vco2(1.0, ipch)
+  asig = K35_hpf(asig, ipch, 5, 0, 1)
+  asig = K35_lpf(asig, aenv, 8, 0, 1)
+
+  asig *= expon:a(iamp, p3, 0.0001) 
+
+  outc(asig, asig)
+endin
+
 
 /** VoxHumana Patch */
 
