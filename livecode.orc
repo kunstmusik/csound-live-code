@@ -826,6 +826,15 @@ opcode start, 0,S
   endif
 endop
 
+/** Stops a running named instrument, allowing for release segments to operate. */
+opcode stop, 0,S
+  Sinstr xin
+
+  if (nstrnum(Sinstr) > 0) then
+    schedule(-nstrnum(Sinstr), 0, 0)
+  endif
+endop
+
 instr CodeEval
   Scode = p4
   ires = compilestr(Scode)

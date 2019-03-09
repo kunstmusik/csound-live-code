@@ -433,6 +433,12 @@ when livecoding always-on audio and control signal process instruments.
 
 ---
 
+**stop**(Sinstr)
+
+Stops a running named instrument, allowing for release segments to operate. 
+
+---
+
 **eval\_at\_time**(Scode, istart)
 
 Evaluate code at a given time 

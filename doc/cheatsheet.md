@@ -66,6 +66,7 @@
 |  | **kill** | Sinstr  |
 |  | **clear\_instr** | Sinstr  |
 |  | **start** | Sinstr  |
+|  | **stop** | Sinstr  |
 |  | **eval\_at\_time** | Scode, istart  |
 |  | **set\_fade\_range** | irange  |
 | ival | **fade\_in** | ident, inumticks  |
