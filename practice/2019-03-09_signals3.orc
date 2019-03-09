@@ -96,10 +96,7 @@ instr S5
   
   asig = zdf_ladder(asig, phasor(1/8) * 8000 + 20, 5)
   
-  al, ar pan2 asig, 0.1
-  
-  sbus_mix(0, al, ar)
-  sbus_mix(1, al * irvb, ar * irvb)
+  sbus_mix(0, asig, asig)
   
 endin
 start("S5")
