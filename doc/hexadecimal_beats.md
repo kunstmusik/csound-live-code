@@ -2,6 +2,8 @@
 
 Hexadecimal Beats is a system for using Hexadecimal notation (base 16) for notating rhythmic onsets. It allows for notating a set of four sixteenth notes using a single character. The system matches up well with drum programming and modular sequencer programming practices and is useful for drum and melodic line programming for synchronized music. 
 
+NOTE: I had developed and worked with this system for a couple of years before coming across prior work by Bernhard Wagner in [http://bernhardwagner.net/musings/RPABN.html](Rhythmic Patterns As Binary Numbers). The article by Wagner discusses the use for notation and gives examples performed by instrumentalists as well as bit shifting and complementation operations. 
+
 ## Hexadecimal (Base 16), Binary (Base 2), and Base 10
 
 A Hexadecimal digit is written using the numbers 0-9 and letters a-f. Each digit maps to one of the base 10 numbers between 0 and 15. A single hexadecimal digit is equivalent to a four-digit base 2 number (i.e., 4 bits). If the 1's and 0's of base 2 are interpreted as note hits and silences, a single hexadecimal digit can represent one beat of material made up of four sixteenth notes.  
