@@ -96,6 +96,7 @@ function restart() {
     cs.reset();
     cs.setOption("-m0");
     cs.setOption("-odac");
+    cs.setOption("-+msg_color=false");
     cs.compileOrc(
         "ksmps=32\n0dbfs=1\nnchnls=2\nnchnls_i=1\n" + 
         livecodeOrc);
