@@ -947,6 +947,41 @@ opcode sbus_read, aa, i
   xout al, ar
 endop
 
+;; MIXER
+
+/** Always-on Mixer instrument with Reverb send channel. Use start("ReverbMixer") to run. Designed 
+    for use with pan_verb_mix to simplify signal-based live coding. */
+instr ReverbMixer
+  ;; dry and reverb send signals
+  a1, a2 sbus_read 0
+  a3, a4 sbus_read 1
+  
+  al, ar reverbsc a3, a4, xchan:k("Reverb.fb", 0.7), xchan:k("Reverb.cut", 12000)
+  
+  kamp = xchan:k("Mix.amp", 1.0)
+  
+  a1 = tanh(a1 + al) * kamp
+  a2 = tanh(a2 + ar) * kamp
+  
+  out(a1, a2)
+  
+  sbus_clear(0)
+  sbus_clear(1)
+endin
+
+/** Utility opcode to pan signal, send dry to mixer, and send amount 
+    of signal to reverb */
+opcode pan_verb_mix, 0,akk
+  asig, kpan, krvb xin
+   ;; Panning and send to mixer
+  al, ar pan2 asig, kpan
+  
+  sbus_mix(0, al, ar)
+  sbus_mix(1, al * krvb, ar * krvb)
+endop
+
+
+
 ;; SYNTHS
 
 /** Substractive Synth, 3osc */
