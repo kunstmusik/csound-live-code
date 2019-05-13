@@ -1,3 +1,7 @@
+;; Author: Steven Yi
+;; Title: Rhythmic2
+;; 2019-05-13
+
 start("ReverbMixer")
 
 instr P1
