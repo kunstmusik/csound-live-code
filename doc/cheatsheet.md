@@ -77,15 +77,20 @@
 |  | **sbus\_mix** | ibus, al, ar  |
 |  | **sbus\_clear** | ibus  |
 | aaval | **sbus\_read** | ibus  |
+|  | **pan\_verb\_mix** | asig, kpan, krvb  |
+| aval | **saturate** | asig, ksat  |
 ## Instruments
 
 |Instrument Name | 
 | ---- | 
+|  ReverbMixer | 
 |  Sub1 | 
 |  Sub2 | 
 |  Sub3 | 
 |  Sub4 | 
 |  Sub5 | 
+|  Sub6 | 
+|  Sub7 | 
 |  SynBrass | 
 |  SSaw | 
 |  Mode1 | 

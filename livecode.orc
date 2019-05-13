@@ -949,9 +949,14 @@ endop
 
 ;; MIXER
 
+gi_reverb_mixer_on init 0
+
 /** Always-on Mixer instrument with Reverb send channel. Use start("ReverbMixer") to run. Designed 
     for use with pan_verb_mix to simplify signal-based live coding. */
 instr ReverbMixer
+
+  gi_reverb_mixer_on init 1
+
   ;; dry and reverb send signals
   a1, a2 sbus_read 0
   a3, a4 sbus_read 1
@@ -970,17 +975,28 @@ instr ReverbMixer
 endin
 
 /** Utility opcode to pan signal, send dry to mixer, and send amount 
-    of signal to reverb */
+    of signal to reverb. If ReverbMixer is not on, will output just 
+    panned signal using out opcode. */
 opcode pan_verb_mix, 0,akk
   asig, kpan, krvb xin
    ;; Panning and send to mixer
   al, ar pan2 asig, kpan
-  
-  sbus_mix(0, al, ar)
-  sbus_mix(1, al * krvb, ar * krvb)
+ 
+  if(gi_reverb_mixer_on == 1) then
+    sbus_mix(0, al, ar)
+    sbus_mix(1, al * krvb, ar * krvb)
+  else 
+    outc(al, ar)
+  endif
 endop
 
+;; DSP
 
+/** Saturation using tanh */
+opcode saturate, a, ak
+  asig, ksat xin
+  xout tanh(asig * ksat) / tanh(ksat)
+endop
 
 ;; SYNTHS
 
@@ -997,7 +1013,7 @@ endin
 
 /** Subtractive Synth, two saws, fifth freq apart */
 instr Sub2
-  icut = xchan("Sub2.cut", sr / 3)
+  icut = xchan:i("Sub2.cut", sr / 3)
   asig = vco2(ampdbfs(-12), p4) 
   asig += vco2(ampdbfs(-12), p4 * 1.5) 
   asig = zdf_ladder(asig, expon(icut, p3, 400), 5)
@@ -1039,6 +1055,38 @@ instr Sub5
   asig = zdf_ladder(asig, expseg(10000, 0.1, 500, 0.1, 500), 2)
   asig = declick(asig) * p5 * 0.75
   outc(asig, asig)
+endin
+
+/** Subtractive Synth, saw, K35 filters */
+instr Sub6
+  asig = vco2(p5, p4)
+;   asig += vco2(p5, p4 * 2, 4, 0.5)
+
+  asig = K35_hpf(asig, p4, 1)
+  asig = K35_lpf(asig, expseg:k(12000, p3, p4 * 8), 2.5)
+  
+  asig = saturate(asig, 4.5)
+  asig *= p5 * 0.5
+  
+  asig = declick(asig)
+  
+  pan_verb_mix(asig, xchan:i("Sub6.pan", 0.5), xchan:i("Sub6.rvb", 0.1))
+endin
+
+/** Subtractive Synth, saw + tri, K35 filters */
+instr Sub7
+  asig = vco2(p5, p4)
+  asig += vco2(p5, p4 * 2, 4, 0.5)
+
+  asig = K35_hpf(asig, p4, 1)
+  asig = K35_lpf(asig, expseg:k(12000, p3, p4 * 8), 2.5)
+  
+  asig = saturate(asig, 4.5)
+  asig *= p5 * 0.5
+  
+  asig = declick(asig)
+  
+  pan_verb_mix(asig, xchan:i("Sub7.pan", 0.5), xchan:i("Sub7.rvb", 0.1))
 endin
 
 /** SynthBrass subtractive synth */ 

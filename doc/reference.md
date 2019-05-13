@@ -499,15 +499,32 @@ Read audio signals from bus channel
 
 ---
 
+**pan\_verb\_mix**(asig, kpan, krvb)
+
+Utility opcode to pan signal, send dry to mixer, and send amount
+of signal to reverb. If ReverbMixer is not on, will output just
+panned signal using out opcode. 
+
+---
+
+aval = **saturate**(asig, ksat)
+
+Saturation using tanh 
+
+---
+
 ## Instruments
 
 |Instrument Name | Description |
 | ---- | ---- | 
+|  ReverbMixer | Always-on Mixer instrument with Reverb send channel. Use start("ReverbMixer") to run. Designed for use with pan\_verb\_mix to simplify signal-based live coding.  | 
 |  Sub1 | Substractive Synth, 3osc  | 
 |  Sub2 | Subtractive Synth, two saws, fifth freq apart  | 
 |  Sub3 | Subtractive Synth, three detuned saws, swells in  | 
 |  Sub4 | Subtractive Synth, detuned square/saw, stabby. Nice as a lead in octave 2, nicely grungy in octave -2, -1  | 
 |  Sub5 | Subtractive Synth, detuned square/triangle  | 
+|  Sub6 | Subtractive Synth, saw, K35 filters  | 
+|  Sub7 | Subtractive Synth, saw + tri, K35 filters  | 
 |  SynBrass | SynthBrass subtractive synth  | 
 |  SSaw | SuperSaw sound using 9 bandlimited saws (3 sets of detuned saws at octaves) | 
 |  Mode1 | Modal Synthesis Instrument: Percussive/organ-y sound  | 
