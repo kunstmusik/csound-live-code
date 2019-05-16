@@ -1082,7 +1082,7 @@ instr Sub7
   asig = K35_lpf(asig, expseg:k(12000, p3, p4 * 8), 2.5)
   
   asig = saturate(asig, 4.5)
-  asig *= p5 * 0.5
+  asig *= p5 * 0.3
   
   asig = declick(asig)
   
