@@ -1007,7 +1007,7 @@ instr Sub1
   asig += vco2(ampdbfs(-12), p4 * 2, 10)
   asig = zdf_ladder(asig, expon(10000, p3, 400), 5)
   asig = declick(asig) * p5
-  outc(asig, asig)
+  pan_verb_mix(asig, xchan:i("Sub1.pan", 0.5), xchan:i("Sub1.rvb", 0.1))
 endin
 
 
@@ -1018,7 +1018,7 @@ instr Sub2
   asig += vco2(ampdbfs(-12), p4 * 1.5) 
   asig = zdf_ladder(asig, expon(icut, p3, 400), 5)
   asig = declick(asig) * p5
-  outc(asig, asig)
+  pan_verb_mix(asig, xchan:i("Sub2.pan", 0.5), xchan:i("Sub2.rvb", 0.1))
 endin
 
 
@@ -1030,7 +1030,7 @@ instr Sub3
   asig *= 0.33 
   asig = zdf_ladder(asig, expon(100, p3, 22000), 12) 
   asig = declick(asig)
-  outc(asig, asig)
+  pan_verb_mix(asig, xchan:i("Sub3.pan", 0.5), xchan:i("Sub3.rvb", 0.1))
 endin
 
 /** Subtractive Synth, detuned square/saw, stabby. 
@@ -1044,7 +1044,7 @@ instr Sub4
   itarget = p4 * 2
   asig = zdf_ladder(asig, expseg(20000, 0.15, itarget, 0.1, itarget), 5)
   asig = declick(asig) * p5 * 0.15
-  outc(asig, asig)
+  pan_verb_mix(asig, xchan:i("Sub4.pan", 0.5), xchan:i("Sub4.rvb", 0.1))
 endin
 
 
@@ -1054,13 +1054,12 @@ instr Sub5
   asig += vco2(0.25, p4 * 2.0001, 12)
   asig = zdf_ladder(asig, expseg(10000, 0.1, 500, 0.1, 500), 2)
   asig = declick(asig) * p5 * 0.75
-  outc(asig, asig)
+  pan_verb_mix(asig, xchan:i("Sub5.pan", 0.5), xchan:i("Sub5.rvb", 0.1))
 endin
 
 /** Subtractive Synth, saw, K35 filters */
 instr Sub6
   asig = vco2(p5, p4)
-;   asig += vco2(p5, p4 * 2, 4, 0.5)
 
   asig = K35_hpf(asig, p4, 1)
   asig = K35_lpf(asig, expseg:k(12000, p3, p4 * 8), 2.5)
@@ -1092,15 +1091,13 @@ endin
 /** SynthBrass subtractive synth */ 
 instr SynBrass
   ipch = p4
-  ipan = xchan("SynBrass.pan", 0.5)
 
   asig = vco2(0.25, ipch)
   asig += vco2(0.25, ipch * 2.00)
   asig = zdf_ladder(asig, expseg(12000, 0.25, 500, 0.05, 500), 4)
   asig = declick(asig * p5)
 
-  aL,aR pan2  asig,ipan             
-  outc(aL,aR)             
+  pan_verb_mix(asig, xchan:i("SynBrass.pan", 0.5), xchan:i("SynBrass.rvb", 0.1))
 endin
 
 /** SuperSaw sound using 9 bandlimited saws (3 sets of detuned saws at octaves)*/
@@ -1121,11 +1118,8 @@ instr SSaw
   asig = zdf_ladder(asig, expseg(16000, p3 - 0.05, 16000, 0.05, 200), 0.5)
   asig *= p5 
   asig = declick(asig)
-  
-  ipan = xchan("SSaw.pan", 0.5)
-  aL,aR pan2  asig,ipan             
 
-  outc(aL,aR)             
+  pan_verb_mix(asig, xchan:i("SSaw.pan", 0.5), xchan:i("SSaw.rvb", 0.1))
 endin
 
 /** Modal Synthesis Instrument: Percussive/organ-y sound */
@@ -1138,7 +1132,7 @@ instr Mode1
 
   asig = declick(asig1) 
 
-  out(asig, asig)
+  pan_verb_mix(asig, xchan:i("Mode1.pan", 0.5), xchan:i("Mode1.rvb", 0.1))
 endin
 
 /** Plucky sound */
@@ -1150,7 +1144,7 @@ instr Plk
   asig = zdf_ladder(asig, expon(8000, 0.12, p4 * 2), 1)
   asig = declick(asig) * p5 * 5
 
-  outc(asig, asig)
+  pan_verb_mix(asig, xchan:i("Plk.pan", 0.5), xchan:i("Plk.rvb", 0.1))
 endin
 
 /** 303-style Bass sound */
@@ -1164,7 +1158,7 @@ instr Bass
   asig = declick(asig) 
 
 
-  outc(asig, asig)
+  pan_verb_mix(asig, xchan:i("Bass.pan", 0.5), xchan:i("Bass.rvb", 0.1))
 
 endin
 
@@ -1181,7 +1175,7 @@ instr ms20_bass
 
   asig *= expon:a(iamp, p3, 0.0001) 
 
-  outc(asig, asig)
+  pan_verb_mix(asig, xchan:i("ms20_bass.pan", 0.5), xchan:i("ms20_bass.rvb", 0.1))
 endin
 
 
@@ -1205,7 +1199,7 @@ instr VoxHumana
 
   aout = butterlp(aout, 1986 * ikeyfollow)
 
-  outc(aout, aout)
+  pan_verb_mix(aout, xchan:i("VoxHumana.pan", 0.5), xchan:i("VoxHumana.rvb", 0.1))
 endin
 
 /** FM 3:1 C:M ratio, 2->0.025 index, nice for bass */
@@ -1214,7 +1208,7 @@ instr FM1
   imod = xchan("FM1.mod", 3)
   asig = foscili(p5, p4, icar, imod, expon(2, 0.2, 0.025))
   asig = declick(asig) * 0.5
-  outc(asig, asig)
+  pan_verb_mix(asig, xchan:i("FM1.pan", 0.5), xchan:i("FM1.rvb", 0.1))
 endin
 
 /** Filtered noise, exponential envelope */
@@ -1231,7 +1225,7 @@ instr Noi
 
   asig = declick(asig) * 0.25
 
-  outc(asig, asig)
+  pan_verb_mix(asig, xchan:i("Noi.pan", 0.5), xchan:i("Noi.rvb", 0.1))
 endin
 
 
@@ -1258,14 +1252,14 @@ instr Wobble
   asig = zdf_ladder(asig, min:k(p4 + (imod * klfo), 22000), 12) 
   asig *= expon(1, beats(16), 0.001)
   asig = declick(asig)
-  outc(asig, asig)
+  pan_verb_mix(asig, xchan:i("Wobble.pan", 0.5), xchan:i("Wobble.rvb", 0.1))
 
 endin
 
 /** Simple Sinewave instrument with exponential envelope */
 instr Sine
   asig = oscili(expon:a(p5, p3, 0.001), p4)
-  out(asig, asig)
+  pan_verb_mix(asig, xchan:i("Sine.pan", 0.5), xchan:i("Sine.rvb", 0.1))
 endin
 
 ;; MONOPHONIC SYNTHS
@@ -1278,7 +1272,7 @@ instr Mono
   kpan = xchan:k("Mono.pan", 0.5)
   aL,aR pan2  asig,kpan             
 
-  out(aL, aR)
+  pan_verb_mix(asig, xchan:k("Mono.pan", 0.5), xchan:k("Mono.rvb", 0.1))
 endin
 maxalloc("Mono", 1)
 
