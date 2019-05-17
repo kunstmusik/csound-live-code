@@ -528,7 +528,7 @@ Saturation using tanh
 |  SynBrass | SynthBrass subtractive synth  | 
 |  SSaw | SuperSaw sound using 9 bandlimited saws (3 sets of detuned saws at octaves) | 
 |  Mode1 | Modal Synthesis Instrument: Percussive/organ-y sound  | 
-|  Plk | Plucky sound  | 
+|  Plk | Pluck sound using impulses, noise, and waveguides | 
 |  Bass | 303-style Bass sound  | 
 |  ms20_bass | MS20-style Bass Sound  | 
 |  VoxHumana | VoxHumana Patch  | 

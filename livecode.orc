@@ -1135,15 +1135,20 @@ instr Mode1
   pan_verb_mix(asig, xchan:i("Mode1.pan", 0.5), xchan:i("Mode1.rvb", 0.1))
 endin
 
-/** Plucky sound */
+/** Pluck sound using impulses, noise, and waveguides*/
 instr Plk 
-  asig = rand:a(1.0) * expon(0.25, 0.1, 0.001)
-  asig = zdf_ladder(asig, 2500, 15)
-  asig = comb(asig, 2, 1 / p4) 
-  asig += vco2(0.25, p4) * expon(0.5, 0.2, 0.001)
-  asig = zdf_ladder(asig, expon(8000, 0.12, p4 * 2), 1)
-  asig = declick(asig) * p5 * 5
+  asig = mpulse(p5, 1 / p4)
+  asig += random:a(-0.1, 0.1) * expseg(p5, 0.02, 0.001, p3, 0.001)
+  
+  aout wguide1 asig, 1/ p4, 10000, 0.8
+  aout += wguide1(asig, 1/ (2 * p4), 12000, 0.6)
 
+  aout = K35_hpf(aout, p4, 0.5)
+  aout = zdf_ladder(aout, expon(10000, p3, 100), 3)
+  aout = dcblock2(aout)
+  
+  asig = declick(aout) 
+  
   pan_verb_mix(asig, xchan:i("Plk.pan", 0.5), xchan:i("Plk.rvb", 0.1))
 endin
 
