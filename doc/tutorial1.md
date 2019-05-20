@@ -120,7 +120,7 @@ match in both the expected number of arguments that are defined for the opcode
 as well as the data types for each argument. The number and types of arguments
 are defined by the opcode and the way we learn about them is by looking up the
 documentation. (For example, see the reference manual entry for the
-[schedule](https://csound.com/docs/html/schedule.html).) 
+[schedule](https://csound.com/docs/manual/schedule.html).) 
 
 In this case, the schedule opcode actually requires three arguments but also
 permits giving an open-ended amount of additional arguments. This allows us to
