@@ -114,7 +114,7 @@ instr Add
 endin
 ```
 
-Nous avons ajouté ici un oscillateur `oscili` supplémentaire, fonctionnant à deux fois la fréquence p4. Nous avons ensuite ajouté les deux signaux ensemble que nous avons affecté à la variable asum, puis utilisé cette valeur comme sortie. Essayez d’évaluer l’appel `schedule ()` maintenant pour entendre le nouveau son.
+Nous avons ajouté ici un oscillateur `oscili` supplémentaire, fonctionnant à deux fois la fréquence p4. Nous avons ensuite ajouté les deux signaux ensemble que nous avons affecté à la variable asum, puis utilisé cette valeur comme sortie. Essayez d’évaluer l’appel `schedule()` maintenant pour entendre le nouveau son.
 
 Une chose que nous pouvons faire à présent est d’utiliser une opération d’affectation légèrement différente pour raccourcir un peu le code:
 
@@ -146,7 +146,7 @@ endin
 
 Le changement clé consistait à ajouter une ligne, `asig *= expon (1, p3, 0.001)`. Cette ligne utilise l'affectation `*=` qui fonctionne comme le `+=` mais multiplie la valeur du côté gauche (c’est-à-dire, code à gauche de l’opérateur d’affectation) par les résultats du code à droite. Cette ligne est équivalente à `asig = asig * expon (1, p3, 0.001)`.
 
-`expon` est un opcode Csound classique prenant 3 valeurs: une valeur de début, une durée et une valeur de fin. L'opcode génère une courbe exponentielle allant de la valeur initiale à la valeur finale sur la durée donnée. (Ici, nous utilisons p3, la durée de l'instance d'instrument donnée lors de l'appel de `schedule ()`.) Les enveloppes exponentielles ne peuvent pas être calculées à zéro. Nous utilisons donc 0,001 comme cible.
+`expon` est un opcode Csound classique prenant 3 valeurs: une valeur de début, une durée et une valeur de fin. L'opcode génère une courbe exponentielle allant de la valeur initiale à la valeur finale sur la durée donnée. (Ici, nous utilisons p3, la durée de l'instance d'instrument donnée lors de l'appel de `schedule()`.) Les enveloppes exponentielles ne peuvent pas être calculées à zéro. Nous utilisons donc 0,001 comme cible.
 
 Le son commence à avoir de la vie. Nous pourrions également façonner le son de différentes manières en modifiant les valeurs d'amplitude des oscillateurs pour obtenir un mixage différent, en introduisant des générateurs d'enveloppe tels que `expon` ou `line` pour remplacer les valeurs statiques (chaque oscillateur pourrait avoir une enveloppe différente), en modifiant la fréquence temps, et ainsi de suite. Il est assez naturel dans Csound (et en réalité, dans n'importe quel système de synthèse) de commencer simplement avec des valeurs statiques, puis d'ajouter et de modifier de façon itérative notre code pour façonner et définir plus précisément le son jusqu'à obtenir le résultat souhaité.
 
@@ -155,7 +155,7 @@ Pour l'instant, mettons le design sonore de côté et voyons comment nous jouons
 
 ## La palette des évènements
 
-Jusqu'à présent, nous utilisions un seul appel d'`opcode schedule ()` pour jouer exactement une instance de notre instrument. Cela conduit à un mappage individuel de la ligne de code au son généré et constitue un point de départ important. Même avec cela seul, nous pourrions nous asseoir et coder et jouer de la musique. Cependant, si nous ne faisions que modifier la ligne de code et la réévaluer pour obtenir des notes différentes à des moments différents, cela peut être un peu lent et limiter probablement le type de musique que nous vivons.
+Jusqu'à présent, nous utilisions un seul appel d'`opcode schedule()` pour jouer exactement une instance de notre instrument. Cela conduit à un mappage individuel de la ligne de code au son généré et constitue un point de départ important. Même avec cela seul, nous pourrions nous asseoir et coder et jouer de la musique. Cependant, si nous ne faisions que modifier la ligne de code et la réévaluer pour obtenir des notes différentes à des moments différents, cela peut être un peu lent et limiter probablement le type de musique que nous vivons.
 
 Une étape naturelle consiste à avoir plusieurs lignes de code pré-écrites que nous pourrions ensuite sélectionner et évaluer. Pensez-y comme si vous avez un clavier de piano devant vous: vous avez plusieurs touches qui produisent différentes notes sur le même instrument et vous sélectionnez et appuyez sur une touche pour obtenir un son différent. Cependant, dans notre cas, au lieu des clés physiques, nous aurons différentes lignes de code que nous pouvons sélectionner et évaluer. Essayez d'entrer le code suivant:
 
@@ -202,7 +202,7 @@ schedule("Arpeggio", 0, 0)
 
 Essayez d’évaluer l’arpège puis le `schedule` final. Vous devriez maintenant entendre l'arpège exécuté chaque fois que vous utilisez l'un des instruments. Essayez également d’évaluer la ligne de planification des arpèges à plusieurs reprises sans attendre que les précédentes soient achevées, vous entendrez l'arpège s'enrouler sur lui-même. 
 
-Une notion intéressante ici est que nous utilisons une durée de 0 pour la ligne `schedule ()`. La raison pour laquelle nous faisons cela ici est que notre instrument Arpeggio est composé de code qui ne s'exécute qu'au moment de l'initialisation. Cependant, les instruments seront généralement toujours exécutés pour la durée donnée lors de la création d'une instance de l'instrument. Si nous n'utilisons pas la durée 0, l'instrument fonctionnera au moment de l'exécution (comme notre instrument Add), mais il ne fera rien, car il n'y a pas de code performance-time. L’utilisation de la durée 0 présente donc deux avantages: elle garantit que nous ne gaspillons aucun cycle de calcul pour un instrument réellement vide au moment des performances et qu’il est également facile de voir dans notre code que nous appelons des instruments conçus pour démarrer au moment prévu
+Une notion intéressante ici est que nous utilisons une durée de 0 pour la ligne `schedule()`. La raison pour laquelle nous faisons cela ici est que notre instrument Arpeggio est composé de code qui ne s'exécute qu'au moment de l'initialisation. Cependant, les instruments seront généralement toujours exécutés pour la durée donnée lors de la création d'une instance de l'instrument. Si nous n'utilisons pas la durée 0, l'instrument fonctionnera au moment de l'exécution (comme notre instrument Add), mais il ne fera rien, car il n'y a pas de code performance-time. L’utilisation de la durée 0 présente donc deux avantages: elle garantit que nous ne gaspillons aucun cycle de calcul pour un instrument réellement vide au moment des performances et qu’il est également facile de voir dans notre code que nous appelons des instruments conçus pour démarrer au moment prévu
 
 ## Exemple complet
 
