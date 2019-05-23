@@ -6,7 +6,7 @@ Ce qui suit décrit les cycles successifs d'une session en Live Coding.
 
 Le diagramme suivant illustre le flux de traitement de base d'un moteur audio. Le diagramme montre les deux phases principales d’initialisation et d’exécution et sera expliqué plus en détail dans les sections ci-dessous.
 
-![Audio Engine Lifecycle](../images/audio_engine.png)
+![Audio Engine Lifecycle](../doc/images/audio_engine.png)
 
 ## Initialisation
 
