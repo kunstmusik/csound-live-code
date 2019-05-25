@@ -526,8 +526,25 @@ opcode xosc, i, ik[]
   xout i(kvals, indx)
 endop
 
+
+/** Non-interpolating oscillator. Given phase duration in beats, 
+returns value within the give k-array table. (shorthand for xosc(phsb(ibeats), karr) )*/
+opcode xoscb, i,ik[]
+  ibeats, kvals[] xin
+  xout xosc(phsb(ibeats), kvals)
+endop
+
+/** Non-interpolating oscillator. Given phase duration in measures, 
+returns value within the give k-array table. (shorthand for xosc(phsm(ibeats), karr) )*/
+opcode xoscm, i, ik[]
+  ibeats, kvals[] xin
+  xout xosc(phsm(ibeats), kvals)
+endop
+
+
 /** Linearly-interpolating oscillator. Given phase in range 0-1, 
-returns value intepolated within the two closest points of phase within k-array table. */
+returns value intepolated within the two closest points of phase within k-array
+table. */
 opcode xosci, i, ik[]
   iphase, kvals[]  xin
   ilen = lenarray:i(kvals)
@@ -538,6 +555,23 @@ opcode xosci, i, ik[]
   iv0 = i(kvals, ibase)  
   iv1 = i(kvals, (ibase + 1) % ilen) 
   xout iv0 + (iv1 - iv0) * ifrac
+endop
+
+
+/** Linearly-interpolating oscillator. Given phase duration in beats, 
+returns value intepolated within the two closest points of phase within k-array
+table. (shorthand for xosci(phsb(ibeats), karr) )*/
+opcode xoscib, i,ik[]
+  ibeats, kvals[] xin
+  xout xosci(phsb(ibeats), kvals)
+endop
+
+/** Linearly-interpolating oscillator. Given phase duration in measures, 
+returns value intepolated within the two closest points of phase within k-array
+table. (shorthand for xosci(phsm(ibeats), karr) )*/
+opcode xoscim, i,ik[]
+  ibeats, kvals[] xin
+  xout xosci(phsm(ibeats), kvals)
 endop
 
 /** Line (Ramp) oscillator. Given phase in range 0-1, return interpolated value between given istart and iend. */

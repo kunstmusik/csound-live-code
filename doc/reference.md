@@ -275,10 +275,41 @@ returns value within the give k-array table.
 
 ---
 
+ival = **xoscb**(ibeats, kvals[])
+
+Non-interpolating oscillator. Given phase duration in beats,
+returns value within the give k-array table. (shorthand for xosc(phsb(ibeats), karr) )
+
+---
+
+ival = **xoscm**(ibeats, kvals[])
+
+Non-interpolating oscillator. Given phase duration in measures,
+returns value within the give k-array table. (shorthand for xosc(phsm(ibeats), karr) )
+
+---
+
 ival = **xosci**(iphase, kvals[])
 
 Linearly-interpolating oscillator. Given phase in range 0-1,
-returns value intepolated within the two closest points of phase within k-array table. 
+returns value intepolated within the two closest points of phase within k-array
+table. 
+
+---
+
+ival = **xoscib**(ibeats, kvals[])
+
+Linearly-interpolating oscillator. Given phase duration in beats,
+returns value intepolated within the two closest points of phase within k-array
+table. (shorthand for xosci(phsb(ibeats), karr) )
+
+---
+
+ival = **xoscim**(ibeats, kvals[])
+
+Linearly-interpolating oscillator. Given phase duration in measures,
+returns value intepolated within the two closest points of phase within k-array
+table. (shorthand for xosci(phsm(ibeats), karr) )
 
 ---
 

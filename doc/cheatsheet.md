@@ -45,7 +45,11 @@
 | ival | **xsin** | iphase   |
 | ival | **xsin** | iphase, ioffset, irange   |
 | ival | **xosc** | iphase, kvals[]   |
+| ival | **xoscb** | ibeats, kvals[]  |
+| ival | **xoscm** | ibeats, kvals[]  |
 | ival | **xosci** | iphase, kvals[]   |
+| ival | **xoscib** | ibeats, kvals[]  |
+| ival | **xoscim** | ibeats, kvals[]  |
 | ival | **xlin** | iphase, istart, iend  |
 | Sval | **rotate** | Sval, irot  |
 | Sval | **strrep** | Sval, inum  |
