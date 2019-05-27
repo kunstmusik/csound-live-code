@@ -274,6 +274,40 @@ retourne une valeur d'interpolation entre deux points de phase compris dans la t
 
 ---
 
+ival = **xoscb**(ibeats, kvals[])
+
+Non-interpolating oscillateur. Pour une phase donnée en beats, retourne une valeur comprise dans une tabel k-array. (raccourcis pour xosc(phsb(ibeats), karr) )
+
+---
+
+ival = **xoscm**(ibeats, kvals[])
+
+Non-interpolating oscillateur. Pour une phase donnée en mesures, retourne une valeur comprise dans une table k-array. (raccourcis pour xosc(phsm(ibeats), karr) )
+
+---
+
+ival = **xosci**(iphase, kvals[])
+
+Linearly-interpolating oscillateur. Pour une phase dans une plage de 0-1,
+retourne une valeur interpolée entre deux points dasn un table k-array
+table. 
+
+---
+
+ival = **xoscib**(ibeats, kvals[])
+
+Linearly-interpolating oscillator. Given phase duration in beats,
+returns value intepolated within the two closest points of phase within k-array
+table. (shorthand for xosci(phsb(ibeats), karr) )
+
+---
+
+ival = **xoscim**(ibeats, kvals[])
+
+Linearly-interpolating oscillateur. Pour une phase donnée en mesures, retourne une valeur interpolée entre deux points dans une phase comprise dans une table k-array. (raccourcis pour xosci(phsm(ibeats), karr) )
+
+---
+
 ival = **xlin**(iphase, istart, iend)
 
 Line (Ramp) oscillateur.  Donne une phase dans un intervale 0-1, retourne la valeur d'interpolation comprise entre istart et iend. 
