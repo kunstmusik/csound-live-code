@@ -112,7 +112,7 @@ et le cinquième sont définis par l'utilisateur. Les paramètres sont:
 * p3 - durée d'exécution de l'instrument
 * p4 - fréquence en hertz
 * p5 - amplitude ajustée à la plage `0dbfs` (` 0dbfs` est un paramètre définissable par l'utilisateur
-   pour la plage d'amplitude du système. Il est communément défini comme 0-1.0, il en est ainsi pour csound-live-code)
+   pour la plage d'amplitude du système. Il est communément défini comme une plage de 0-1.0, il en est ainsi pour csound-live-code)
 
 
 Explorons maintenant les différents paramètres.

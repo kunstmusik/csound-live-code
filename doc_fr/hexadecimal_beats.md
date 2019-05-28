@@ -2,7 +2,7 @@
 
 Hexadécimal Beats est un système hexadécimal (base 16) pour la notation des patterns rythmiques. Il permet de noter un jeu de quatre seizièmes de notes (doubles croches) en utilisant un seul caractère. Le système correspond bien aux pratiques de programmation de batterie et de séquenceur modulaire et est utile pour la programmation de batterie et de lignes mélodiques pour la musique synchronisée.
 
-NOTE: J'avais développé (Steven Yi) et travaillé avec ce système pendant quelques années avant de rencontrer un travail antérieur de Bernhard Wagner dans [Patterns rythmiques en nombres binaires](http://bernhardwagner.net/musings/RPABN.html) ou Wagner discute de l'utilisation de la notation et donne des exemples interprétés par des instrumentistes, ainsi que des opérations de décalage de bits et de complémentation.
+NOTE: J'avais développé (Steven Yi) et travaillé avec ce système pendant quelques années avant de rencontrer un travail antérieur de Bernhard Wagner dans [Rythmics Patterns As Binary Numbers](http://bernhardwagner.net/musings/RPABN.html) ou Wagner discute de l'utilisation de la notation et donne des exemples interprétés par des instrumentistes, ainsi que des opérations de décalage de bits et de complémentation.
 
 ## Hexadecimal (Base 16), Binary (Base 2), et Base 10
 
