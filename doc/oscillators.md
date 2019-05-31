@@ -32,7 +32,11 @@ The following opcodes all take in a phase value and additional oscillator-specif
 | ival | **xsin** | iphase   |
 | ival | **xsin** | iphase, ioffset, irange   |
 | ival | **xosc** | iphase, kvals[]   |
+| ival | **xoscb** | iphaseDurationBeats, kvals[]   |
+| ival | **xoscm** | iphaseDurationMeasures, kvals[]   |
 | ival | **xosci** | iphase, kvals[]   |
+| ival | **xoscib** | iphaseDurationBeats, kvals[]   |
+| ival | **xoscim** | iphaseDurationMeasures, kvals[]   |
 | ival | **xlin** | iphase, istart, iend  |
 
 ### xcos
@@ -46,9 +50,13 @@ The following opcodes all take in a phase value and additional oscillator-specif
 
 `xosc` is a non-interpolating oscillator that takes in phase and an array. The non-interpolating oscillator is a powerful tool that uses the array like a wavetable and can be used to generate arpeggiation patterns, harmonic root changes, melodic lines, accent patterns, and more.
 
+`xoscb` and `xoscm` are shorthand versions of xosc that take in a phase duration in beats and measures respectively. For example, `xoscb(2, array(0,1)` is equivalent to `xosc(phsb(2), array(0,1))`.
+
 ### xosci
 
-`xosc` is an interpolating oscillator that takes in a phase and an array.  The oscillator linearly interpolates values between points.  One can generate melodic and automation curves easily with `xosc`.  
+`xosci` is an interpolating oscillator that takes in a phase and an array.  The oscillator linearly interpolates values between points.  One can generate melodic and automation curves easily with `xosc`.  
+
+`xoscib` and `xoscim` are shorthand versions of xosc that take in a phase duration in beats and measures respectively. For example, `xoscib(2, array(0,1)` is equivalent to `xosci(phsb(2), array(0,1))`.
 
 ### xlin
 
