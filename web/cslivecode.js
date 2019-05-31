@@ -148,6 +148,8 @@ let editor = CodeMirror(document.getElementById("csoundCodeEditor"),
             "Cmd-J": insertEuclidplay,
             "Ctrl-;": CodeMirror.commands.toggleComment,
             "Cmd-;": CodeMirror.commands.toggleComment,
+            "Ctrl-Alt-C": CodeMirror.commands.toggleComment,
+            "Cmd-Alt-C": CodeMirror.commands.toggleComment,
         }),
     });
 

@@ -73,5 +73,6 @@ _The following shortcuts will also work with the OSX cmd- key instead of ctrl-._
 | ctrl-h  | insert template hexplay() code |
 | ctrl-j  | insert template euclidplay() code |
 | ctrl-;  | toggle line comments |
+| ctrl-alt-c  | toggle line comments (alternate shorcut for keyboards where ctrl-; does not work) |
 
 
