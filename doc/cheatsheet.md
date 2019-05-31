@@ -99,6 +99,7 @@
 |  SSaw | 
 |  Mode1 | 
 |  Plk | 
+|  Organ2 | 
 |  Bass | 
 |  ms20_bass | 
 |  VoxHumana | 

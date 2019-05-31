@@ -1186,6 +1186,22 @@ instr Plk
   pan_verb_mix(asig, xchan:i("Plk.pan", 0.5), xchan:i("Plk.rvb", 0.1))
 endin
 
+/** Organ sound based on M1 Organ 2 patch */
+instr Organ2
+  asig = vco2(1, p4, 4, 0.25)
+  asig += vco2(0.8, p4 * 2, 12)
+  asig += vco2(0.3, p4 * 3, 10)
+     
+  icutStart = limit:i(xchan:i("Organ2.cut", 2000), 40, sr * 1/2)
+  icutEnd = limit:i(xchan:i("Organ2.cutEnd", 500), 40, sr * 1/2)
+  asig = zdf_ladder(asig, expseg(icutStart, 0.08, icutEnd, p3, icutEnd), 2)
+  
+  asig *= p5 * 0.67
+  asig = declick(asig)
+  
+  pan_verb_mix(asig, xchan:i("Organ2.pan", 0.5), xchan:i("Organ2.rvb", 0.1))
+endin
+
 /** 303-style Bass sound */
 
 instr Bass
