@@ -5,6 +5,7 @@
 start("ReverbMixer")
 
 chnset(0.4, "Plk.rvb")
+set_fade(10, 1)
 
 gicount = 0
 
