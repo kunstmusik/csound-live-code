@@ -88,6 +88,7 @@
 |Instrument Name | 
 | ---- | 
 |  ReverbMixer | 
+|  FBReverbMixer | 
 |  Sub1 | 
 |  Sub2 | 
 |  Sub3 | 

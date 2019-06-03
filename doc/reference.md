@@ -549,6 +549,7 @@ Saturation using tanh
 |Instrument Name | Description |
 | ---- | ---- | 
 |  ReverbMixer | Always-on Mixer instrument with Reverb send channel. Use start("ReverbMixer") to run. Designed for use with pan\_verb\_mix to simplify signal-based live coding.  | 
+|  FBReverbMixer | Always-on Mixer instrument with Reverb send channel and feedback delay. Use start("FBReverbMixer") to run. Designed for use with pan\_verb\_mix to simplify signal-based live coding.  | 
 |  Sub1 | Substractive Synth, 3osc  | 
 |  Sub2 | Subtractive Synth, two saws, fifth freq apart  | 
 |  Sub3 | Subtractive Synth, three detuned saws, swells in  | 

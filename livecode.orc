@@ -1008,6 +1008,44 @@ instr ReverbMixer
   sbus_clear(1)
 endin
 
+
+/** Always-on Mixer instrument with Reverb send channel and feedback delay. Use start("FBReverbMixer") to run. Designed 
+    for use with pan_verb_mix to simplify signal-based live coding. */
+instr FBReverbMixer 
+  al, ar sbus_read 0
+  
+  afb0 init 0
+  afb1 init 0
+
+  gi_reverb_mixer_on init 1
+
+  ;; dry and reverb send signals
+  a1, a2 sbus_read 0
+  a3, a4 sbus_read 1
+  
+  al, ar reverbsc a3, a4, xchan:k("Reverb.fb", 0.7), xchan:k("Reverb.cut", 12000)
+  
+  kamp = xchan:k("Mix.amp", 1.0)
+  
+  a1 = tanh(a1 + al) * kamp
+  a2 = tanh(a2 + ar) * kamp
+
+  a1 += afb0
+  a2 += afb1
+ 
+  kfb_amt = xchan:k("FB.amt", 0.9)
+  kfb_dur = xchan:k("FB.dur", 4.2) * 1000 ;; time in ms
+
+  afb0 = vdelay(a1 * kfb_amt, kfb_dur, 10000)
+  afb1 = vdelay(a2 * kfb_amt, kfb_dur, 10000)
+  
+  out(a1, a2)
+  
+  sbus_clear(0)
+  sbus_clear(1)
+
+endin
+
 /** Utility opcode to pan signal, send dry to mixer, and send amount 
     of signal to reverb. If ReverbMixer is not on, will output just 
     panned signal using out opcode. */
