@@ -1025,10 +1025,9 @@ instr FBReverbMixer
   
   al, ar reverbsc a3, a4, xchan:k("Reverb.fb", 0.7), xchan:k("Reverb.cut", 12000)
   
-  kamp = xchan:k("Mix.amp", 1.0)
   
-  a1 = tanh(a1 + al) * kamp
-  a2 = tanh(a2 + ar) * kamp
+  a1 = tanh(a1 + al) 
+  a2 = tanh(a2 + ar)
 
   a1 += afb0
   a2 += afb1
@@ -1038,6 +1037,10 @@ instr FBReverbMixer
 
   afb0 = vdelay(a1 * kfb_amt, kfb_dur, 10000)
   afb1 = vdelay(a2 * kfb_amt, kfb_dur, 10000)
+
+  kamp = xchan:k("Mix.amp", 1.0)
+  a1 *= kamp
+  a2 *= kamp
   
   out(a1, a2)
   
