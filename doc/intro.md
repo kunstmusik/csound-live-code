@@ -14,15 +14,19 @@ __Getting Started__
 
 __Concepts__
 
-* Live Coding Concepts 
+<!--* Live Coding Concepts -->
 * [Session Lifecycle](session_lifecycle.md)
 * [Basic Introduction to Csound](csound_basics.md)
 * [Central Clock, Tempo, and Time Values](time.md)
-* Utility User-defined Opcodes
-* Synthesizer Instruments
 
+__Technique__
+
+* Events and Channels
 * Temporal Recursion
 * Callback Instrument
+* Always-on Instruments
+
+__Rhythm and Pattern Generation__
 
 * [Event Time Oscillators](oscillators.md)
 * [Hexadecimal Beats](hexadecimal_beats.md)
