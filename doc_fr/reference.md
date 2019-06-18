@@ -535,7 +535,8 @@ Saturation avec tanh
 
 |Instrument Name | Description |
 | ---- | ---- | 
-|  ReverbMixer | Mixer Always-on qui envoie une Reverb au canal. Utiliser start("ReverbMixer") pour l'activation. Utilisé avec pan\_verb\_mix to simplify signal-based live coding.  | 
+|  ReverbMixer | Mixer Always-on avec une Reverb au canal. Utiliser start("ReverbMixer") pour l'activation. Utilisé avec pan\_verb\_mix to simplify signal-based live coding.  | 
+|  FBReverbMixer | Mixer Always-on avec une Reverb et un delay en feedback. Utiliser start("FBReverbMixer") pour l'activation. utilisé avec pan\_verb\_mix to simplify signal-based live coding.  | 
 |  Sub1 | Substractive Synth, 3osc  | 
 |  Sub2 | Subtractive Synth, two saws, fifth freq apart  | 
 |  Sub3 | Subtractive Synth, three detuned saws, swells in  | 
@@ -547,6 +548,7 @@ Saturation avec tanh
 |  SSaw | SuperSaw sound using 9 bandlimited saws (3 sets of detuned saws at octaves) | 
 |  Mode1 | Modal Synthesis Instrument: Percussive/organ-y sound  | 
 |  Plk | Pluck sound using impulses, noise, and waveguides | 
+|  Organ2 | Organ sound based on M1 Organ 2 patch  | 
 |  Bass | 303-style Bass sound  | 
 |  ms20_bass | MS20-style Bass Sound  | 
 |  VoxHumana | VoxHumana Patch  | 
