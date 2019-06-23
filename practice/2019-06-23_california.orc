@@ -46,7 +46,7 @@ instr P1
   hexplay("a", 
       "Sub5", p3,
       in_scale(0, (p4 >> (p4 & 0xba)) % 12),
-      fade_in(11, 128) * ampdbfs(-12) * choose(0.5))
+      fade_in(11, 128) * ampdbfs(-15) * choose(0.5))
 
   idur = int(xoscim(xoscim(5.5, array(6,8)), array(12,4,3,7,4,9,11)))
   if(p4 % idur == 0) then
