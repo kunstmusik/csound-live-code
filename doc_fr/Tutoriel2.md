@@ -19,13 +19,13 @@ endin
 schedule("Add", 0, 2)
 ```
 
-Essayez de sélectionner le code et de l’évaluer à l’aide de ctrl-enter. Si tout va bien, vous devriez entendre une tonalité sinusoïdale de 440 hertz qui dure deux secondes. Félicitations et bienvenue dans le Live Coding avec Csound!
+Sélectionnez et évaluer ce code à l’aide de ctrl-enter. Si tout va bien, vous devriez entendre une tonalité sinusoïdale de 440 hertz qui dure deux secondes. Félicitations et bienvenue dans le Live Coding avec Csound!
 
-Maintenant, il y a beaucoup de choses qui nécessitent une explication. Premièrement, nous venons tout juste d’écrire du texte dans le langage Csound Orchestra pour définir un nouveau type d’instrument, nommé "Add", et planifier l’exécution d’une instance de cet instrument dans un délai de 0 seconde pour une durée de 2 secondes. Les sous-sections suivantes décrivent un peu plus en détail ce que tout cela signifie. Les détails sont très importants, mais n'hésitez pas à passer à la section suivante, "Développement de l'instrument", et à voir si cela a un sens intuitif pour vous. Sinon, vous pouvez toujours revenir ici plus tard!
+Maintenant, il y a beaucoup de choses qui nécessitent une explication. Premièrement, nous venons tout juste d’écrire du texte dans le langage Csound Orchestra pour définir un nouveau type d’instrument, nommé "Add", et planifié l’exécution d’une instance de cet instrument dans un délai de 0 seconde pour une durée de 2 secondes. Les sous-sections suivantes décrivent un peu plus en détail ce que tout cela signifie. Les détails sont très importants, mais n'hésitez pas à passer à la section suivante, "Développement de l'instrument", et à voir si cela a un sens intuitif pour vous. Sinon, vous pouvez toujours revenir ici plus tard!
 
 ### Définir un instrument
 
-Dans Csound, les instruments sont définis par les utilisateurs en tant que processus exécutés par le moteur Csound. La définition de l'instrument décrit le traitement qui aura lieu lors de l'exécution d'une instance d'un instrument. Dans le code ci-dessus, nous voyons la ligne commençant par `instr` suivi d'un nom `Add`. Le mot instr commence une nouvelle définition d'instrument et le mot ou le numéro après instrument définit le nom ou le numéro de l'instrument. (Csound n'utilisait généralement que des instruments numérotés, mais les instruments nommés peuvent s'avérer beaucoup plus pratiques et ce sera l'usage dans ces tutoriels.) Plus bas, la ligne commençant par endin termine la définition de l'instrument. Chaque ligne de texte entre les lignes avec instr et endin est considérée comme un code qui définit le traitement que l'instrument effectuera lorsqu'il sera exécuté.
+Dans Csound, les instruments sont définis par les utilisateurs en tant que processus exécutés par le moteur Csound. La définition de l'instrument décrit le traitement qui aura lieu lors de l'exécution d'une instance d'un instrument. Dans le code ci-dessus, nous voyons la ligne commençant par `instr` suivi d'un nom `Add`. Le mot instr commence une nouvelle définition d'instrument et le mot ou le numéro après instrument définit le nom ou le numéro de l'instrument. (Csound n'utilisait généralement que des instruments numérotés, mais les instruments nommés peuvent s'avérer beaucoup plus pratiques et ce sera l'usage dans ces tutoriels.) Plus bas, la ligne commençant par `endin` termine la définition de l'instrument. Chaque ligne de texte entre les lignes avec instr et endin est considérée comme un code qui définit le traitement que l'instrument effectuera lorsqu'il sera exécuté.
 
 Le corps de la définition de l'instrument est constitué de deux lignes. Notez qu'ils sont visuellement en retrait. Nous allons utiliser cette pratique chaque fois que nous introduisons de nouveaux blocs de code (tels que des blocs de définition d'instrument, des blocs conditionnels et d'itération, etc.), car cela aide à voir quel code est associé à ce qui est en train d'être défini.
 
@@ -38,7 +38,7 @@ Mais qu'est-ce qu'un opcode ? Les codes d'opération sont des unités de traitem
 
 Nous définissons les instruments à l'aide d'une série d'opcodes que nous configurons et connectons ensemble via des valeurs et des variables constantes. Nous pouvons considérer chaque code d'opération comme un module dans un synthétiseur modulaire et un instrument comme un synthétiseur complet.
 
-Maintenant, pour utiliser un opcode, nous utilisons la forme de texte suivante : en premier le nom de l'opcode; une parenthèse ouvrante; une liste facultative de mots, chiffres, expressions et autres appels de code d'opération séparés par des virgules; et une parenthèse finale. Nous appelons les entrées entre parenthèses les arguments ou les entrées du code d'opération.
+Maintenant, pour utiliser un opcode, nous utilisons la syntaxe suivante : en premier le nom de l'opcode; une parenthèse ouvrante; une liste facultative de mots, chiffres, expressions et autres appels de code d'opération séparés par des virgules; et une parenthèse finale. Nous appelons les entrées entre parenthèses les arguments ou les entrées du code d'opération.
 
 Pour récapituler, nous définissons les instruments comme des processus. Les instruments sont constitués d’opcodes, chacun pouvant effectuer un traitement quelconque. Définir les instruments ne définit que ce que nous voulons faire, mais ne fait rien. Pour exécuter l'instrument, nous devons créer une instance de l'instrument et dire à Csound de l'exécuter, et faire tout ce dont nous avons besoin pour utiliser des événements.
 
@@ -61,13 +61,13 @@ Ce style utilise un appel d'opcode par ligne de texte et a la forme générale d
 
 où les sorties et les entrées sont des listes de mots et de nombres séparés par des coma. 
 
-Nous utiliserons la syntaxe moderne dans ce tutoriel. Il a quelques bizarreries parce qu’il a été ajouté à une langue et à un système vieux de plus de 30 ans (et parce que nous supportons pleinement la compatibilité ascendante pour le style de code original), mais nous espérons que vous trouverez cela intuitif à utiliser lorsque nous effectuons des exercices.
+Nous utiliserons la syntaxe moderne dans ce tutoriel. Elle comporte quelques bizarreries parce qu’elle a été ajouté à une langue et à un système vieux de plus de 30 ans (et parce que nous supportons pleinement la compatibilité ascendante pour le style de code original), mais nous espérons que vous trouverez cela intuitif à utiliser lorsque nous effecturons des exercices.
 
 Nous voudrions noter qu’il existe un scénario dans lequel nous devons utiliser l’ancienne syntaxe de style, c’est lorsque les opcodes génèrent plusieurs valeurs de sortie. Vous constaterez que dans ces situations, je vais utiliser l'ancienne syntaxe, mais uniquement dans ces situations. (Il s'agit d'une limitation dans Csound 6 qui a déjà été modifiée dans le code destiné à Csound 7.)
 
 ### Procès des événements
 
-Une fois qu'un instrument est défini, nous pouvons créer des événements à l'aide de l'opcode `schedule ()`:
+Une fois qu'un instrument est défini, nous pouvons créer des événements à l'aide de l'opcode `schedule()`:
 
 ```csound
 schedule("Add", 0, 2)
@@ -97,13 +97,13 @@ Dans ce qui précède, nous avons apporté deux modifications:
 1. Mise à jour de notre instrument pour utiliser une valeur p4. Les pfields de Csound vont être soit des nombres, soit des chaînes de caractères (données textuelles). Pour ce tutoriel, nous utiliserons pfields comme nombres. En outre, partout où nous avons un nombre statique dans notre code, nous pouvons le remplacer par un pfield. (Vous pouvez remplacer le 0.25 par un p5, par exemple.)
 2. Mise à jour de notre appel de planification pour utiliser la valeur 440 comme quatrième argument. Cela sera affecté à la variable `p4` lors de l'exécution de l'instrument `Add`.
 
-À ce stade, nous avons rendu l’instrument un peu plus polyvalent en faisant de la fréquence de l’oscillateur un paramètre. Essayez de changer la valeur que vous utilisez pour `p4` (par exemple, changez 440 en 220, 330, 880, etc.) et en réévaluant la ligne de programme pour entendre des sinus de fréquences différentes.
+À ce stade, nous avons rendu l’instrument un peu plus polyvalent en faisant de la fréquence de l’oscillateur un paramètre. Changez la valeur que vous utilisez pour `p4` (par exemple, 440 en 220, 330, 880, etc.) et réévaluez la ligne de programme pour entendre des sinus de fréquences différentes.
 
 ## Ajoutons un oscillateur 
 
 Un simple oscillateur est un bon point de départ, mais rendons maintenant l’instrument un peu plus intéressant.
 
-Tout d'abord, essayons de changer l'instrument pour utiliser deux oscillateurs:
+Tout d'abord, ajoutons un oscillateur à notre instrument:
 
 ```csound
 instr Add
@@ -114,7 +114,7 @@ instr Add
 endin
 ```
 
-Nous avons ajouté ici un oscillateur `oscili` supplémentaire, fonctionnant à deux fois la fréquence p4. Nous avons ensuite ajouté les deux signaux ensemble que nous avons affecté à la variable asum, puis utilisé cette valeur comme sortie. Essayez d’évaluer l’appel `schedule()` maintenant pour entendre le nouveau son.
+Nous avons ajouté ici un oscillateur `oscili` supplémentaire, fonctionnant à deux fois la fréquence p4. Nous avons ensuite ajouté les deux signaux ensemble que nous avons affecté à la variable asum, puis utilisé cette valeur comme sortie. Evaluez l’appel `schedule()` maintenant pour entendre le nouveau son.
 
 Une chose que nous pouvons faire à présent est d’utiliser une opération d’affectation légèrement différente pour raccourcir un peu le code:
 
@@ -128,7 +128,7 @@ endin
 
 Cette version de l'instrument sonne exactement comme la version précédente. Il utilise une affectation `+=` pour ajouter la valeur générée à droite du signe `+=` à la valeur à gauche, puis la réenregistrer dans la variable de gauche. La ligne avec le `+=` équivaut à l'écriture `asig = asig + oscili (0.25, p4 * 2)`. 
 
-Au cours de ce tutoriel, chaque fois que nous apportons une modification à notre code, il est important de tester la modification. Dans ce cas, nous sélectionnons à nouveau le code de l'instrument, nous l'évaluons, puis sélectionnons le code schedule () et nous l'évaluons. Il est préférable de tester souvent afin d'éviter de trop nombreux changements, de constater que vous avez un problème, puis de vous gratter la tête pour déterminer lequel de tous les nouveaux changements l'a fait cesser de fonctionner. Nous pouvons témoigner qu'il peut être très fastidieux de chercher une erreur dans un code même modestement étendu (note du traducteur).
+Au cours de ce tutoriel, chaque fois que nous apportons une modification à notre code, il est important de tester la modification. Dans ce cas, nous sélectionnons à nouveau le code de l'instrument, nous l'évaluons, puis sélectionnons le code schedule() et nous l'évaluons. Il est préférable de tester souvent afin d'éviter de trop nombreux changements, de constater que vous avez un problème, puis de vous gratter la tête pour déterminer lequel de tous les nouveaux changements est à l'origine du problème. Nous pouvons témoigner qu'il peut être très fastidieux de chercher une erreur dans un code même modestement étendu (note du traducteur).
 
 ## Modelons la sortie
 
@@ -155,9 +155,10 @@ Pour l'instant, mettons le design sonore de côté et voyons comment nous jouons
 
 ## La palette des évènements
 
-Jusqu'à présent, nous utilisions un seul appel d'`opcode schedule()` pour jouer exactement une instance de notre instrument. Cela conduit à un mappage individuel de la ligne de code au son généré et constitue un point de départ important. Même avec cela seul, nous pourrions nous asseoir et coder et jouer de la musique. Cependant, si nous ne faisions que modifier la ligne de code et la réévaluer pour obtenir des notes différentes à des moments différents, cela peut être un peu lent et limiter probablement le type de musique que nous vivons.
+Jusqu'à présent, nous utilisions un seul appel d'opcode `schedule()` pour jouer exactement une instance de notre instrument. Cela conduit à un mappage individuel de la ligne de code au son généré et constitue un point de départ important. Même avec cela seul, nous pourrions nous asseoir et coder et jouer de la musique. Cependant, si nous ne faisions que modifier la ligne de code et la réévaluer pour obtenir des notes différentes à des moments différents, cela peut être un peu lent et limiter probablement le type de musique que nous vivons.
 
-Une étape naturelle consiste à avoir plusieurs lignes de code pré-écrites que nous pourrions ensuite sélectionner et évaluer. Pensez-y comme si vous avez un clavier de piano devant vous: vous avez plusieurs touches qui produisent différentes notes sur le même instrument et vous sélectionnez et appuyez sur une touche pour obtenir un son différent. Cependant, dans notre cas, au lieu des clés physiques, nous aurons différentes lignes de code que nous pouvons sélectionner et évaluer. Essayez d'entrer le code suivant:
+Une étape naturelle consiste à avoir plusieurs lignes de code pré-écrites que nous pourrions ensuite sélectionner et évaluer. Pensez-y comme si vous avez un clavier de piano devant vous: vous avez plusieurs touches qui produisent différentes notes sur le même instrument et vous sélectionnez et appuyez sur une touche pour obtenir un son différent. Cependant, dans notre cas, au lieu des clés physiques, nous aurons différentes lignes de code que nous pouvons sélectionner et évaluer. 
+Entrez le code suivant:
 
 ```csound
 schedule("Add", 0, 2, 440) 
@@ -166,13 +167,13 @@ schedule("Add", 0, 2, 660)
 schedule("Add", 0, 2, 880)
 ```
 
-Essayez maintenant d’évaluer chaque ligne de code une à la fois (sans sélectionner de code, vous pouvez appuyer sur ctrl-enter dans l’éditeur live.csound.com et la ligne de code actuelle ne sera exécutée que si elle n’est pas dans un instrument). Vous devriez ici obetnir un A, C #, E et A une octave ci-dessus. Chaque fois que vous évaluez le code, il programmera et ajoutera l’instrument de démarrage immédiat, fonctionnera pendant deux secondes, à la fréquence indiquée.  
+Evaluez chaque ligne de code une à la fois (sans sélectionner de code, vous pouvez appuyer sur ctrl-enter dans l’éditeur live.csound.com et la ligne de code actuelle ne sera exécutée que si elle n’est pas dans un instrument). Vous devriez ici obetnir un A, C #, E et A une octave ci-dessus. Chaque fois que vous évaluez le code, il programmera et ajoutera l’instrument de démarrage immédiat, fonctionnera pendant deux secondes, à la fréquence indiquée.  
 
 Écrire plusieurs lignes comme celle-ci pour créer une palette de sons est un bon moyen d'explorer les capacités sonores d'un instrument et de lancer le processus d'improvisation et de performance.  
 
 ## Evènements composés
 
-L’utilisation d'un mappage one-to-one event-to-sound est un point de départ. La prochaine étape consiste à produire plusieurs sons en utilisant one-to-many action. Commençons par réutiliser le dernier exemple de code. Toutefois, au lieu d’évaluer une ligne à la fois, essayez de sélectionner deux lignes consécutives et d’évaluer le code. C'est une étape simple à suivre pour commencer à produire plusieurs notes avec des gestes simples.
+L’utilisation d'un mappage one-to-one event-to-sound est un point de départ. La prochaine étape consiste à produire plusieurs sons en utilisant one-to-many action. Commençons par réutiliser le dernier exemple de code. Toutefois, au lieu d’évaluer une ligne à la fois, sélectionnez deux lignes consécutives et évaluez le code. C'est une étape simple à suivre pour commencer à produire plusieurs notes avec des gestes simples.
 
 La prochaine étape consiste à modifier la minuterie de début dans notre code:
 
@@ -183,7 +184,7 @@ schedule("Add", 4, 2, 660)
 schedule("Add", 6, 2, 880)
 ```
 
-Voici que nous avons changé chaque appel `schedule ()` pour utiliser des moments de début de 0, 2, 4 et 6. Si nous évaluons l'ensemble du bloc de code, nous aurons une séquence de notes. Encore une fois, nous avons une action un-à-un produisant plusieurs tonalités, mais nous commençons maintenant à étendre notre processus de réflexion, qui consiste à travailler avec du texte et un instrument, à penser aux gestes musicaux dans le temps. 
+Voici que nous avons changé chaque appel `schedule()` pour utiliser des moments de début de 0, 2, 4 et 6. Si nous évaluons l'ensemble du bloc de code, nous aurons une séquence de notes. Encore une fois, nous avons une action un-à-un produisant plusieurs tonalités, mais nous commençons maintenant à étendre notre processus de réflexion, qui consiste à travailler avec du texte et un instrument, à penser aux développements musicaux dans le temps. 
 
 Une chose à noter est différente de l'étape précédente, le code ne se prête plus à la lecture de notes individuellement. Si nous essayons d’évaluer uniquement les deux dernières notes, la première note sera programmée à 4 secondes et la seconde à 6 secondes. Cela signifie que le code que nous avons écrit a commencé à utiliser des relations entre les éléments et doit être utilisé dans son ensemble plutôt que dans ses parties. (Il existe des moyens de contourner ce problème en adoptant différentes approches basées sur les données, ce qui dépasse le cadre de ce tutoriel.)
 
@@ -200,7 +201,7 @@ endin
 schedule("Arpeggio", 0, 0)
 ```
 
-Essayez d’évaluer l’arpège puis le `schedule` final. Vous devriez maintenant entendre l'arpège exécuté chaque fois que vous utilisez l'un des instruments. Essayez également d’évaluer la ligne de planification des arpèges à plusieurs reprises sans attendre que les précédentes soient achevées, vous entendrez l'arpège s'enrouler sur lui-même. 
+Essayez d’évaluer l’arpège puis le `schedule` final. Vous devriez maintenant entendre l'arpège exécuté chaque fois que vous utilisez l'un des instruments. Evaluez la ligne de planification des arpèges à plusieurs reprises sans attendre que les précédentes soient achevées, vous entendrez l'arpège s'enrouler sur lui-même. 
 
 Une notion intéressante ici est que nous utilisons une durée de 0 pour la ligne `schedule()`. La raison pour laquelle nous faisons cela ici est que notre instrument Arpeggio est composé de code qui ne s'exécute qu'au moment de l'initialisation. Cependant, les instruments seront généralement toujours exécutés pour la durée donnée lors de la création d'une instance de l'instrument. Si nous n'utilisons pas la durée 0, l'instrument fonctionnera au moment de l'exécution (comme notre instrument Add), mais il ne fera rien, car il n'y a pas de code performance-time. L’utilisation de la durée 0 présente donc deux avantages: elle garantit que nous ne gaspillons aucun cycle de calcul pour un instrument réellement vide au moment des performances et qu’il est également facile de voir dans notre code que nous appelons des instruments conçus pour démarrer au moment prévu
 
