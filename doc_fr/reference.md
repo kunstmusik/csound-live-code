@@ -314,6 +314,20 @@ Line (Ramp) oscillateur.  Donne une phase dans un intervale 0-1, retourne la val
 
 ---
 
+ival = **dur\_seq**(itick, kdurs[])
+
+Étant donné une valeur de tick et un tableau de durées, retourne une nouvelle durée ou 0 selon que tick correspond à une nouvelle valeur de durée. Les valeurs
+peuvent être positives ou négatives différentes de zéro. Les valeurs négatives peuvent être interprétées comme des durées de repos.
+
+---
+
+ival = **dur\_seq**(kdurs[])
+
+Compte tenu d'un tableau de durées, renvoie la nouvelle durée ou 0 selon que le tick d'horloge actuel atteint ou non une nouvelle valeur de durée. Les valeurs
+peuvent être positives ou négatives différentes de zéro. Les valeurs négatives peuvent être interprétées comme des durées de repos.
+
+---
+
 Sval = **rotate**(Sval, irot)
 
 rotate - Rotation de la phrase autour d'un nombre irot de valeurs.
