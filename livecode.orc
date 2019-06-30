@@ -580,6 +580,53 @@ opcode xlin, i, iii
   xout istart + (iend - istart) * iphase
 endop
 
+;; Duration Sequences
+
+/** Given a tick value and array of durations, returns new duration or 0 depending upon whether tick hits a new duration value. Values
+may be positive or negative, but not zero. Negative values can be interpreted as rest durations. */
+opcode dur_seq, i, ik[]
+  itick, kdurs[] xin
+  ival = 0
+  icur = 0
+  ilen = lenarray:i(kdurs)
+  itotal = 0
+
+  indx = 0
+  while (indx < ilen) do
+    itotal += abs:i(i(kdurs, indx))
+    indx += 1
+  od
+
+  ;print itotal
+
+  indx = 0
+  itick = itick % itotal
+
+  while (indx < ilen) do
+    itemp = i(kdurs, indx) 
+    if(icur == itick) then
+      ival = itemp 
+      indx += ilen
+    elseif (icur > itick) then
+      indx += ilen 
+    else
+      icur += abs(itemp)
+    endif
+    
+    indx += 1
+  od
+  xout ival 
+endop
+
+
+/** Given an array of durations, returns new duration or 0 depending upon whether current clock tick hits a new duration value. Values
+may be positive or negative, but not zero. Negative values can be interpreted as rest durations. */
+opcode dur_seq, i, k[]
+  kdurs[] xin
+  xout dur_seq(now_tick(), kdurs)
+endop
+
+
 ;; String functions
 
 /** 

@@ -319,6 +319,20 @@ Line (Ramp) oscillator. Given phase in range 0-1, return interpolated value betw
 
 ---
 
+ival = **dur\_seq**(itick, kdurs[])
+
+Given a tick value and array of durations, returns new duration or 0 depending upon whether tick hits a new duration value. Values
+may be positive or negative, but not zero. Negative values can be interpreted as rest durations. 
+
+---
+
+ival = **dur\_seq**(kdurs[])
+
+Given an array of durations, returns new duration or 0 depending upon whether current clock tick hits a new duration value. Values
+may be positive or negative, but not zero. Negative values can be interpreted as rest durations. 
+
+---
+
 Sval = **rotate**(Sval, irot)
 
 rotate - Rotates string by irot number of values.

@@ -51,6 +51,8 @@
 | ival | **xoscib** | ibeats, kvals[]  |
 | ival | **xoscim** | ibeats, kvals[]  |
 | ival | **xlin** | iphase, istart, iend  |
+| ival | **dur\_seq** | itick, kdurs[]  |
+| ival | **dur\_seq** | kdurs[]  |
 | Sval | **rotate** | Sval, irot  |
 | Sval | **strrep** | Sval, inum  |
 | ival | **xchan** | SchanName, initVal  |
