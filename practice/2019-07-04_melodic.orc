@@ -28,7 +28,6 @@ opcode melodic, iii, ik[]k[]k[]
     ivalindx = 0
 
     while (indx < ilen) do
-
       itemp = i(kdurs, indx) 
 
       if(icur == itick) then
@@ -45,7 +44,7 @@ opcode melodic, iii, ik[]k[]k[]
       
       indx += 1
     od
-    print ivalindx
+
     ipch = i(kpchs, ivalindx % lenarray:i(kpchs))
     iamp = i(kamps, ivalindx % lenarray:i(kamps))
   endif
