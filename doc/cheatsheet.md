@@ -84,6 +84,8 @@
 |  | **sbus\_clear** | ibus  |
 | aaval | **sbus\_read** | ibus  |
 |  | **pan\_verb\_mix** | asig, kpan, krvb  |
+|  | **automate** | Schan, idur, istart, iend, itype  |
+|  | **fade\_out\_mix** | idur  |
 | aval | **saturate** | asig, ksat  |
 ## Instruments
 
@@ -91,6 +93,8 @@
 | ---- | 
 |  ReverbMixer | 
 |  FBReverbMixer | 
+|  ChnSet | 
+|  Auto | 
 |  Sub1 | 
 |  Sub2 | 
 |  Sub3 | 
@@ -102,6 +106,7 @@
 |  SSaw | 
 |  Mode1 | 
 |  Plk | 
+|  Organ1 | 
 |  Organ2 | 
 |  Bass | 
 |  ms20_bass | 

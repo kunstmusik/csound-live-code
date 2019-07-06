@@ -552,6 +552,19 @@ panned signal using out opcode.
 
 ---
 
+**automate**(Schan, idur, istart, iend, itype)
+
+Automate channel value over time. Takes in "ChannelName", duration, start value, end value, and automation type (0=linear, else exponential). For exponential, signs of istart and end must match and neither can be zero. 
+
+---
+
+**fade\_out\_mix**(idur)
+
+Utility opcode for end of performances to fade out Mixer over given idur time using exponential fade. idur defaults to 30
+seconds. *
+
+---
+
 aval = **saturate**(asig, ksat)
 
 Saturation using tanh 
@@ -564,6 +577,8 @@ Saturation using tanh
 | ---- | ---- | 
 |  ReverbMixer | Always-on Mixer instrument with Reverb send channel. Use start("ReverbMixer") to run. Designed for use with pan\_verb\_mix to simplify signal-based live coding.  | 
 |  FBReverbMixer | Always-on Mixer instrument with Reverb send channel and feedback delay. Use start("FBReverbMixer") to run. Designed for use with pan\_verb\_mix to simplify signal-based live coding.  | 
+|  ChnSet | Set a channel value at a given time. p4=ChannelName, p5=value | 
+|  Auto | Automation instrument for channels. Takes in "ChannelName", start value, end value, and automation type (0=linear, else exponential).  | 
 |  Sub1 | Substractive Synth, 3osc  | 
 |  Sub2 | Subtractive Synth, two saws, fifth freq apart  | 
 |  Sub3 | Subtractive Synth, three detuned saws, swells in  | 
@@ -575,6 +590,7 @@ Saturation using tanh
 |  SSaw | SuperSaw sound using 9 bandlimited saws (3 sets of detuned saws at octaves) | 
 |  Mode1 | Modal Synthesis Instrument: Percussive/organ-y sound  | 
 |  Plk | Pluck sound using impulses, noise, and waveguides | 
+|  Organ1 | Wavetable Organ sound using additive synthesis  | 
 |  Organ2 | Organ sound based on M1 Organ 2 patch  | 
 |  Bass | 303-style Bass sound  | 
 |  ms20_bass | MS20-style Bass Sound  | 

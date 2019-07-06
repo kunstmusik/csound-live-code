@@ -1112,6 +1112,49 @@ opcode pan_verb_mix, 0,akk
   endif
 endop
 
+
+;; Automation
+
+/** Set a channel value at a given time. p4=ChannelName, p5=value*/ 
+instr ChnSet
+  Schan = p4
+  ival = p5
+  chnset(ival, Schan)
+endin
+
+/** Automation instrument for channels. Takes in "ChannelName", start value, end value, and automation type (0=linear, else exponential). */ 
+instr Auto 
+  Schan = p4
+  istart = p5
+  iend = p6
+  itype = p7
+  kauto init 0
+
+  if(itype == 0) then
+    kauto = line:k(istart, p3, iend)
+  else
+    kauto = expon:k(istart, p3, iend)
+  endif
+
+  chnset(kauto, Schan)
+endin
+
+/** Automate channel value over time. Takes in "ChannelName", duration, start value, end value, and automation type (0=linear, else exponential). For exponential, signs of istart and end must match and neither can be zero. */ 
+opcode automate, 0, Siiii
+  Schan, idur, istart, iend, itype xin
+  schedule("Auto", 0, idur, Schan, istart, iend, itype)
+endop
+
+
+/** Utility opcode for end of performances to fade out Mixer over given idur time using exponential fade. idur defaults to 30 
+seconds. **/
+opcode fade_out_mix, 0, o
+  idur xin
+  idur = (idur <= 0 ? 30 : idur)
+  automate("Mix.amp", idur, 1, 0.001, 1)
+  schedule("ChnSet", idur + 0.1, 0, "Mix.amp", 0)
+endop
+
 ;; DSP
 
 /** Saturation using tanh */
@@ -1272,6 +1315,16 @@ instr Plk
   asig = declick(aout) 
   
   pan_verb_mix(asig, xchan:i("Plk.pan", 0.5), xchan:i("Plk.rvb", 0.1))
+endin
+
+gi_organ1 = ftgen(0, 0, 65536, 10, 1, 0.5, 0.3, 0.2, 0.05, 0.015)
+/** Wavetable Organ sound using additive synthesis */
+instr Organ1
+  asig = oscili(p5, p4, gi_organ1)
+  asig *= 0.5
+  asig = declick(asig)
+
+  pan_verb_mix(asig, xchan:i("Organ1.pan", 0.5), xchan:i("Organ1.rvb", 0.1))
 endin
 
 /** Organ sound based on M1 Organ 2 patch */
