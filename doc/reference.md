@@ -560,8 +560,7 @@ Automate channel value over time. Takes in "ChannelName", duration, start value,
 
 **fade\_out\_mix**(idur)
 
-Utility opcode for end of performances to fade out Mixer over given idur time using exponential fade. idur defaults to 30
-seconds. *
+Utility opcode for end of performances to fade out Mixer over given idur time. idur defaults to 30 seconds. *
 
 ---
 

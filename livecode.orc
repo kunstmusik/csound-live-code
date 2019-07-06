@@ -1145,13 +1145,16 @@ opcode automate, 0, Siiii
   schedule("Auto", 0, idur, Schan, istart, iend, itype)
 endop
 
+instr FadeOutMix
+  kauto = ampdbfs:k(line:k(0, p3, -60))
+  chnset(kauto, "Mix.amp")
+endin
 
-/** Utility opcode for end of performances to fade out Mixer over given idur time using exponential fade. idur defaults to 30 
-seconds. **/
+/** Utility opcode for end of performances to fade out Mixer over given idur time. idur defaults to 30 seconds. **/
 opcode fade_out_mix, 0, o
   idur xin
   idur = (idur <= 0 ? 30 : idur)
-  automate("Mix.amp", idur, 1, 0.001, 1)
+  schedule("FadeOutMix", 0, idur) 
   schedule("ChnSet", idur + 0.1, 0, "Mix.amp", 0)
 endop
 
