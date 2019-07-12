@@ -619,13 +619,70 @@ opcode dur_seq, i, ik[]
 endop
 
 
-/** Given an array of durations, returns new duration or 0 depending upon whether current clock tick hits a new duration value. Values
-may be positive or negative, but not zero. Negative values can be interpreted as rest durations. */
+/** Given an array of durations, returns new duration or 0 depending upon
+ * whether current clock tick hits a new duration value. Values
+may be positive or negative, but not zero. Negative values can be interpreted
+as rest durations. */
 opcode dur_seq, i, k[]
   kdurs[] xin
   xout dur_seq(now_tick(), kdurs)
 endop
 
+/** Experimental opcode for generating melodic lines given array of durations, pitches, and amplitudes. Durations follow dur_seq practice that negative values are rests. Pitch and amp array indexing wraps according to their array lengths given index of non-rest duration value currently fired. */ 
+opcode melodic, iii, ik[]k[]k[]
+  itick, kdurs[], kpchs[], kamps[] xin
+
+  idur = dur_seq(itick, kdurs)
+  ipch = 0
+  iamp = 0
+
+  indx = 0
+  itotal = 0
+  ilen = lenarray:i(kdurs)
+
+  while (indx < ilen) do
+    itotal += abs:i(i(kdurs, indx))
+    indx += 1
+  od
+
+  itick = itick % itotal
+
+  if(idur > 0) then
+    indx = 0
+    icur = 0
+    ivalindx = 0
+
+    while (indx < ilen) do
+      itemp = i(kdurs, indx) 
+
+      if(icur == itick) then
+        indx += ilen
+      elseif (icur > itick) then
+        indx += ilen 
+      else
+        if (itemp > 0) then
+          ivalindx += 1 
+        endif
+
+        icur += abs(itemp)
+      endif
+      
+      indx += 1
+    od
+
+    ipch = i(kpchs, ivalindx % lenarray:i(kpchs))
+    iamp = i(kamps, ivalindx % lenarray:i(kamps))
+  endif
+
+  xout idur, ipch, iamp
+endop
+
+/** Experimental opcode for generating melodic lines given array of durations, pitches, and amplitudes. Durations follow dur_seq practice that negative values are rests. Pitch and amp array indexing wraps according to their array lengths given index of non-rest duration value currently fired. */ 
+opcode melodic, iii, k[]k[]k[]
+  kdurs[], kpchs[], kamps[] xin
+  idur, ipch, iamp = melodic(now_tick(), kdurs, kpchs, kamps)
+  xout idur, ipch, iamp
+endop
 
 ;; String functions
 
