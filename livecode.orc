@@ -717,6 +717,15 @@ endop
 
 ;; Channel Helper
 
+/** Sets i-rate value into channel and sets initialization to true. Works together 
+  with xchan */
+opcode xchnset, 0, Si
+  SchanName, ival xin
+  Sinit = sprintf("%s_initialized", SchanName)
+  chnset(1, Sinit)
+  chnset(ival, SchanName)
+endop
+
 /** xchan 
   Initializes a channel with initial value if channel has default value of 0 and
   then returns the current value from the channel. Useful in live coding to define

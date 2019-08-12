@@ -53,8 +53,11 @@
 | ival | **xlin** | iphase, istart, iend  |
 | ival | **dur\_seq** | itick, kdurs[]  |
 | ival | **dur\_seq** | kdurs[]  |
+| iiival | **melodic** | itick, kdurs[], kpchs[], kamps[]  |
+| iiival | **melodic** | kdurs[], kpchs[], kamps[]  |
 | Sval | **rotate** | Sval, irot  |
 | Sval | **strrep** | Sval, inum  |
+|  | **xchnset** | SchanName, ival  |
 | ival | **xchan** | SchanName, initVal  |
 | kval | **xchan** | SchanName, initVal  |
 |  | **set\_root** | iscale_root  |

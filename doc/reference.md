@@ -328,8 +328,22 @@ may be positive or negative, but not zero. Negative values can be interpreted as
 
 ival = **dur\_seq**(kdurs[])
 
-Given an array of durations, returns new duration or 0 depending upon whether current clock tick hits a new duration value. Values
-may be positive or negative, but not zero. Negative values can be interpreted as rest durations. 
+Given an array of durations, returns new duration or 0 depending upon
+* whether current clock tick hits a new duration value. Values
+may be positive or negative, but not zero. Negative values can be interpreted
+as rest durations. 
+
+---
+
+iiival = **melodic**(itick, kdurs[], kpchs[], kamps[])
+
+Experimental opcode for generating melodic lines given array of durations, pitches, and amplitudes. Durations follow dur\_seq practice that negative values are rests. Pitch and amp array indexing wraps according to their array lengths given index of non-rest duration value currently fired. 
+
+---
+
+iiival = **melodic**(kdurs[], kpchs[], kamps[])
+
+Experimental opcode for generating melodic lines given array of durations, pitches, and amplitudes. Durations follow dur\_seq practice that negative values are rests. Pitch and amp array indexing wraps according to their array lengths given index of non-rest duration value currently fired. 
 
 ---
 
@@ -344,6 +358,13 @@ rotate - Rotates string by irot number of values.
 Sval = **strrep**(Sval, inum)
 
 Repeats a given String x number of times. For example, `Sval = strrep("ab6a", 2)` will produce the value of "ab6aab6a". Useful in working with Hex beat strings.  
+
+---
+
+**xchnset**(SchanName, ival)
+
+Sets i-rate value into channel and sets initialization to true. Works together
+with xchan 
 
 ---
 
