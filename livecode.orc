@@ -1234,6 +1234,8 @@ endop
 
 ;; SYNTHS
 
+xchnset("rvb.default", 0.1)
+
 /** Substractive Synth, 3osc */
 instr Sub1
   asig = vco2(ampdbfs(-12), p4)
@@ -1241,7 +1243,7 @@ instr Sub1
   asig += vco2(ampdbfs(-12), p4 * 2, 10)
   asig = zdf_ladder(asig, expon(10000, p3, 400), 5)
   asig = declick(asig) * p5
-  pan_verb_mix(asig, xchan:i("Sub1.pan", 0.5), xchan:i("Sub1.rvb", 0.1))
+  pan_verb_mix(asig, xchan:i("Sub1.pan", 0.5), xchan:i("Sub1.rvb", chnget:i("rvb.default")))
 endin
 
 
@@ -1252,7 +1254,7 @@ instr Sub2
   asig += vco2(ampdbfs(-12), p4 * 1.5) 
   asig = zdf_ladder(asig, expon(icut, p3, 400), 5)
   asig = declick(asig) * p5
-  pan_verb_mix(asig, xchan:i("Sub2.pan", 0.5), xchan:i("Sub2.rvb", 0.1))
+  pan_verb_mix(asig, xchan:i("Sub2.pan", 0.5), xchan:i("Sub2.rvb", chnget:i("rvb.default")))
 endin
 
 
@@ -1264,7 +1266,7 @@ instr Sub3
   asig *= 0.33 
   asig = zdf_ladder(asig, expon(100, p3, 22000), 12) 
   asig = declick(asig)
-  pan_verb_mix(asig, xchan:i("Sub3.pan", 0.5), xchan:i("Sub3.rvb", 0.1))
+  pan_verb_mix(asig, xchan:i("Sub3.pan", 0.5), xchan:i("Sub3.rvb", chnget:i("rvb.default")))
 endin
 
 /** Subtractive Synth, detuned square/saw, stabby. 
@@ -1278,7 +1280,7 @@ instr Sub4
   itarget = p4 * 2
   asig = zdf_ladder(asig, expseg(20000, 0.15, itarget, 0.1, itarget), 5)
   asig = declick(asig) * p5 * 0.15
-  pan_verb_mix(asig, xchan:i("Sub4.pan", 0.5), xchan:i("Sub4.rvb", 0.1))
+  pan_verb_mix(asig, xchan:i("Sub4.pan", 0.5), xchan:i("Sub4.rvb", chnget:i("rvb.default")))
 endin
 
 
@@ -1288,7 +1290,7 @@ instr Sub5
   asig += vco2(0.25, p4 * 2.0001, 12)
   asig = zdf_ladder(asig, expseg(10000, 0.1, 500, 0.1, 500), 2)
   asig = declick(asig) * p5 * 0.75
-  pan_verb_mix(asig, xchan:i("Sub5.pan", 0.5), xchan:i("Sub5.rvb", 0.1))
+  pan_verb_mix(asig, xchan:i("Sub5.pan", 0.5), xchan:i("Sub5.rvb", chnget:i("rvb.default")))
 endin
 
 /** Subtractive Synth, saw, K35 filters */
@@ -1303,7 +1305,7 @@ instr Sub6
   
   asig = declick(asig)
   
-  pan_verb_mix(asig, xchan:i("Sub6.pan", 0.5), xchan:i("Sub6.rvb", 0.1))
+  pan_verb_mix(asig, xchan:i("Sub6.pan", 0.5), xchan:i("Sub6.rvb", chnget:i("rvb.default")))
 endin
 
 /** Subtractive Synth, saw + tri, K35 filters */
@@ -1319,7 +1321,7 @@ instr Sub7
   
   asig = declick(asig)
   
-  pan_verb_mix(asig, xchan:i("Sub7.pan", 0.5), xchan:i("Sub7.rvb", 0.1))
+  pan_verb_mix(asig, xchan:i("Sub7.pan", 0.5), xchan:i("Sub7.rvb", chnget:i("rvb.default")))
 endin
 
 /** SynthBrass subtractive synth */ 
@@ -1331,7 +1333,7 @@ instr SynBrass
   asig = zdf_ladder(asig, expseg(12000, 0.25, 500, 0.05, 500), 4)
   asig = declick(asig * p5)
 
-  pan_verb_mix(asig, xchan:i("SynBrass.pan", 0.5), xchan:i("SynBrass.rvb", 0.1))
+  pan_verb_mix(asig, xchan:i("SynBrass.pan", 0.5), xchan:i("SynBrass.rvb", chnget:i("rvb.default")))
 endin
 
 /** SuperSaw sound using 9 bandlimited saws (3 sets of detuned saws at octaves)*/
@@ -1353,7 +1355,7 @@ instr SSaw
   asig *= p5 
   asig = declick(asig)
 
-  pan_verb_mix(asig, xchan:i("SSaw.pan", 0.5), xchan:i("SSaw.rvb", 0.1))
+  pan_verb_mix(asig, xchan:i("SSaw.pan", 0.5), xchan:i("SSaw.rvb", chnget:i("rvb.default")))
 endin
 
 /** Modal Synthesis Instrument: Percussive/organ-y sound */
@@ -1366,7 +1368,7 @@ instr Mode1
 
   asig = declick(asig1) 
 
-  pan_verb_mix(asig, xchan:i("Mode1.pan", 0.5), xchan:i("Mode1.rvb", 0.1))
+  pan_verb_mix(asig, xchan:i("Mode1.pan", 0.5), xchan:i("Mode1.rvb", chnget:i("rvb.default")))
 endin
 
 /** Pluck sound using impulses, noise, and waveguides*/
@@ -1383,7 +1385,7 @@ instr Plk
   
   asig = declick(aout) 
   
-  pan_verb_mix(asig, xchan:i("Plk.pan", 0.5), xchan:i("Plk.rvb", 0.1))
+  pan_verb_mix(asig, xchan:i("Plk.pan", 0.5), xchan:i("Plk.rvb", chnget:i("rvb.default")))
 endin
 
 gi_organ1 = ftgen(0, 0, 65536, 10, 1, 0.5, 0.3, 0.2, 0.05, 0.015)
@@ -1393,7 +1395,7 @@ instr Organ1
   asig *= 0.5
   asig = declick(asig)
 
-  pan_verb_mix(asig, xchan:i("Organ1.pan", 0.5), xchan:i("Organ1.rvb", 0.1))
+  pan_verb_mix(asig, xchan:i("Organ1.pan", 0.5), xchan:i("Organ1.rvb", chnget:i("rvb.default")))
 endin
 
 /** Organ sound based on M1 Organ 2 patch */
@@ -1409,7 +1411,7 @@ instr Organ2
   asig *= p5 * 0.67
   asig = declick(asig)
   
-  pan_verb_mix(asig, xchan:i("Organ2.pan", 0.5), xchan:i("Organ2.rvb", 0.1))
+  pan_verb_mix(asig, xchan:i("Organ2.pan", 0.5), xchan:i("Organ2.rvb", chnget:i("rvb.default")))
 endin
 
 /** 303-style Bass sound */
@@ -1423,7 +1425,7 @@ instr Bass
   asig = declick(asig) 
 
 
-  pan_verb_mix(asig, xchan:i("Bass.pan", 0.5), xchan:i("Bass.rvb", 0.1))
+  pan_verb_mix(asig, xchan:i("Bass.pan", 0.5), xchan:i("Bass.rvb", chnget:i("rvb.default")))
 
 endin
 
@@ -1440,7 +1442,7 @@ instr ms20_bass
 
   asig *= expon:a(iamp, p3, 0.0001) 
 
-  pan_verb_mix(asig, xchan:i("ms20_bass.pan", 0.5), xchan:i("ms20_bass.rvb", 0.1))
+  pan_verb_mix(asig, xchan:i("ms20_bass.pan", 0.5), xchan:i("ms20_bass.rvb", chnget:i("rvb.default")))
 endin
 
 
@@ -1464,7 +1466,7 @@ instr VoxHumana
 
   aout = butterlp(aout, 1986 * ikeyfollow)
 
-  pan_verb_mix(aout, xchan:i("VoxHumana.pan", 0.5), xchan:i("VoxHumana.rvb", 0.1))
+  pan_verb_mix(aout, xchan:i("VoxHumana.pan", 0.5), xchan:i("VoxHumana.rvb", chnget:i("rvb.default")))
 endin
 
 /** FM 3:1 C:M ratio, 2->0.025 index, nice for bass */
@@ -1473,7 +1475,7 @@ instr FM1
   imod = xchan("FM1.mod", 3)
   asig = foscili(p5, p4, icar, imod, expon(2, 0.2, 0.025))
   asig = declick(asig) * 0.5
-  pan_verb_mix(asig, xchan:i("FM1.pan", 0.5), xchan:i("FM1.rvb", 0.1))
+  pan_verb_mix(asig, xchan:i("FM1.pan", 0.5), xchan:i("FM1.rvb", chnget:i("rvb.default")))
 endin
 
 /** Filtered noise, exponential envelope */
@@ -1490,7 +1492,7 @@ instr Noi
 
   asig = declick(asig) * 0.25
 
-  pan_verb_mix(asig, xchan:i("Noi.pan", 0.5), xchan:i("Noi.rvb", 0.1))
+  pan_verb_mix(asig, xchan:i("Noi.pan", 0.5), xchan:i("Noi.rvb", chnget:i("rvb.default")))
 endin
 
 
@@ -1517,14 +1519,31 @@ instr Wobble
   asig = zdf_ladder(asig, min:k(p4 + (imod * klfo), 22000), 12) 
   asig *= expon(1, beats(16), 0.001)
   asig = declick(asig)
-  pan_verb_mix(asig, xchan:i("Wobble.pan", 0.5), xchan:i("Wobble.rvb", 0.1))
+  pan_verb_mix(asig, xchan:i("Wobble.pan", 0.5), xchan:i("Wobble.rvb", chnget:i("rvb.default")))
 
 endin
 
 /** Simple Sinewave instrument with exponential envelope */
 instr Sine
   asig = oscili(expon:a(p5, p3, 0.001), p4)
-  pan_verb_mix(asig, xchan:i("Sine.pan", 0.5), xchan:i("Sine.rvb", 0.1))
+  pan_verb_mix(asig, xchan:i("Sine.pan", 0.5), xchan:i("Sine.rvb", chnget:i("rvb.default")))
+endin
+
+
+;; SQUINE WAVE SYNTHS
+
+/** Squinewave Synth, 2 osc */
+instr Squine1
+  asig squinewave a(p4), expon:a(.8, p3, .1), expon:a(.9, p3, .5), 0, 4
+  a2 squinewave a(p4 * 1.0019234234), expseg:a(.8, p3, .6), a(0), 0, 4
+
+  asig = (asig + a2 * 0.05) * p5 * 0.5
+  asig = butterhp(asig, p4)
+  asig *= linen:a(1, .015, p3, .02) 
+  asig = dcblock2(asig)
+
+  pan_verb_mix(asig, xchan:i("Squine1.pan", 0.5), xchan:i("Squine1.rvb", chnget:i("rvb.default")))
+  
 endin
 
 ;; MONOPHONIC SYNTHS
@@ -1537,7 +1556,7 @@ instr Mono
   kpan = xchan:k("Mono.pan", 0.5)
   aL,aR pan2  asig,kpan             
 
-  pan_verb_mix(asig, xchan:k("Mono.pan", 0.5), xchan:k("Mono.rvb", 0.1))
+  pan_verb_mix(asig, xchan:k("Mono.pan", 0.5), xchan:k("Mono.rvb", chnget:i("rvb.default")))
 endin
 maxalloc("Mono", 1)
 
