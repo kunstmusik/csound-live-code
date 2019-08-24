@@ -1235,6 +1235,7 @@ endop
 ;; SYNTHS
 
 xchnset("rvb.default", 0.1)
+xchnset("drums.rvb.default", 0.1)
 
 /** Substractive Synth, 3osc */
 instr Sub1
@@ -1599,9 +1600,7 @@ instr Clap
   a_  butterbp a_, ibpfrq, kbpbwd
 
   aout = a_ * 80 * iamp ;; 
-  al, ar pan2 aout, 0.7
-  outc(al, ar)
-
+  pan_verb_mix(aout, xchan:k("Clap.pan", 0.7), xchan:k("Clap.rvb", chnget:i("drums.rvb.default")))
 endin
 
 
@@ -1615,7 +1614,6 @@ instr BD  ;BASS DRUM
 
   ilevel = xchan("BD.level", 1) * 2
   itune = xchan("BD.tune", 0)
-  ipan = xchan("BD.pan", 0.5)
 
   ;SUSTAIN AND BODY OF THE SOUND
   kmul = transeg(0.2,p3*0.5,-15,0.01, p3*0.5,0,0)         ;PARTIAL STRENGTHS MULTIPLIER USED BY GBUZZ. DECAYS FROM A SOUND WITH OVERTONES TO A SINE TONE.
@@ -1632,8 +1630,7 @@ instr BD  ;BASS DRUM
   
   amix  = ((asig*0.5)+(aimp*0.35))*ilevel*p5      ;MIX SUSTAIN AND ATTACK SOUND ELEMENTS AND SCALE USING GUI 'Level' KNOB
   
-  aL,aR pan2  amix,ipan             ;PAN THE MONOPHONIC SOUND
-  outc(aL,aR)             ;SEND AUDIO TO OUTPUTS
+  pan_verb_mix(amix, xchan:k("BD.pan", 0.5), xchan:k("BD.rvb", chnget:i("drums.rvb.default")))
 endin
 
 
@@ -1644,7 +1641,6 @@ instr SD  ;SNARE DRUM
   idur = xchan("SD.decay", 1.0) 
   ilevel = xchan("SD.level", 1) 
   itune = xchan("SD.tune", 0)
-  ipan = xchan("SD.pan", 0.5)
 
   ifrq    = 342   ;FREQUENCY OF THE TONES
   iNseDur = 0.3 * idur  ;DURATION OF THE NOISE COMPONENT
@@ -1666,8 +1662,7 @@ instr SD  ;SNARE DRUM
   anoise = butlp(anoise,kcf)                      ;LOWPASS FILTER THE NOISE SIGNAL
   amix  = ((apitch*aenv1)+(anoise*aenv2))*ilevel*p5 ;MIX AUDIO SIGNALS AND SCALE ACCORDING TO GUI 'Level' CONTROL
 
-  aL,aR pan2  amix,ipan         ;PAN THE MONOPHONIC AUDIO SIGNAL
-  outs  aL,aR           ;SEND AUDIO TO OUTPUTS
+  pan_verb_mix(amix, xchan:k("SD.pan", 0.5), xchan:k("SD.rvb", chnget:i("drums.rvb.default")))
 endin
 
 
@@ -1677,7 +1672,6 @@ instr OHH ;OPEN HIGH HAT
   idur = xchan("OHH.decay", 1.0)  
   ilevel = xchan("OHH.level", 1) 
   itune = xchan("OHH.tune", 0)
-  ipan = xchan("OHH.pan", 0.5)
   ioct = octave:i(itune)
 
 
@@ -1715,8 +1709,8 @@ instr OHH ;OPEN HIGH HAT
   
   ;MIX PULSE OSCILLATOR AND NOISE COMPONENTS
   amix  = (amix+anoise)*ilevel*p5*0.55
-  aL,aR pan2  amix,ipan     ;PAN MONOPHONIC SIGNAL
-  outs  aL,aR       ;SEND TO OUTPUTS
+
+  pan_verb_mix(amix, xchan:k("OHH.pan", 0.5), xchan:k("OHH.rvb", chnget:i("drums.rvb.default")))
 endin
 
 
@@ -1725,7 +1719,6 @@ instr CHH ;CLOSED HIGH HAT
   idur = xchan("CHH.decay", 1.0)  
   ilevel = xchan("CHH.level", 1) 
   itune = xchan("CHH.tune", 0)
-  ipan = xchan("CHH.pan", 0.5)
   ioct = octave:i(itune)
 
   kFrq1 = 296*ioct  ;FREQUENCIES OF THE 6 OSCILLATORS
@@ -1768,8 +1761,8 @@ instr CHH ;CLOSED HIGH HAT
   
   ;MIX PULSE OSCILLATOR AND NOISE COMPONENTS
   amix  = (amix+anoise)*ilevel*p5*0.55
-  aL,aR pan2  amix,ipan     ;PAN MONOPHONIC SIGNAL
-  outs  aL,aR       ;SEND TO OUTPUTS
+
+  pan_verb_mix(amix, xchan:k("CHH.pan", 0.5), xchan:k("CHH.rvb", chnget:i("drums.rvb.default")))
 endin
 
 /** High Tom - From Iain McCurdy's TR-808.csd */
@@ -1777,7 +1770,6 @@ instr HiTom ;HIGH TOM
   idur = xchan("HiTom.decay", 1.0)  
   ilevel = xchan("HiTom.level", 1) 
   itune = xchan("HiTom.tune", 0)
-  ipan = xchan("HiTom.pan", 0.5)
   ioct = octave:i(itune)
 
   ifrq      = 200 * ioct  ;FREQUENCY
@@ -1798,8 +1790,8 @@ instr HiTom ;HIGH TOM
   
   ;MIX THE TWO SOUND COMPONENTS
   amix  = (asig + anoise)*ilevel*p5
-  aL,aR pan2  amix,ipan       ;PAN MONOPHONIC SIGNAL
-  outs  aL,aR         ;SEND AUDIO TO OUTPUTS
+
+  pan_verb_mix(amix, xchan:k("HiTom.pan", 0.5), xchan:k("HiTom.rvb", chnget:i("drums.rvb.default")))
 endin
 
 /** Mid Tom - From Iain McCurdy's TR-808.csd */
@@ -1807,7 +1799,6 @@ instr MidTom ;MID TOM
   idur = xchan("MidTom.decay", 1.0) 
   ilevel = xchan("MidTom.level", 1) 
   itune = xchan("MidTom.tune", 0)
-  ipan = xchan("MidTom.pan", 0.5)
   ioct = octave:i(itune)
 
   ifrq      = 133*ioct    ;FREQUENCY
@@ -1828,8 +1819,8 @@ instr MidTom ;MID TOM
   
   ;MIX THE TWO SOUND COMPONENTS
   amix  = (asig + anoise)*ilevel*p5
-  aL,aR pan2  amix,ipan     ;PAN MONOPHONIC SIGNAL
-  outs  aL,aR         ;SEND AUDIO TO OUTPUTS
+
+  pan_verb_mix(amix, xchan:k("MidTom.pan", 0.5), xchan:k("MidTom.rvb", chnget:i("drums.rvb.default")))
 endin
 
 /** Low Tom - From Iain McCurdy's TR-808.csd */
@@ -1837,7 +1828,6 @@ instr LowTom  ;LOW TOM
   idur = xchan("LowTom.decay", 1.0) 
   ilevel = xchan("LowTom.level", 1) 
   itune = xchan("LowTom.tune", 0)
-  ipan = xchan("LowTom.pan", 0.5)
   ioct = octave:i(itune)
 
   ifrq      = 90 * ioct ;FREQUENCY
@@ -1858,8 +1848,8 @@ instr LowTom  ;LOW TOM
   
   ;MIX THE TWO SOUND COMPONENTS
   amix  = (asig + anoise)*ilevel*p5
-  aL,aR pan2  amix,ipan       ;PAN MONOPHONIC SIGNAL
-  outs  aL,aR         ;SEND AUDIO TO OUTPUTS
+
+  pan_verb_mix(amix, xchan:k("LowTom.pan", 0.5), xchan:k("LowTom.rvb", chnget:i("drums.rvb.default")))
 endin
 
 
@@ -1869,7 +1859,6 @@ instr Cymbal  ;CYMBAL
   idur = xchan("Cymbal.decay", 1.0) 
   ilevel = xchan("Cymbal.level", 1) 
   itune = xchan("Cymbal.tune", 0)
-  ipan = xchan("Cymbal.pan", 0.5)
   ioct = octave:i(itune)
 
   iFrq1 = 296*ioct  ;FREQUENCIES OF THE 6 OSCILLATORS
@@ -1908,8 +1897,8 @@ instr Cymbal  ;CYMBAL
 
   ;MIX PULSE OSCILLATOR AND NOISE COMPONENTS
   amix  = (amix+anoise)*ilevel*p5*0.85
-  aL,aR pan2  amix,ipan   ;PAN MONOPHONIC SIGNAL
-  outs  aL,aR       ;SEND TO OUTPUTS
+
+  pan_verb_mix(amix, xchan:k("Cymbal.pan", 0.5), xchan:k("Cymbal.rvb", chnget:i("drums.rvb.default")))
 endin
 
 ;WAVEFORM FOR TR808 RIMSHOT
@@ -1921,7 +1910,6 @@ instr Rimshot ;RIM SHOT
   idur = xchan("Rimshot.decay", 1.0)  
   ilevel = xchan("Rimshot.level", 1) 
   itune = xchan("Rimshot.tune", 0)
-  ipan = xchan("Rimshot.pan", 0.5)
 
   idur  = 0.027*idur    ;NOTE DURATION
   p3  limit idur,0.1,10     ;LIMIT THE MINIMUM DURATION OF THE NOTE (VERY SHORT NOTES CAN RESULT IN THE INDICATOR LIGHT ON-OFF NOTE BEING TO0 SHORT)
@@ -1943,8 +1931,8 @@ instr Rimshot ;RIM SHOT
 
   ;MIX
   amix  = (aring+anoise)*ilevel*p5*0.8
-  aL,aR pan2  amix,ipan     ;PAN MONOPHONIC SIGNAL  
-  outs  aL,aR       ;SEND TO OUTPUTS
+
+  pan_verb_mix(amix, xchan:k("Rimshot.pan", 0.5), xchan:k("Rimshot.rvb", chnget:i("drums.rvb.default")))
 endin
 
 
@@ -1953,7 +1941,6 @@ instr Claves
   idur = xchan("Claves.decay", 1.0) 
   ilevel = xchan("Claves.level", 1) 
   itune = xchan("Claves.tune", 0)
-  ipan = xchan("Claves.pan", 0.5)
 
   ifrq  = 2500*octave(itune)  ;FREQUENCY OF OSCILLATOR
   idur  = 0.045   * idur    ;DURATION OF THE NOTE
@@ -1962,8 +1949,8 @@ instr Claves
   afmod expsega 3,0.00005,1,1,1     ;FREQUENCY MODULATION ENVELOPE. GIVES THE SOUND A LITTLE MORE ATTACK.
   asig  oscili  -(aenv-0.001),ifrq*afmod,gi_808_sine,0  ;AUDIO OSCILLATOR
   asig  = asig * 0.4 * ilevel * p5    ;RESCALE AMPLITUDE
-  aL,aR pan2  asig,ipan     ;PAN MONOPHONIC AUDIO SIGNAL
-  outs  aL,aR       ;SEND AUDIO TO OUTPUTS
+
+  pan_verb_mix(asig, xchan:k("Claves.pan", 0.5), xchan:k("Claves.rvb", chnget:i("drums.rvb.default")))
 endin
 
 
@@ -1972,7 +1959,6 @@ instr Cowbell
   idur = xchan("Cowbell.decay", 1.0)  
   ilevel = xchan("Cowbell.level", 1) 
   itune = xchan("Cowbell.tune", 0)
-  ipan = xchan("Cowbell.pan", 0.5)
 
   ifrq1 = 562 * octave(itune) ;FREQUENCIES OF THE TWO OSCILLATORS
   ifrq2 = 845 * octave(itune) ;
@@ -1995,9 +1981,8 @@ instr Cowbell
   amix  dcblock2  (abpf*0.06*kenv1)+(alpf*0.5)+(amix*0.9) ;MIX ALL SIGNALS AND BLOCK DC OFFSET
   amix  buthp amix,700      ;HIGHPASS FILTER THE MIX OF ALL SIGNALS
   amix  = amix * 0.07 * kenv * p5 * ilevel  ;RESCALE AMPLITUDE
-  aL,aR pan2  amix,ipan     ;PAN THE MONOPHONIC AUDIO SIGNAL
 
-  outs  aL,aR       ;SEND AUDIO TO OUTPUTS
+  pan_verb_mix(amix, xchan:k("Cowbell.pan", 0.5), xchan:k("Cowbell.rvb", chnget:i("drums.rvb.default")))
 endin
 
 /** Maraca - from Iain McCurdy's TR-808.csd */ 
@@ -2005,7 +1990,6 @@ instr Maraca  ;MARACA
   idur = xchan("Maraca.decay", 1.0) 
   ilevel = xchan("Maraca.level", 1) 
   itune = xchan("Maraca.tune", 0)
-  ipan = xchan("Maraca.pan", 0.5)
   ioct = octave:i(itune)
 
   idur  = 0.07*idur       ;DURATION 3
@@ -2024,8 +2008,8 @@ instr Maraca  ;MARACA
   anoise  buthp anoise,iHPF       ;HIGHPASS FILTER THE SOUND
   anoise  butlp anoise,iLPF       ;LOWPASS FILTER THE SOUND
   anoise  = anoise*aenv*p5*ilevel ;SCALE THE AMPLITUDE
-  aL,aR pan2  anoise,ipan     ;PAN THE MONOPONIC SIGNAL
-  outs  aL,aR         ;SEND AUDIO TO OUTPUTS
+
+  pan_verb_mix(anoise, xchan:k("Maraca.pan", 0.5), xchan:k("Maraca.rvb", chnget:i("drums.rvb.default")))
 endin
 
 /** High Conga - From Iain McCurdy's TR-808.csd */
@@ -2033,7 +2017,6 @@ instr HiConga ;HIGH CONGA
   idur = xchan("HiConga.decay", 1.0)  
   ilevel = xchan("HiConga.level", 1) 
   itune = xchan("HiConga.tune", 0)
-  ipan = xchan("HiConga.pan", 0.5)
   ioct = octave:i(itune)
 
   ifrq    = 420*ioct    ;FREQUENCY OF NOTE
@@ -2042,8 +2025,8 @@ instr HiConga ;HIGH CONGA
   afrq  expsega ifrq*3,0.25/ifrq,ifrq,1,ifrq  ;FREQUENCY ENVELOPE (CREATE A SHARPER ATTACK)
   asig  oscili  -aenv*0.25,afrq,gi_808_sine   ;CREATE THE AUDIO OSCILLATOR
   asig  = asig*p5*ilevel  ;SCALE THE AMPLITUDE
-  aL,aR pan2  asig,ipan     ;PAN THE MONOPHONIC AUDIO SIGNAL
-  outs  aL,aR       ;SEND AUDIO TO THE OUTPUTS
+  
+  pan_verb_mix(asig, xchan:k("HiConga.pan", 0.5), xchan:k("HiConga.rvb", chnget:i("drums.rvb.default")))
 endin
 
 /** Mid Conga - From Iain McCurdy's TR-808.csd */
@@ -2051,7 +2034,6 @@ instr MidConga  ;MID CONGA
   idur = xchan("MidConga.decay", 1.0) 
   ilevel = xchan("MidConga.level", 1) 
   itune = xchan("MidConga.tune", 0)
-  ipan = xchan("MidConga.pan", 0.5)
   ioct = octave:i(itune)
 
   ifrq    = 310*ioct    ;FREQUENCY OF NOTE
@@ -2060,16 +2042,15 @@ instr MidConga  ;MID CONGA
   afrq  expsega ifrq*3,0.25/ifrq,ifrq,1,ifrq  ;FREQUENCY ENVELOPE (CREATE A SHARPER ATTACK)
   asig  oscili  -aenv*0.25,afrq,gi_808_sine   ;CREATE THE AUDIO OSCILLATOR
   asig  = asig*p5*ilevel    ;SCALE THE AMPLITUDE
-  aL,aR pan2  asig,ipan     ;PAN THE MONOPHONIC AUDIO SIGNAL
-  outs  aL,aR       ;SEND AUDIO TO THE OUTPUTS
+
+  pan_verb_mix(asig, xchan:k("MidConga.pan", 0.5), xchan:k("MidConga.rvb", chnget:i("drums.rvb.default")))
 endin
 
 /** Low Conga - From Iain McCurdy's TR-808.csd */
 instr LowConga  ;LOW CONGA
-  idur = xchan("MidConga.decay", 1.0) 
-  ilevel = xchan("MidConga.level", 1) 
-  itune = xchan("MidConga.tune", 0)
-  ipan = xchan("MidConga.pan", 0.5)
+  idur = xchan("LowConga.decay", 1.0) 
+  ilevel = xchan("LowConga.level", 1) 
+  itune = xchan("LowConga.tune", 0)
   ioct = octave:i(itune)
 
   ifrq    = 227*ioct    ;FREQUENCY OF NOTE
@@ -2078,8 +2059,8 @@ instr LowConga  ;LOW CONGA
   afrq  expsega ifrq*3,0.25/ifrq,ifrq,1,ifrq  ;FREQUENCY ENVELOPE (CREATE A SHARPER ATTACK)
   asig  oscili  -aenv*0.25,afrq,gi_808_sine   ;CREATE THE AUDIO OSCILLATOR
   asig  = asig*p5*ilevel  ;SCALE THE AMPLITUDE
-  aL,aR pan2  asig,ipan     ;PAN THE MONOPHONIC AUDIO SIGNAL
-  outs  aL,aR       ;SEND AUDIO TO THE OUTPUTS
+
+  pan_verb_mix(asig, xchan:k("LowConga.pan", 0.5), xchan:k("LowConga.rvb", chnget:i("drums.rvb.default")))
 endin
 
 ;; INITIALIZATION OF SYSTEM
