@@ -27,9 +27,46 @@
     <script src="web/keymap/emacs.js"></script>
 
     <link rel="manifest" href="web/manifest.json">
+    
+      
+    <!---- GOLDEN LAYOUT STUFFFF-->
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+
+    <script type="text/javascript" src="https://golden-layout.com/files/latest/js/goldenlayout.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://golden-layout.com/files/latest/css/goldenlayout-base.css" />
+
+    <link type="text/css" rel="stylesheet" href="https://golden-layout.com/files/latest/css/goldenlayout-dark-theme.css" />
+
+    <script type="text/javascript">
+        var config = {
+          content: [{
+            type: 'row',
+            content: [
+                {
+                type:'component',
+                componentName: 'example',
+                componentState: { text: 'Code Window'}
+                },
+              {
+                type:'component',
+                componentName: 'example',
+                componentState: { text: 'Console Output' }
+                }
+            ]
+          }]
+        };
+
+        var myLayout = new GoldenLayout( config );
+
+        myLayout.registerComponent( 'example', function( container, state ){
+          container.getElement().html( '<h2>' + state.text + '</h2>');
+        });
+
+        myLayout.init();
+    </script>
   </head>
 
-  <body>
+  <!--<body>
     <div id="loadDiv">
       <code>... L O A D I N G &nbsp; C S O U N D ...</code>
     </div>
@@ -48,5 +85,5 @@
 
     <script src="web/csound/CsoundObj.js"></script>
     <script src="web/cslivecode.js"></script>
-  </body>
+  </body>-->
 </html>
