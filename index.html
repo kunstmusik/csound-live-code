@@ -39,8 +39,20 @@
 
     <script type="text/javascript">
         var config = {
+          settings:{
+            hasHeaders: false,
+            constrainDragToContainer: true,
+            reorderEnabled: true,
+            selectionEnabled: false,
+            popoutWholeStack: false,
+            blockedPopoutsThrowError: true,
+            closePopoutsOnUnload: true,
+            showPopoutIcon: true,
+            showMaximiseIcon: true,
+            showCloseIcon: false
+          },
           content: [{
-            type: 'row',
+            type: 'column',
             content: [
                 {
                 type:'component',
