@@ -36,11 +36,17 @@
     <link type="text/css" rel="stylesheet" href="https://golden-layout.com/files/latest/css/goldenlayout-base.css" />
 
     <link type="text/css" rel="stylesheet" href="https://golden-layout.com/files/latest/css/goldenlayout-dark-theme.css" />
-
+    <style>
+     h2{
+      font: 14px, sans-serif;
+      color:#fff;
+      padding: 10px;
+     }
+    </style>
     <script type="text/javascript">
         var config = {
           settings:{
-            hasHeaders: false,
+            hasHeaders: true,
             constrainDragToContainer: true,
             reorderEnabled: true,
             selectionEnabled: false,
@@ -55,14 +61,16 @@
             type: 'column',
             content: [
                 {
-                type:'component',
-                componentName: 'example',
-                componentState: { text: 'Code Window'}
+                    type:'component',
+                    componentName: 'Code',
+                    componentState: { text: 'Code Window' },
+                    isClosable: false
                 },
-              {
-                type:'component',
-                componentName: 'example',
-                componentState: { text: 'Console Output' }
+                {
+                    type:'component',
+                    componentName: 'Console',
+                    componentState: { text: 'Console Output' },
+                    isClosable: false
                 }
             ]
           }]
@@ -70,14 +78,26 @@
 
         var myLayout = new GoldenLayout( config );
 
-        myLayout.registerComponent( 'example', function( container, state ){
-          container.getElement().html( '<h2>' + state.text + '</h2>');
+        myLayout.registerComponent( 'Code', function( container, state ){
+            container.getElement().html( '<h2>' + state.text + '</h2>');
         });
-
+        
+        myLayout.registerComponent( 'Console', function( container, state ){
+            container.getElement().html( '<h2>' + state.text + '</h2>');
+        });
         myLayout.init();
+        
+        
+        
     </script>
   </head>
 
+  <body>
+      <div id="wrapper">
+        <ul id="menuContainer"></ul>
+        <div id="layoutContainer"></div>
+      </div>  
+  </body>
   <!--<body>
     <div id="loadDiv">
       <code>... L O A D I N G &nbsp; C S O U N D ...</code>
