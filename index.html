@@ -36,13 +36,7 @@
     <link type="text/css" rel="stylesheet" href="https://golden-layout.com/files/latest/css/goldenlayout-base.css" />
 
     <link type="text/css" rel="stylesheet" href="https://golden-layout.com/files/latest/css/goldenlayout-dark-theme.css" />
-    <style>
-     h2{
-      font: 14px, sans-serif;
-      color:#fff;
-      padding: 10px;
-     }
-    </style>
+
     <script type="text/javascript">
         var config = {
           settings:{
@@ -53,8 +47,8 @@
             popoutWholeStack: false,
             blockedPopoutsThrowError: true,
             closePopoutsOnUnload: true,
-            showPopoutIcon: true,
-            showMaximiseIcon: true,
+            showPopoutIcon: false,
+            showMaximiseIcon: false,
             showCloseIcon: false
           },
           content: [{
@@ -79,7 +73,7 @@
         var myLayout = new GoldenLayout( config );
 
         myLayout.registerComponent( 'Code', function( container, state ){
-            container.getElement().html( '<h2>' + state.text + '</h2>');
+            container.getElement().html( "<div id=\"csoundCodeEditor\"></div>");
         });
         
         myLayout.registerComponent( 'Console', function( container, state ){
@@ -93,12 +87,6 @@
   </head>
 
   <body>
-      <div id="wrapper">
-        <ul id="menuContainer"></ul>
-        <div id="layoutContainer"></div>
-      </div>  
-  </body>
-  <!--<body>
     <div id="loadDiv">
       <code>... L O A D I N G &nbsp; C S O U N D ...</code>
     </div>
@@ -113,9 +101,9 @@
       <i id="helpButton" class="bar-btn fas fa-question-circle" style="float:right" title="Open Documentation in new Window"></i>
 
     </header>
-    <div id="csoundCodeEditor"></div>
+    <!--<div id="csoundCodeEditor"></div>-->
 
     <script src="web/csound/CsoundObj.js"></script>
     <script src="web/cslivecode.js"></script>
-  </body>-->
+  </body>
 </html>
