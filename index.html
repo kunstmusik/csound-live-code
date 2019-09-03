@@ -1,23 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
-
   <head>
     <title>Live Coding with Csound</title>
 
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="theme-color" content="#000000">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta name="theme-color" content="#000000" />
 
-    <meta property="og:title" content="Live Coding with Csound">
-    <meta property="og:description" content="Live code music in WebAssembly-enabled browsers using Csound.">
-    <meta property="og:image" content="http://live.csound.com/web/og_image.png">
-    <meta property="og:url" content="http://live.csound.com">
+    <meta property="og:title" content="Live Coding with Csound" />
+    <meta
+      property="og:description"
+      content="Live code music in WebAssembly-enabled browsers using Csound."
+    />
+    <meta
+      property="og:image"
+      content="http://live.csound.com/web/og_image.png"
+    />
+    <meta property="og:url" content="http://live.csound.com" />
 
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.1/css/all.css" integrity="sha384-O8whS3fhG2OnA5Kas0Y9l3cfpmYjapjI0E4theH4iuMD+pLhbf6JI0jIMfYcK3yZ" crossorigin="anonymous">
-    <link href="https://fonts.googleapis.com/css?family=Raleway|Roboto:400,700" rel="stylesheet">
-    <link rel="stylesheet" href="web/codemirror.css">
-    <link rel="stylesheet" href="web/theme/monokai.css">
-    <link rel="stylesheet" href="web/cslivecode.css">
+    <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v5.1.1/css/all.css"
+      integrity="sha384-O8whS3fhG2OnA5Kas0Y9l3cfpmYjapjI0E4theH4iuMD+pLhbf6JI0jIMfYcK3yZ"
+      crossorigin="anonymous"
+    />
+    <link
+      href="https://fonts.googleapis.com/css?family=Raleway|Roboto:400,700"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="web/codemirror.css" />
+    <link rel="stylesheet" href="web/theme/monokai.css" />
+    <link rel="stylesheet" href="web/cslivecode.css" />
     <script src="web/codemirror.js"></script>
     <script src="web/mode/csound/csound.js"></script>
     <script src="web/addon/comment/comment.js"></script>
@@ -26,64 +42,29 @@
     <script src="web/keymap/vim.js"></script>
     <script src="web/keymap/emacs.js"></script>
 
-    <link rel="manifest" href="web/manifest.json">
-    
-      
+    <link rel="manifest" href="web/manifest.json" />
+
     <!---- GOLDEN LAYOUT STUFFFF-->
-    <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script
+      type="text/javascript"
+      src="http://code.jquery.com/jquery-1.11.1.min.js"
+    ></script>
 
-    <script type="text/javascript" src="https://golden-layout.com/files/latest/js/goldenlayout.min.js"></script>
-    <link type="text/css" rel="stylesheet" href="https://golden-layout.com/files/latest/css/goldenlayout-base.css" />
+    <script
+      type="text/javascript"
+      src="https://golden-layout.com/files/latest/js/goldenlayout.min.js"
+    ></script>
+    <link
+      type="text/css"
+      rel="stylesheet"
+      href="https://golden-layout.com/files/latest/css/goldenlayout-base.css"
+    />
 
-    <link type="text/css" rel="stylesheet" href="https://golden-layout.com/files/latest/css/goldenlayout-dark-theme.css" />
-
-    <script type="text/javascript">
-        var config = {
-          settings:{
-            hasHeaders: true,
-            constrainDragToContainer: true,
-            reorderEnabled: true,
-            selectionEnabled: false,
-            popoutWholeStack: false,
-            blockedPopoutsThrowError: true,
-            closePopoutsOnUnload: true,
-            showPopoutIcon: false,
-            showMaximiseIcon: false,
-            showCloseIcon: false
-          },
-          content: [{
-            type: 'column',
-            content: [
-                {
-                    type:'component',
-                    componentName: 'Code',
-                    componentState: { text: 'Code Window' },
-                    isClosable: false
-                },
-                {
-                    type:'component',
-                    componentName: 'Console',
-                    componentState: { text: 'Console Output' },
-                    isClosable: false
-                }
-            ]
-          }]
-        };
-
-        var myLayout = new GoldenLayout( config );
-
-        myLayout.registerComponent( 'Code', function( container, state ){
-            container.getElement().html( "<div id=\"csoundCodeEditor\"></div>");
-        });
-        
-        myLayout.registerComponent( 'Console', function( container, state ){
-            container.getElement().html( '<h2>' + state.text + '</h2>');
-        });
-        myLayout.init();
-        
-        
-        
-    </script>
+    <link
+      type="text/css"
+      rel="stylesheet"
+      href="https://golden-layout.com/files/latest/css/goldenlayout-dark-theme.css"
+    />
   </head>
 
   <body>
@@ -93,13 +74,33 @@
     <header>
       <h1>csound-live-code</h1>
       <nav>
-        <i id="playPauseButton" class="bar-btn fas fa-pause-circle" title="Pause Engine"></i>
-        <i id="restartButton" class="bar-btn fas fa-redo-alt" title="Restart Engine"></i>
-        <i id="evalNowButton" class="bar-btn fas fa-code" title="Evaluate Now"></i>
-        <i id="evalMeasureButton" class="bar-btn fas fa-code" title="Evaluate at Measure"></i>
+        <i
+          id="playPauseButton"
+          class="bar-btn fas fa-pause-circle"
+          title="Pause Engine"
+        ></i>
+        <i
+          id="restartButton"
+          class="bar-btn fas fa-redo-alt"
+          title="Restart Engine"
+        ></i>
+        <i
+          id="evalNowButton"
+          class="bar-btn fas fa-code"
+          title="Evaluate Now"
+        ></i>
+        <i
+          id="evalMeasureButton"
+          class="bar-btn fas fa-code"
+          title="Evaluate at Measure"
+        ></i>
       </nav>
-      <i id="helpButton" class="bar-btn fas fa-question-circle" style="float:right" title="Open Documentation in new Window"></i>
-
+      <i
+        id="helpButton"
+        class="bar-btn fas fa-question-circle"
+        style="float:right"
+        title="Open Documentation in new Window"
+      ></i>
     </header>
     <!--<div id="csoundCodeEditor"></div>-->
 
