@@ -267,9 +267,10 @@ const goldenLayoutConfig = {
       content: [
         {
           type: "component",
-          componentName: "Code",
+          componentName: "Live Editor",
           componentState: { text: "Code Window" },
-          isClosable: false
+          isClosable: false,
+          height: 80
         },
         {
           type: "component",
@@ -284,7 +285,7 @@ const goldenLayoutConfig = {
 
 const myLayout = new GoldenLayout(goldenLayoutConfig);
 
-myLayout.registerComponent("Code", function(container, state) {
+myLayout.registerComponent("Live Editor", function(container, state) {
   container.getElement().html('<div id="csoundCodeEditor"></div>');
 });
 
