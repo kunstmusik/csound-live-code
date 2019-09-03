@@ -1,22 +1,27 @@
-* { 
-	padding: 0; margin: 0; 
+* {
+  padding: 0;
+  margin: 0;
 }
 
-html, body {
-    min-height: 100% !important;
-    height: 100%;
-    margin: 0;
-    box-sizing: border-box;
-    display: block;
+html,
+body {
+  min-height: 100% !important;
+  height: 100%;
+  margin: 0;
+  box-sizing: border-box;
+  display: block;
+  font-size: 14px;
 }
 
 .CodeMirror {
-  height:100%;
+  height: 100%;
+  font-family: Monaco, monospace;
+  font-size: 14px;
 }
 
 #loadDiv {
   z-index: 100;
-  float:left;
+  float: left;
   width: 100%;
   height: 100%;
   display: flex;
@@ -32,7 +37,7 @@ html, body {
 
 header {
   height: 3em;
-  width:100%;
+  width: 100%;
   background: #272822;
   border-bottom: 1px solid #333333;
   color: #ccc;
@@ -42,24 +47,24 @@ header {
   padding-right: 1em;
 }
 
-header>h1 {
-  font-family: 'Raleway', sans-serif;
+header > h1 {
+  font-family: "Raleway", sans-serif;
   font-size: 1em;
   display: inline-block;
   /*color: #505050;*/
 }
 
-header>nav {
+header > nav {
   /*padding-top: 0.5em;*/
   margin-left: 1em;
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
   /*height: 1.5em;*/
   background: transparent;
   border-radius: 0px;
   display: inline-block;
 }
 
-header>nav>i {
+header > nav > i {
   margin-right: 0.2em;
   font-size: 1.5em;
 }
@@ -74,16 +79,48 @@ header>nav>i {
 }
 
 #csoundCodeEditor {
-  height:calc(100% - 3em);
-  width:100%;
+  height: 100%;
+  width: 100%;
   box-sizing: border-box;
 }
 
-
 .CodeMirror-highlight {
-  background:rgba(255,255,255,.5)
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .CodeMirror-highlight-delayed {
-  background:rgba(0,192,255,.5)
+  background: rgba(0, 192, 255, 0.5);
+}
+
+#layoutRoot {
+  height: calc(100% - 3em);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.headerTab {
+  color: white;
+  font-family: "Raleway", sans-serif;
+  font-size: 0.8em;
+  padding: 5px 5px 5px 15px;
+  border-bottom: 1px solid #333333;
+}
+
+#console {
+  width: 100%;
+  height: 100%;
+  background: #272822;
+}
+
+#consoleWrapper {
+  height: calc(100% - 26px);
+  width: 100%;
+  overflow: auto;
+}
+
+#consoleOutput {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.75em;
+  color: white;
+  padding: 12px;
 }
