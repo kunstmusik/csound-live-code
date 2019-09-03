@@ -10,6 +10,10 @@ let playPauseButton = document.getElementById("playPauseButton"),
   evalNowButton = document.getElementById("evalNowButton"),
   evalMeasureButton = document.getElementById("evalMeasureButton");
 
+let consoleOutput;
+
+/* UI ACTION FUNCTIONS */
+
 const updatePlayPauseUI = () => {
   if (CSOUND_AUDIO_CONTEXT.state == "running") {
     playPauseButton.className = "bar-btn fas fa-pause-circle";
@@ -81,31 +85,34 @@ const flash = function(txt, color) {
   }, 250);
 };
 
-function evalCode() {
+const evalCode = () => {
   let selectedText = getEvalText();
   cs.compileOrc(selectedText.text);
   flash(selectedText, "CodeMirror-highlight");
-}
+};
 
-function evalCodeAtMeasure() {
+const evalCodeAtMeasure = () => {
   let selectedText = getEvalText();
   // adding fudge of ticks(0.5) to ensure evaluated code is compiled before
   // next measure tick
   let code = `eval_at_time({{${selectedText.text}}}, next_measure() - ticks(0.5))`;
   cs.compileOrc(code);
   flash(selectedText, "CodeMirror-highlight-delayed");
-}
+};
 
-function restart() {
+const restart = () => {
+  consoleOutput.innerHTML = "";
+
   cs.reset();
+  cs.setMessageCallback(csoundMsgCallback);
   cs.setOption("-m0");
   cs.setOption("-odac");
   cs.setOption("-+msg_color=false");
   cs.compileOrc("ksmps=32\n0dbfs=1\nnchnls=2\nnchnls_i=1\n" + livecodeOrc);
   cs.start();
-}
+};
 
-function insertHexplay() {
+const insertHexplay = () => {
   const hexCode =
     'hexplay("8",\n' +
     '      "Sub5", p3,\n' +
@@ -117,9 +124,9 @@ function insertHexplay() {
 
   const doc = editor.getDoc();
   doc.replaceRange(hexCode, doc.getCursor());
-}
+};
 
-function insertEuclidplay() {
+const insertEuclidplay = () => {
   const hexCode =
     "euclidplay(13, 32,\n" +
     '      "Sub5", p3,\n' +
@@ -131,11 +138,11 @@ function insertEuclidplay() {
 
   const doc = editor.getDoc();
   doc.replaceRange(hexCode, doc.getCursor());
-}
+};
 
 let editor = null;
 
-function setupCodeMirror() {
+const setupCodeMirror = () => {
   editor = CodeMirror(document.getElementById("csoundCodeEditor"), {
     lineNumbers: true,
     matchBrackets: true,
@@ -161,13 +168,18 @@ function setupCodeMirror() {
       "Cmd-Alt-C": CodeMirror.commands.toggleComment
     })
   });
-}
+};
 
-function onRuntimeInitialized() {
+const csoundMsgCallback = msg => {
+  consoleOutput.innerHTML += msg + "\n";
+};
+
+const onRuntimeInitialized = () => {
   fetch("livecode.orc").then(function(response) {
     return response.text().then(function(v) {
       livecodeOrc = v;
       let ld = document.getElementById("loadDiv");
+      consoleOutput = document.getElementById("consoleOutput");
 
       const finishLoadCsObj = function() {
         CSOUND_AUDIO_CONTEXT.resume().then(() => {
@@ -195,15 +207,15 @@ function onRuntimeInitialized() {
       }
     });
   });
-}
+};
 
 /* UI SETUP */
 
-function openHelp() {
+const openHelp = () => {
   const url =
     "https://github.com/kunstmusik/csound-live-code/blob/master/doc/intro.md";
   window.open(url);
-}
+};
 
 const playPause = () => {
   if (CSOUND_AUDIO_CONTEXT.state == "running") {
@@ -250,7 +262,7 @@ function layoutComplete() {
 // GOLDENLAYOUT CODE
 const goldenLayoutConfig = {
   settings: {
-    hasHeaders: true,
+    hasHeaders: false,
     constrainDragToContainer: true,
     reorderEnabled: true,
     selectionEnabled: false,
@@ -261,6 +273,9 @@ const goldenLayoutConfig = {
     showMaximiseIcon: false,
     showCloseIcon: false
   },
+  dimensions: {
+    minItemHeight: 20
+  },
   content: [
     {
       type: "column",
@@ -269,30 +284,42 @@ const goldenLayoutConfig = {
           type: "component",
           componentName: "Live Editor",
           componentState: { text: "Code Window" },
-          isClosable: false,
-          height: 80
+          isClosable: false
         },
         {
           type: "component",
           componentName: "Console",
           componentState: { text: "Console Output" },
-          isClosable: false
+          isClosable: false,
+          height: 5
         }
       ]
     }
   ]
 };
 
-const myLayout = new GoldenLayout(goldenLayoutConfig);
+const myLayout = new GoldenLayout(
+  goldenLayoutConfig,
+  document.getElementById("layoutRoot")
+);
 
 myLayout.registerComponent("Live Editor", function(container, state) {
   container.getElement().html('<div id="csoundCodeEditor"></div>');
 });
 
 myLayout.registerComponent("Console", function(container, state) {
-  container.getElement().html("<h2>" + state.text + "</h2>");
+  container.getElement().html(`<div id="console">  
+    <div class='headerTab'>Console</div>
+    <div id='consoleWrapper'>
+      <pre id='consoleOutput'></pre>
+    </div>
+  </div>`);
 });
 
 myLayout.on("initialised", layoutComplete);
 
 myLayout.init();
+
+window.onresize = () => {
+  myLayout.updateSize();
+};
