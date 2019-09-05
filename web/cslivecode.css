@@ -96,6 +96,7 @@ header > nav > i {
   height: calc(100% - 3em);
   width: 100%;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .headerTab {
