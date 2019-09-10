@@ -619,6 +619,8 @@ Saturation using tanh
 |  Noi | Filtered noise, exponential envelope  | 
 |  Wobble | Wobble patched based on Jacob Joaquin's "Tempo-Synced Wobble Bass"  | 
 |  Sine | Simple Sinewave instrument with exponential envelope  | 
+|  Squine1 | Squinewave Synth, 2 osc  | 
+|  Form1 | Formant Synth, buzz source, soprano ah formants  | 
 |  Mono | Monophone synth using sawtooth wave and 4pole lpf. Use "start("Mono") to run the monosynth, then use MonoNote instrument to play the instrument.  | 
 |  MonoNote | Note playing instrument for Mono synth. Be careful to use this and not try to create multiple Mono instruments!  | 
 |  Clap | Modified clap instrument by Istvan Varga (clap1.orc)  | 

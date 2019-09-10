@@ -118,6 +118,8 @@
 |  Noi | 
 |  Wobble | 
 |  Sine | 
+|  Squine1 | 
+|  Form1 | 
 |  Mono | 
 |  MonoNote | 
 |  Clap | 

@@ -1547,6 +1547,26 @@ instr Squine1
   
 endin
 
+gi_lc_sine = ftgen(0, 0, 65536, 10, 1)
+
+/** Formant Synth, buzz source, soprano ah formants */
+instr Form1 
+  iamp = p5
+  ifreq = p4
+  asig = buzz(1, ifreq * (1 + lfo(.003, 4)), (sr / 2) / ifreq, gi_lc_sine)
+  
+  a1 = butterbp(asig, 800, 80)
+  a2 = butterbp(asig * ampdbfs(-6), 1150, 90)
+  a3 = butterbp(asig * ampdbfs(-32), 2900 , 120)
+  a4 = butterbp(asig * ampdbfs(-20), 3900, 130)
+  a5 = butterbp(asig * ampdbfs(-50), 4950, 140)
+
+  asig = a1 + a2 + a3 + a4 + a5
+  asig *= 35 * iamp * adsr(0.05, 0, 1, 0.01)
+  
+  pan_verb_mix(asig, xchan:i("Form1.pan", 0.5), xchan:i("Form1.rvb", chnget:i("rvb.default")))
+endin
+
 ;; MONOPHONIC SYNTHS
 
 /** Monophone synth using sawtooth wave and 4pole lpf. Use "start("Mono") to run the monosynth, then use MonoNote instrument to play the instrument. */
