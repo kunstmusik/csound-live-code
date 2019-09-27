@@ -51,6 +51,8 @@
 | ival | **xoscib** | ibeats, kvals[]  |
 | ival | **xoscim** | ibeats, kvals[]  |
 | ival | **xlin** | iphase, istart, iend  |
+| ival | **xoscd** | itick, kdurs[]  |
+| ival | **xoscd** | kdurs[]  |
 | ival | **dur\_seq** | itick, kdurs[]  |
 | ival | **dur\_seq** | kdurs[]  |
 | iiival | **melodic** | itick, kdurs[], kpchs[], kamps[]  |

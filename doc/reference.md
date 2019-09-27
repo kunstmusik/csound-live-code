@@ -319,6 +319,18 @@ Line (Ramp) oscillator. Given phase in range 0-1, return interpolated value betw
 
 ---
 
+ival = **xoscd**(itick, kdurs[])
+
+Given a tick value and array of durations, returns new duration value for tick. 
+
+---
+
+ival = **xoscd**(kdurs[])
+
+Given an array of durations, returns new duration value for current clock tick. Useful with mod division and cycle for additive/subtractive rhythms. 
+
+---
+
 ival = **dur\_seq**(itick, kdurs[])
 
 Given a tick value and array of durations, returns new duration or 0 depending upon whether tick hits a new duration value. Values

@@ -582,6 +582,49 @@ endop
 
 ;; Duration Sequences
 
+/** Given a tick value and array of durations, returns new duration value for tick. */
+opcode xoscd, i, ik[]
+  itick, kdurs[] xin
+  indx = 0
+  isum = 0
+  ilen = lenarray:i(kdurs)
+  ival = 0
+
+  while (indx < ilen) do
+    isum += i(kdurs, indx)
+    indx += 1
+  od
+
+  itick = itick % isum
+  indx = 0
+  ival = 0
+  icur = 0
+
+  while (indx < ilen) do
+    itemp = i(kdurs, indx) 
+
+    if(itick < icur + itemp) then
+      ival = itemp 
+      indx += ilen
+    else
+      icur += abs(itemp)
+    endif
+    
+    indx += 1
+  od
+
+  xout ival 
+
+ endop 
+
+
+/** Given an array of durations, returns new duration value for current clock tick. Useful with mod division and cycle for additive/subtractive rhythms. */
+opcode xoscd, i, k[]
+  kdurs[] xin
+  xout xoscd(now_tick(), kdurs)
+endop
+
+
 /** Given a tick value and array of durations, returns new duration or 0 depending upon whether tick hits a new duration value. Values
 may be positive or negative, but not zero. Negative values can be interpreted as rest durations. */
 opcode dur_seq, i, ik[]
