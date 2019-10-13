@@ -1,4 +1,4 @@
-var cacheName = "csound-live-code-14";
+var cacheName = "csound-live-code-15";
 var filesToCache = [
   "/",
   "/index.html",
@@ -23,7 +23,7 @@ var filesToCache = [
   "/start.orc",
   "https://fonts.googleapis.com/css?family=Raleway|Roboto:400,700",
   "https://use.fontawesome.com/releases/v5.1.1/css/all.css",
-  "http://code.jquery.com/jquery-1.11.1.min.js",
+  "https://code.jquery.com/jquery-1.11.1.min.js",
   "https://golden-layout.com/files/latest/js/goldenlayout.min.js",
   "https://golden-layout.com/files/latest/css/goldenlayout-base.css",
   "https://golden-layout.com/files/latest/css/goldenlayout-dark-theme.css"
