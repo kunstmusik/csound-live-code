@@ -55,16 +55,16 @@ opcode load_dirt_samples, 0,0
 
 endop
 
-opcode dirt, 0, Si
-  Sinstr, iamp xin 
-
-  schedule("dirt_play", 0, 1, Sinstr, 1, iamp)
-endop
-
 opcode dirt, 0, Sii
   Sinstr, iamp, irate xin 
 
   schedule("dirt_play", 0, 1, Sinstr, irate, iamp)
+endop
+
+opcode dirt, 0, Si
+  Sinstr, iamp xin 
+
+  schedule("dirt_play", 0, 1, Sinstr, 1, iamp)
 endop
 
 instr dirt_play
@@ -78,7 +78,6 @@ instr dirt_play
   ;Sbase = (index > 0) ? strsub(Sinstr, 0, index) : Sinstr
 
   Sbase = Sinstr
-
   asig = lposcil:a(p6, p5, 0, ilen, itab) 
 
   pan_verb_mix(asig, xchan:k(strcat(Sbase, ".pan"), 0.5), 
