@@ -55,16 +55,9 @@ opcode load_dirt_samples, 0,0
 
 endop
 
-opcode dirt, 0, Sii
+opcode dirt, 0, Sip
   Sinstr, iamp, irate xin 
-
   schedule("dirt_play", 0, 1, Sinstr, irate, iamp)
-endop
-
-opcode dirt, 0, Si
-  Sinstr, iamp xin 
-
-  schedule("dirt_play", 0, 1, Sinstr, 1, iamp)
 endop
 
 instr dirt_play
