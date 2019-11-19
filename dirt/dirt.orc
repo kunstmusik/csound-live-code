@@ -57,7 +57,9 @@ endop
 
 opcode dirt, 0, Sip
   Sinstr, iamp, irate xin 
-  schedule("dirt_play", 0, 1, Sinstr, irate, iamp)
+  if (iamp >= 0) then
+    schedule("dirt_play", 0, 1, Sinstr, irate, iamp)
+  endif
 endop
 
 instr dirt_play
@@ -72,6 +74,7 @@ instr dirt_play
 
   Sbase = Sinstr
   asig = lposcil:a(p6, p5, 0, ilen, itab) 
+  asig *= linen:a(1, 0, p3, 0.01)
 
   pan_verb_mix(asig, xchan:k(strcat(Sbase, ".pan"), 0.5), 
     xchan:k(strcat(Sbase, ".rvb"), chnget:i("drums.rvb.default")))
