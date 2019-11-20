@@ -1217,10 +1217,23 @@ opcode pan_verb_mix, 0,akk
     sbus_mix(0, al, ar)
     sbus_mix(1, al * krvb, ar * krvb)
   else 
-    outc(al, ar)
+    out(al, ar)
   endif
 endop
 
+/** Utility opcode to send dry stereo to mixer and send amount 
+    of stereo signal to reverb. If ReverbMixer is not on, will output just 
+    panned signal using out opcode. */
+opcode reverb_mix, 0, aak
+  al, ar, krvb xin
+ 
+  if(gi_reverb_mixer_on == 1) then
+    sbus_mix(0, al, ar)
+    sbus_mix(1, al * krvb, ar * krvb)
+  else 
+    out(al, ar)
+  endif
+endop
 
 ;; Automation
 

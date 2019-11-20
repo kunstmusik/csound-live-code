@@ -585,6 +585,14 @@ panned signal using out opcode.
 
 ---
 
+**reverb\_mix**(al, ar, krvb)
+
+Utility opcode to send dry stereo to mixer and send amount
+of stereo signal to reverb. If ReverbMixer is not on, will output just
+panned signal using out opcode. 
+
+---
+
 **automate**(Schan, idur, istart, iend, itype)
 
 Automate channel value over time. Takes in "ChannelName", duration, start value, end value, and automation type (0=linear, else exponential). For exponential, signs of istart and end must match and neither can be zero. 

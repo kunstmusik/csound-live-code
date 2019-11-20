@@ -89,6 +89,7 @@
 |  | **sbus\_clear** | ibus  |
 | aaval | **sbus\_read** | ibus  |
 |  | **pan\_verb\_mix** | asig, kpan, krvb  |
+|  | **reverb\_mix** | al, ar, krvb  |
 |  | **automate** | Schan, idur, istart, iend, itype  |
 |  | **fade\_out\_mix** | idur  |
 | aval | **saturate** | asig, ksat  |
