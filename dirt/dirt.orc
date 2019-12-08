@@ -55,9 +55,21 @@ opcode load_dirt_samples, 0,0
 
 endop
 
+/* Adjusting dirt amp by -15 dB to balance with 
+  cslc instruments; revisit later to adjust other 
+  instruments to higher dB */
+gidirt_amp init ampdbfs(-15) 
+
+opcode set_dirt_amp, 0,i
+  ival xin
+  gidirt_amp init ival
+endop
+
 opcode dirt, 0, Sip
   Sinstr, iamp, irate xin 
-  if (iamp >= 0) then
+  iamp *= gidirt_amp
+  itab = dirt_get_table(Sinstr)
+  if (iamp >= 0 && itab > 0) then
     schedule("dirt_play", 0, 1, Sinstr, irate, iamp)
   endif
 endop
@@ -67,7 +79,7 @@ instr dirt_play
   itab = dirt_get_table(Sinstr)
   ilen = ftlen(itab)
   idur = ilen / ftsr(itab) 
-  p3 = idur / p5
+  p3 = idur / abs(p5)
 
   ;index = strindex(Sinstr, ":")
   ;Sbase = (index > 0) ? strsub(Sinstr, 0, index) : Sinstr

@@ -8,7 +8,8 @@ let playPauseButton = document.getElementById("playPauseButton"),
   restartButton = document.getElementById("restartButton"),
   helpButton = document.getElementById("helpButton"),
   evalNowButton = document.getElementById("evalNowButton"),
-  evalMeasureButton = document.getElementById("evalMeasureButton");
+  evalMeasureButton = document.getElementById("evalMeasureButton"),
+  addFileButton = document.getElementById("addFileButton");
 
 let consoleOutput;
 
@@ -225,6 +226,10 @@ const playPause = () => {
   }
 };
 
+function addFileToCsound() {
+    
+}
+
 function layoutComplete() {
   setupCodeMirror();
 
@@ -257,6 +262,8 @@ function layoutComplete() {
   restartButton.addEventListener("click", restart);
   evalNowButton.addEventListener("click", evalCode);
   evalMeasureButton.addEventListener("click", evalCodeAtMeasure);
+  addFileButton.addEventListener("click", addFileToCsound);
+
 }
 
 // GOLDENLAYOUT CODE
