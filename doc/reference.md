@@ -638,11 +638,15 @@ Saturation using tanh
 |  FM1 | FM 3:1 C:M ratio, 2->0.025 index, nice for bass  | 
 |  Noi | Filtered noise, exponential envelope  | 
 |  Wobble | Wobble patched based on Jacob Joaquin's "Tempo-Synced Wobble Bass"  | 
-|  Sine | Simple Sinewave instrument with exponential envelope  | 
+|  Sine | Simple Sine-wave instrument with exponential envelope  | 
+|  Square | Simple Square-wave instrument with exponential envelope  | 
+|  Saw | Simple Sawtooth-wave instrument with exponential envelope  | 
 |  Squine1 | Squinewave Synth, 2 osc  | 
 |  Form1 | Formant Synth, buzz source, soprano ah formants  | 
 |  Mono | Monophone synth using sawtooth wave and 4pole lpf. Use "start("Mono") to run the monosynth, then use MonoNote instrument to play the instrument.  | 
 |  MonoNote | Note playing instrument for Mono synth. Be careful to use this and not try to create multiple Mono instruments!  | 
+|  Click | Bandpass-filtered impulse glitchy click sound. p4 = center frequency (e.g., 3000, 6000)  | 
+|  NoiSaw | Highpass-filtered noise+saw sound. Use NoiSaw.cut channel to adjust cutoff.  | 
 |  Clap | Modified clap instrument by Istvan Varga (clap1.orc)  | 
 |  BD   | Bass Drum - From Iain McCurdy's TR-808.csd  | 
 |  SD   | Snare Drum - From Iain McCurdy's TR-808.csd  | 

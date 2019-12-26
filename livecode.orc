@@ -1580,10 +1580,25 @@ instr Wobble
 
 endin
 
-/** Simple Sinewave instrument with exponential envelope */
+/** Simple Sine-wave instrument with exponential envelope */
 instr Sine
-  asig = oscili(expon:a(p5, p3, 0.001), p4)
+  asig = oscili(p5, p4)
+  asig *= expseg:a(0.1, 0.001, 1, 0.1, 0.001, p3, 0.001)
   pan_verb_mix(asig, xchan:i("Sine.pan", 0.5), xchan:i("Sine.rvb", chnget:i("rvb.default")))
+endin
+
+/** Simple Square-wave instrument with exponential envelope */
+instr Square
+  asig = vco2(p5, p4, 10)
+  asig *= expseg:a(0.1, 0.005, 1, 0.1, 0.001, p3, 0.001)
+  pan_verb_mix(asig, xchan:i("Square.pan", 0.5), xchan:i("Square.rvb", chnget:i("rvb.default")))
+endin
+
+/** Simple Sawtooth-wave instrument with exponential envelope */
+instr Saw
+  asig = vco2(p5, p4)
+  asig *= expseg:a(0.1, 0.005, 1, 0.1, 0.001, p3, 0.001)
+  pan_verb_mix(asig, xchan:i("Saw.pan", 0.5), xchan:i("Saw.rvb", chnget:i("rvb.default")))
 endin
 
 
@@ -1647,6 +1662,30 @@ endin
 
 ;; DRUMS
 
+/** Bandpass-filtered impulse glitchy click sound. p4 = center frequency (e.g., 3000, 6000) */
+instr Click 
+  asig = mpulse(1, 0)
+  asig = zdf_2pole(asig, p4, 3, 3)
+  
+  asig *= p5 * 4      ;; adjust amp 
+  asig *= linen:a(1, 0, p3, 0.01)
+  
+  pan_verb_mix(asig, xchan:i("Click.pan", 0.5), xchan:i("Click.rvb", chnget:i("rvb.default")))
+endin
+
+/** Highpass-filtered noise+saw sound. Use NoiSaw.cut channel to adjust cutoff. */
+instr NoiSaw 
+  asig = random:a(-1, 1)
+  asig += vco2(1, 100)
+  asig = zdf_2pole(asig, xchan:i("NoiSaw.cut", 3000), 1, 3)
+  
+  asig *= p5 * 0.5
+  asig *= expseg:a(1, 0.1, 0.001, p3, 0.0001)
+  
+  asig *= linen:a(1, 0, p3, 0.01)
+  
+  pan_verb_mix(asig, xchan:i("NoiSaw.pan", 0.5), xchan:i("NoiSaw.rvb", chnget:i("rvb.default")))
+endin
 
 /** Modified clap instrument by Istvan Varga (clap1.orc) */
 instr Clap

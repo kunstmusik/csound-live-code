@@ -121,10 +121,14 @@
 |  Noi | 
 |  Wobble | 
 |  Sine | 
+|  Square | 
+|  Saw | 
 |  Squine1 | 
 |  Form1 | 
 |  Mono | 
 |  MonoNote | 
+|  Click | 
+|  NoiSaw | 
 |  Clap | 
 |  BD   | 
 |  SD   | 
