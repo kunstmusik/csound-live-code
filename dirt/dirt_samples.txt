@@ -239,17 +239,17 @@ arpy/arpy08.wav
 arpy/arpy09.wav
 arpy/arpy10.wav
 arpy/arpy11.wav
-auto/break-kick.wav
-auto/break-ride.wav
-auto/break-sd.wav
-auto/cymrev.wav
-auto/kick-ambient.wav
-auto/kick.wav
-auto/sd-ambient.wav
-auto/sd.wav
-auto/shake1.wav
-auto/shake2.wav
-auto/shake3.wav
+auto/000_break-kick.wav
+auto/001_break-ride.wav
+auto/002_break-sd.wav
+auto/003_cymrev.wav
+auto/004_kick.wav
+auto/005_kick-ambient.wav
+auto/006_sd.wav
+auto/007_sd-ambient.wav
+auto/008_shake1.wav
+auto/009_shake2.wav
+auto/010_shake3.wav
 baa/1.wav
 baa/2.wav
 baa/3.wav
@@ -378,16 +378,16 @@ bev/00-mono.wav
 bev/01-stereo.wav
 bin/000_bin1.wav
 bin/001_0.wav
-birds/1.wav
-birds/10.wav
-birds/2.wav
-birds/3.wav
-birds/4.wav
-birds/5.wav
-birds/6.wav
-birds/7.wav
-birds/8.wav
-birds/9.wav
+birds/000_1.wav
+birds/001_10.wav
+birds/002_2.wav
+birds/003_3.wav
+birds/004_4.wav
+birds/005_5.wav
+birds/006_6.wav
+birds/007_7.wav
+birds/008_8.wav
+birds/009_9.wav
 birds3/000_1.wav
 birds3/001_10.wav
 birds3/002_11.wav
@@ -703,15 +703,15 @@ e/004_e5.wav
 e/005_e6.wav
 e/006_e7.wav
 e/007_e8.wav
-east/nipon_wood_block.wav
-east/ohkawa_mute.wav
-east/ohkawa_open.wav
-east/shime_hi.wav
-east/shime_hi_2.wav
-east/shime_mute.wav
-east/taiko_1.wav
-east/taiko_2.wav
-east/taiko_3.wav
+east/000_nipon_wood_block.wav
+east/001_ohkawa_mute.wav
+east/002_ohkawa_open.wav
+east/003_shime_hi.wav
+east/004_shime_hi_2.wav
+east/005_shime_mute.wav
+east/006_taiko_1.wav
+east/007_taiko_2.wav
+east/008_taiko_3.wav
 electro1/000_et1closedhh.wav
 electro1/001_et1crash.wav
 electro1/002_et1hit1.wav
@@ -869,40 +869,40 @@ glitch2/004_OH.wav
 glitch2/005_P1.wav
 glitch2/006_P2.wav
 glitch2/007_SN.wav
-gretsch/brushhitom.wav
-gretsch/brushlotom.wav
-gretsch/brushsnare.wav
-gretsch/brushsnareghost.wav
-gretsch/closedhat.wav
-gretsch/closedhathard.wav
-gretsch/cowbell.wav
-gretsch/cymbalgrab.wav
-gretsch/cymbalrub.wav
-gretsch/flam.wav
-gretsch/foothat.wav
-gretsch/foothat2.wav
-gretsch/hitom.wav
-gretsch/kick.wav
-gretsch/kicksnare.wav
-gretsch/lotom.wav
-gretsch/openclosedhat.wav
-gretsch/openhat.wav
-gretsch/ridebell.wav
-gretsch/ridecymbal.wav
-gretsch/snare.wav
-gretsch/snareghost.wav
-gretsch/snarehard.wav
-gretsch/snareslack.wav
+gretsch/000_brushhitom.wav
+gretsch/001_brushlotom.wav
+gretsch/002_brushsnare.wav
+gretsch/003_brushsnareghost.wav
+gretsch/004_closedhat.wav
+gretsch/005_closedhathard.wav
+gretsch/006_cowbell.wav
+gretsch/007_cymbalgrab.wav
+gretsch/008_cymbalrub.wav
+gretsch/009_flam.wav
+gretsch/010_foothat.wav
+gretsch/011_foothat2.wav
+gretsch/012_hitom.wav
+gretsch/013_kick.wav
+gretsch/014_kicksnare.wav
+gretsch/015_lotom.wav
+gretsch/016_openclosedhat.wav
+gretsch/017_openhat.wav
+gretsch/018_ridebell.wav
+gretsch/019_ridecymbal.wav
+gretsch/020_snare.wav
+gretsch/021_snareghost.wav
+gretsch/022_snarehard.wav
+gretsch/023_snareslack.wav
 gtr/0001_cleanC.wav
 gtr/0002_ovrdC.wav
 gtr/0003_distC.wav
-h/0_da0-200%_1000_0_R.wav
-h/0_da0-50%_1000_0_R.wav
-h/0_da0.wav
-h/1_da1.wav
-h/2_da2.wav
-h/3_tick.wav
-h/4_tock.wav
+h/000_0_da0.wav
+h/001_0_da0-200%_1000_0_R.wav
+h/002_0_da0-50%_1000_0_R.wav
+h/003_1_da1.wav
+h/004_2_da2.wav
+h/005_3_tick.wav
+h/006_4_tock.wav
 hand/hand1-mono.wav
 hand/hand11-mono.wav
 hand/hand12-mono.wav
@@ -1019,11 +1019,11 @@ ht/HTAD0.wav
 ht/HTAD3.wav
 ht/HTAD7.wav
 ht/HTADA.wav
-if/gab.wav
-if/gab2.wav
-if/snarl1b.wav
-if/snarl2b.wav
-if/snarl3b.wav
+if/000_gab.wav
+if/001_gab2.wav
+if/002_snarl1b.wav
+if/003_snarl2b.wav
+if/004_snarl3b.wav
 ifdrums/ignorebd.wav
 ifdrums/ignorehh.wav
 ifdrums/ignoresd.wav
@@ -1096,26 +1096,26 @@ jazz/004_OH.wav
 jazz/005_P1.wav
 jazz/006_P2.wav
 jazz/007_SN.wav
-jungbass/deeep_n_low.wav
-jungbass/fat_808_sub.wav
-jungbass/fukubass2.wav
-jungbass/glide_up_down_sub.wav
-jungbass/gliding_808_sub.wav
-jungbass/jungasubdown.wav
-jungbass/junglerevbass.wav
-jungbass/junglesine.wav
-jungbass/junglesine2.wav
-jungbass/junglesine3.wav
-jungbass/mega_jungasubdown.wav
-jungbass/shiphorn_tekstep_bass.wav
-jungbass/short.wav
-jungbass/sub_to_open_wah.wav
-jungbass/sustained_2_octave.wav
-jungbass/sustained_3_octave.wav
-jungbass/sustained_deep_low.wav
-jungbass/sweep_me_low_bass.wav
-jungbass/synthy_round.wav
-jungbass/thin_808_sub.wav
+jungbass/000_deeep_n_low.wav
+jungbass/001_fat_808_sub.wav
+jungbass/002_fukubass2.wav
+jungbass/003_glide_up_down_sub.wav
+jungbass/004_gliding_808_sub.wav
+jungbass/005_jungasubdown.wav
+jungbass/006_junglerevbass.wav
+jungbass/007_junglesine.wav
+jungbass/008_junglesine2.wav
+jungbass/009_junglesine3.wav
+jungbass/010_mega_jungasubdown.wav
+jungbass/011_shiphorn_tekstep_bass.wav
+jungbass/012_short.wav
+jungbass/013_sub_to_open_wah.wav
+jungbass/014_sustained_2_octave.wav
+jungbass/015_sustained_3_octave.wav
+jungbass/016_sustained_deep_low.wav
+jungbass/017_sweep_me_low_bass.wav
+jungbass/018_synthy_round.wav
+jungbass/019_thin_808_sub.wav
 jungle/jungle4closedhh.wav
 jungle/jungle4crash.wav
 jungle/jungle4hit1.wav
@@ -1242,10 +1242,10 @@ made/6.wav
 made2/output.wav
 mash/0.wav
 mash/1.wav
-mash2/output.wav
-mash2/output2.wav
-mash2/output3.wav
-mash2/output4.wav
+mash2/000_output.wav
+mash2/001_output2.wav
+mash2/002_output3.wav
+mash2/003_output4.wav
 metal/000_0.wav
 metal/001_1.wav
 metal/002_2.wav
@@ -1260,7 +1260,6 @@ miniyeah/000_Sound0.wav
 miniyeah/001_Sound11.wav
 miniyeah/002_Sound23.wav
 miniyeah/003_Sound36.wav
-moan/000_0_moan2.wav
 monsterb/000_jumpdown.wav
 monsterb/001_laughter.wav
 monsterb/002_tongue.wav
@@ -1318,34 +1317,34 @@ mt/MTAD0.wav
 mt/MTAD3.wav
 mt/MTAD7.wav
 mt/MTADA.wav
-mute/FH A#2 SCF.wav
-mute/FH A3 SCF.wav
-mute/FH B3 SCF.wav
-mute/FH B4 SC.wav
-mute/FH B4 SCF.wav
-mute/FH C#3 SC.wav
-mute/FH C#3 SCF.wav
-mute/FH C#5 SCF.wav
-mute/FH C4 SCF.wav
-mute/FH D#4 SCF.wav
-mute/FH D#5 SCF.wav
-mute/FH D3 SC.wav
-mute/FH D3 SCF.wav
-mute/FH E3 SC.wav
-mute/FH E3 SCF.wav
-mute/FH F#4 SC.wav
-mute/FH F#4 SCF.wav
-mute/FH F3 SC.wav
-mute/FH F3 SCF.wav
-mute/FH F5 SCF.wav
-mute/FH G#2 SC.wav
-mute/FH G#2 SCF.wav
-mute/FH G#3 SC.wav
-mute/FH G#3 SCF.wav
-mute/FH G#4 SC.wav
-mute/FH G#4 SCF.wav
-mute/FH G2 SC.wav
-mute/FH G2 SCF.wav
+mute/000_FH A#2 SCF.wav
+mute/001_FH A3 SCF.wav
+mute/002_FH B3 SCF.wav
+mute/003_FH B4 SC.wav
+mute/004_FH B4 SCF.wav
+mute/005_FH C#3 SC.wav
+mute/006_FH C#3 SCF.wav
+mute/007_FH C#5 SCF.wav
+mute/008_FH C4 SCF.wav
+mute/009_FH D#4 SCF.wav
+mute/010_FH D#5 SCF.wav
+mute/011_FH D3 SC.wav
+mute/012_FH D3 SCF.wav
+mute/013_FH E3 SC.wav
+mute/014_FH E3 SCF.wav
+mute/015_FH F#4 SC.wav
+mute/016_FH F#4 SCF.wav
+mute/017_FH F3 SC.wav
+mute/018_FH F3 SCF.wav
+mute/019_FH F5 SCF.wav
+mute/020_FH G#2 SC.wav
+mute/021_FH G#2 SCF.wav
+mute/022_FH G#3 SC.wav
+mute/023_FH G#3 SCF.wav
+mute/024_FH G#4 SC.wav
+mute/025_FH G#4 SCF.wav
+mute/026_FH G2 SC.wav
+mute/027_FH G2 SCF.wav
 newnotes/000_0.wav
 newnotes/001_1.wav
 newnotes/002_10.wav
@@ -1431,21 +1430,21 @@ perc/002_perc2.wav
 perc/003_perc3.wav
 perc/004_perc4.wav
 perc/005_perc5.wav
-peri/bd-rev.wav
-peri/bd.wav
-peri/hh2.wav
-peri/hhx.wav
-peri/ksh.wav
-peri/sd-rev.wav
-peri/sd.wav
-peri/xbigclang.wav
-peri/xbong.wav
-peri/xbusket.wav
-peri/xchinga.wav
-peri/xfx1.wav
-peri/xfx2.wav
-peri/xfx3.wav
-peri/xgillclank.wav
+peri/000_bd.wav
+peri/001_bd-rev.wav
+peri/002_hh2.wav
+peri/003_hhx.wav
+peri/004_ksh.wav
+peri/005_sd.wav
+peri/006_sd-rev.wav
+peri/007_xbigclang.wav
+peri/008_xbong.wav
+peri/009_xbusket.wav
+peri/010_xchinga.wav
+peri/011_xfx1.wav
+peri/012_xfx2.wav
+peri/013_xfx3.wav
+peri/014_xgillclank.wav
 pluck/BS A#2 PI.wav
 pluck/BS A1 PI.wav
 pluck/BS A3 PI.wav
@@ -1463,27 +1462,27 @@ pluck/BS G#2 PI.wav
 pluck/BS G1 PI.wav
 pluck/BS G2 PI.wav
 pluck/BS G3 PI.wav
-popkick/1.wav
-popkick/10.wav
-popkick/2.wav
-popkick/3.wav
-popkick/4.wav
-popkick/5.wav
-popkick/6.wav
-popkick/7.wav
-popkick/8.wav
-popkick/9.wav
-print/0.wav
-print/1.wav
-print/10.wav
-print/2.wav
-print/3.wav
-print/4.wav
-print/5.wav
-print/6.wav
-print/7.wav
-print/8.wav
-print/9.wav
+popkick/000_1.wav
+popkick/001_10.wav
+popkick/002_2.wav
+popkick/003_3.wav
+popkick/004_4.wav
+popkick/005_5.wav
+popkick/006_6.wav
+popkick/007_7.wav
+popkick/008_8.wav
+popkick/009_9.wav
+print/000_0.wav
+print/001_1.wav
+print/002_10.wav
+print/003_2.wav
+print/004_3.wav
+print/005_4.wav
+print/006_5.wav
+print/007_6.wav
+print/008_7.wav
+print/009_8.wav
+print/010_9.wav
 proc/000_2.wav
 proc/001_3.wav
 procshort/000_1.wav
@@ -1701,18 +1700,18 @@ space/014_6.wav
 space/015_7.wav
 space/016_8.wav
 space/017_9.wav
-speakspell/1.wav
-speakspell/10.wav
-speakspell/11.wav
-speakspell/12.wav
-speakspell/2.wav
-speakspell/3.wav
-speakspell/4.wav
-speakspell/5.wav
-speakspell/6.wav
-speakspell/7.wav
-speakspell/8.wav
-speakspell/9.wav
+speakspell/000_1.wav
+speakspell/001_10.wav
+speakspell/002_11.wav
+speakspell/003_12.wav
+speakspell/004_2.wav
+speakspell/005_3.wav
+speakspell/006_4.wav
+speakspell/007_5.wav
+speakspell/008_6.wav
+speakspell/009_7.wav
+speakspell/010_8.wav
+speakspell/011_9.wav
 speech/000_Sound10.wav
 speech/001_Sound4.wav
 speech/002_Sound5.wav
@@ -1720,16 +1719,16 @@ speech/003_Sound6.wav
 speech/004_Sound7.wav
 speech/005_Sound8.wav
 speech/006_Sound9.wav
-speechless/a.wav
-speechless/pe.wav
-speechless/pepepe.wav
-speechless/pepepepepe.wav
-speechless/pepper.wav
-speechless/pepperpot.wav
-speechless/pick.wav
-speechless/pickle.wav
-speechless/po.wav
-speechless/te.wav
+speechless/000_a.wav
+speechless/001_pe.wav
+speechless/002_pepepe.wav
+speechless/003_pepepepepe.wav
+speechless/004_pepper.wav
+speechless/005_pepperpot.wav
+speechless/006_pick.wav
+speechless/007_pickle.wav
+speechless/008_po.wav
+speechless/009_te.wav
 speedupdown/000_Sound20.wav
 speedupdown/001_Sound21.wav
 speedupdown/002_Sound22.wav
@@ -1917,40 +1916,40 @@ tok/000_0.wav
 tok/001_1.wav
 tok/002_2.wav
 tok/003_3.wav
-toys/ClassicalMusic-Notes.wav
-toys/ClassicalMusic-Words.wav
-toys/ClassicalMusic.wav
-toys/Colors-Notes.wav
-toys/Colors-Words.wav
-toys/Colors.wav
-toys/MusicalMedley-Notes.wav
-toys/MusicalMedley-Words.wav
-toys/MusicalMedley.wav
-toys/Numbers-Notes.wav
-toys/Numbers-Words.wav
-toys/Numbers.wav
-toys/ToyNotes.wav
-trump/tightstabb.wav
-trump/tightstabblowoct.wav
-trump/tightstabe.wav
-trump/tightstabg.wav
-trump/trumpfunk107a.wav
-trump/trumpstabb.wav
-trump/trumpstabblowoct.wav
-trump/trumpstabe.wav
-trump/trumpstabg.wav
-trump/trumpstabschord.wav
-trump/trumptightstabschord.wav
-ul/beep.wav
-ul/little-whip.wav
-ul/ulhh.wav
-ul/ulkick.wav
-ul/ulnoisey-kick.wav
-ul/ulnoisey-run.wav
-ul/ulnoisey-snare.wav
-ul/ulsnare-reverb.wav
-ul/ulsnare-reverse.wav
-ul/ulsnare.wav
+toys/000_ClassicalMusic.wav
+toys/001_ClassicalMusic-Notes.wav
+toys/002_ClassicalMusic-Words.wav
+toys/003_Colors.wav
+toys/004_Colors-Notes.wav
+toys/005_Colors-Words.wav
+toys/006_MusicalMedley.wav
+toys/007_MusicalMedley-Notes.wav
+toys/008_MusicalMedley-Words.wav
+toys/009_Numbers.wav
+toys/010_Numbers-Notes.wav
+toys/011_Numbers-Words.wav
+toys/012_ToyNotes.wav
+trump/000_tightstabb.wav
+trump/001_tightstabblowoct.wav
+trump/002_tightstabe.wav
+trump/003_tightstabg.wav
+trump/004_trumpfunk107a.wav
+trump/005_trumpstabb.wav
+trump/006_trumpstabblowoct.wav
+trump/007_trumpstabe.wav
+trump/008_trumpstabg.wav
+trump/009_trumpstabschord.wav
+trump/010_trumptightstabschord.wav
+ul/000_beep.wav
+ul/001_little-whip.wav
+ul/002_ulhh.wav
+ul/003_ulkick.wav
+ul/004_ulnoisey-kick.wav
+ul/005_ulnoisey-run.wav
+ul/006_ulnoisey-snare.wav
+ul/007_ulsnare.wav
+ul/008_ulsnare-reverb.wav
+ul/009_ulsnare-reverse.wav
 ulgab/gab1.wav
 ulgab/gab2.wav
 ulgab/gab3.wav
