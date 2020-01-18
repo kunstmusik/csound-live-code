@@ -108,6 +108,7 @@
 |  Sub5 | 
 |  Sub6 | 
 |  Sub7 | 
+|  Sub8 | 
 |  SynBrass | 
 |  SSaw | 
 |  Mode1 | 

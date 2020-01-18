@@ -626,6 +626,7 @@ Saturation using tanh
 |  Sub5 | Subtractive Synth, detuned square/triangle  | 
 |  Sub6 | Subtractive Synth, saw, K35 filters  | 
 |  Sub7 | Subtractive Synth, saw + tri, K35 filters  | 
+|  Sub8 | Subtractive Synth, square + saw + tri, diode ladder filter  | 
 |  SynBrass | SynthBrass subtractive synth  | 
 |  SSaw | SuperSaw sound using 9 bandlimited saws (3 sets of detuned saws at octaves) | 
 |  Mode1 | Modal Synthesis Instrument: Percussive/organ-y sound  | 

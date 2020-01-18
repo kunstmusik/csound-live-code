@@ -1381,6 +1381,20 @@ instr Sub7
   pan_verb_mix(asig, xchan:i("Sub7.pan", 0.5), xchan:i("Sub7.rvb", chnget:i("rvb.default")))
 endin
 
+/** Subtractive Synth, square + saw + tri, diode ladder filter */
+instr Sub8
+  asig = vco2(p5, p4, 10)
+  asig += vco2(p5 * 0.5, p4 * 2)
+  asig += vco2(p5 * 0.15, p4 * 3.5, 12)  
+  
+  aenv = expon:a(1, 0.15, 0.001)
+  asig = saturate(asig, 10)
+  asig = diode_ladder(asig, 4000 + aenv * 4000, 12)
+  asig = zdf_2pole(asig, p5, 0.25, 1)
+  asig *= linen:a(1, 0, p3, .001) * 0.5
+  pan_verb_mix(asig, xchan:i("Sub8.pan", 0.5), xchan:i("Sub8.rvb", chnget:i("rvb.default")))
+endin
+
 /** SynthBrass subtractive synth */ 
 instr SynBrass
   ipch = p4
