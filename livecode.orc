@@ -1485,17 +1485,18 @@ instr Organ2
   pan_verb_mix(asig, xchan:i("Organ2.pan", 0.5), xchan:i("Organ2.rvb", chnget:i("rvb.default")))
 endin
 
-/** 303-style Bass sound */
+/** Subtractive Bass sound */
 
 instr Bass
 
-  acut = 200 + expon(1, p3, 0.001) * 16000
-  asig = vco2(1, p4)
-  asig = diode_ladder(asig, acut, 10, 1, 4) 
-  asig = tanh(asig * 4) * p5 * 0.5
-  asig = declick(asig) 
-
-
+  asig = vco2(p5, p4, 10)
+  asig += vco2(p5 * 0.25, p4 * 0.9992342342, 10)  
+  asig += vco2(p5 * 0.5, p4 * 2.000234234)
+  aenv = linseg:a(1, 0.2, 0.1, p3 - 0.2, 0) * 6
+  asig = zdf_ladder(asig, cpsoct(5 + aenv), 4 )
+  
+  asig *= linen:a(0.7, 0, p3, 0.01)
+  
   pan_verb_mix(asig, xchan:i("Bass.pan", 0.5), xchan:i("Bass.rvb", chnget:i("rvb.default")))
 
 endin

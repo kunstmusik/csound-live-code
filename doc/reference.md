@@ -633,7 +633,7 @@ Saturation using tanh
 |  Plk | Pluck sound using impulses, noise, and waveguides | 
 |  Organ1 | Wavetable Organ sound using additive synthesis  | 
 |  Organ2 | Organ sound based on M1 Organ 2 patch  | 
-|  Bass | 303-style Bass sound  | 
+|  Bass | Subtractive Bass sound  | 
 |  ms20_bass | MS20-style Bass Sound  | 
 |  VoxHumana | VoxHumana Patch  | 
 |  FM1 | FM 3:1 C:M ratio, 2->0.025 index, nice for bass  | 
