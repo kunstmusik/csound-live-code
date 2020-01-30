@@ -628,6 +628,7 @@ Saturation using tanh
 |  Sub7 | Subtractive Synth, saw + tri, K35 filters  | 
 |  Sub8 | Subtractive Synth, square + saw + tri, diode ladder filter  | 
 |  SynBrass | SynthBrass subtractive synth  | 
+|  SynHarp | Synth Harp subtracitve Synth  | 
 |  SSaw | SuperSaw sound using 9 bandlimited saws (3 sets of detuned saws at octaves) | 
 |  Mode1 | Modal Synthesis Instrument: Percussive/organ-y sound  | 
 |  Plk | Pluck sound using impulses, noise, and waveguides | 

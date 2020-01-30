@@ -1407,6 +1407,23 @@ instr SynBrass
   pan_verb_mix(asig, xchan:i("SynBrass.pan", 0.5), xchan:i("SynBrass.rvb", chnget:i("rvb.default")))
 endin
 
+/** Synth Harp subtracitve Synth */
+instr SynHarp
+  
+  asig = vco2(p5, p4)
+  asig += vco2(p5, p4 * 0.9993423423)
+  asig += vco2(p5, p4 * 1.00093029423048) 
+  
+  ioct = octcps(p4)
+  
+  asig = zdf_ladder(asig, cpsoct(limit(linseg:a(ioct + 4, 0.015, ioct + 2, 0.2, ioct), 4.25, 14)), 0.5)
+  asig = zdf_2pole(asig, p4 * 0.5, 0.5, 1)    
+  
+  asig *= linen:a(1, 0.012, p3, 0.01)
+  
+  pan_verb_mix(asig, xchan:i("SynHarp.pan", 0.5), xchan:i("SynHarp.rvb", chnget:i("rvb.default")))
+endin
+ 
 /** SuperSaw sound using 9 bandlimited saws (3 sets of detuned saws at octaves)*/
 instr SSaw
   asig = vco2(1, p4)

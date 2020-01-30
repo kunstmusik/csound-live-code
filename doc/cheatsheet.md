@@ -110,6 +110,7 @@
 |  Sub7 | 
 |  Sub8 | 
 |  SynBrass | 
+|  SynHarp | 
 |  SSaw | 
 |  Mode1 | 
 |  Plk | 
