@@ -1502,6 +1502,20 @@ instr Organ2
   pan_verb_mix(asig, xchan:i("Organ2.pan", 0.5), xchan:i("Organ2.rvb", chnget:i("rvb.default")))
 endin
 
+giorgan_claribel_flute = ftgen(0, 0, 65536, 10, 1, ampdbfs(-30), ampdbfs(-35), ampdbfs(-40), ampdbfs(-32), ampdbfs(-40), ampdbfs(-42))
+
+/** Wavetable Organ using Flute 8' and Flute 4', wavetable based on Claribel Flute 
+    http://www.pykett.org.uk/the_tonal_structure_of_organ_flutes.htm */
+instr Organ3 
+  asig = oscili(p5, p4, giorgan_claribel_flute)
+  asig += oscili(p5, p4 * 2, giorgan_claribel_flute)  
+  ;asig += oscili(p5, p4 * 0.5)
+  
+  asig *= linen(1, .02, p3, .01)
+
+  pan_verb_mix(asig, xchan:i("Organ3.pan", 0.5), xchan:i("Organ3.rvb", chnget:i("rvb.default")))
+endin
+
 /** Subtractive Bass sound */
 
 instr Bass

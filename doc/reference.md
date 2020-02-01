@@ -634,6 +634,7 @@ Saturation using tanh
 |  Plk | Pluck sound using impulses, noise, and waveguides | 
 |  Organ1 | Wavetable Organ sound using additive synthesis  | 
 |  Organ2 | Organ sound based on M1 Organ 2 patch  | 
+|  Organ3 | Wavetable Organ using Flute 8' and Flute 4', wavetable based on Claribel Flute http://www.pykett.org.uk/the\_tonal\_structure\_of\_organ\_flutes.htm  | 
 |  Bass | Subtractive Bass sound  | 
 |  ms20_bass | MS20-style Bass Sound  | 
 |  VoxHumana | VoxHumana Patch  | 
