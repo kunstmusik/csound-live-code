@@ -1511,7 +1511,7 @@ instr Organ3
   asig += oscili(p5, p4 * 2, giorgan_claribel_flute)  
   ;asig += oscili(p5, p4 * 0.5)
   
-  asig *= linen(1, .02, p3, .01)
+  asig *= linen:a(1, .02, p3, .01)
 
   pan_verb_mix(asig, xchan:i("Organ3.pan", 0.5), xchan:i("Organ3.rvb", chnget:i("rvb.default")))
 endin
