@@ -58,7 +58,7 @@ endop
 /* Adjusting dirt amp by -15 dB to balance with 
   cslc instruments; revisit later to adjust other 
   instruments to higher dB */
-gidirt_amp init ampdbfs(-15) 
+gidirt_amp init ampdbfs(0) 
 
 opcode set_dirt_amp, 0,i
   ival xin
@@ -94,6 +94,14 @@ instr dirt_play
 
   pan_verb_mix(asig, 0.5, 0.1)
 endin
+
+opcode hexdirt, 0, SSio
+  Spat, Samp, iamp, irate xin
+  irate = (irate <= 0) ? 1 : irate
+  if(hexbeat(Spat) == 1) then
+    dirt(Samp, iamp, irate)
+  endif
+endop
 
 ; load_dirt_samples() 
 ; dirt("bd", hexbeat("8") * ampdbfs(-12))
