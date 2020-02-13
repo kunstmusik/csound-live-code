@@ -74,6 +74,15 @@ opcode dirt, 0, Sip
   endif
 endop
 
+opcode dirt2, 0, Siip
+  Sinstr, istart, iamp, irate xin 
+  iamp *= gidirt_amp
+  itab = dirt_get_table(Sinstr)
+  if (iamp >= 0 && itab > 0) then
+    schedule("dirt_play", istart, 1, Sinstr, irate, iamp)
+  endif
+endop
+
 instr dirt_play
   Sinstr = p4
   itab = dirt_get_table(Sinstr)
