@@ -323,7 +323,7 @@ endop
 opcode hexplay, 0, SiSiip
   Spat, itick, Sinstr, idur, ifreq, iamp xin
 
-  if(iamp > 0 && hexbeat(Spat, itick) == 1) then
+  if(iamp > 0 && strlen(Sinstr) > 0 && hexbeat(Spat, itick) == 1) then
     schedule(Sinstr, 0, idur, ifreq, iamp )
   endif
 endop
@@ -336,7 +336,7 @@ opcode hexplay, 0, SSiip
 
   itick = i(gk_clock_tick)
 
-  if(iamp > 0 && hexbeat(Spat, itick) == 1) then
+  if(iamp > 0 && strlen(Sinstr) > 0 && hexbeat(Spat, itick) == 1) then
     schedule(Sinstr, 0, idur, ifreq, iamp )
   endif
 endop
