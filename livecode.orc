@@ -1439,7 +1439,8 @@ instr SSaw
   asig += vco2(1, p4 * cent(2400))
   
   asig *= 0.1
-  asig = zdf_ladder(asig, expseg(16000, p3 - 0.05, 16000, 0.05, 200), 0.5)
+  icut = xchan:i("SSaw.cut", 16000)
+  asig = zdf_ladder(asig, expseg(icut, p3 - 0.05, icut, 0.05, 200), 0.5)
   asig *= p5 
   asig = declick(asig)
 
