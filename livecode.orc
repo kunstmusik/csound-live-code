@@ -969,7 +969,7 @@ opcode oscil, k, kk[]
   kfreq, kin[] xin
   ilen = lenarray(kin)
   kphs = phasor:k(kfreq)
-  kout = kin[int(kphs * ilen)]
+  kout = kin[int(kphs * ilen) % ilen]
   xout kout
 endop
 
