@@ -69,8 +69,9 @@ opcode pat_subpat, S, Si
   istart = indx
   indx += 1
   ibrackets = 1
+  istrlen = strlen(Spat)
 
-  while (ibrackets > 0 && indx < strlen(Spat)) do
+  while (ibrackets > 0 && indx < istrlen) do
     Stmp = strsub(Spat, indx, indx + 1)
 
     if (strcmp(Stmp, "[") == 0) then
@@ -81,7 +82,14 @@ opcode pat_subpat, S, Si
     indx += 1
   od
 
-  xout (ibrackets > 0) ?  "error" : strsub(Spat, istart + 1, indx - 1)
+  if(ibrackets > 0) then
+    Sout = "error"
+  else 
+    Sout = strsub(Spat, istart + 1, indx - 1)
+  endif
+  /*Sout = (ibrackets > 0) ?  "error" : strsub(Spat, istart + 1, indx - 1)*/
+
+  xout Sout
 endop
 
 opcode pat_compile, i[], S
@@ -109,6 +117,7 @@ opcode pat_compile, i[], S
         ;; ignore
       elseif(strcmp(Stmp, "[") == 0) then
         ilen = pat_len(pat_subpat(Spat, indx))
+        print ilen
         if(ilen <= 0) then
           indx = strlen(Spat)
         else
@@ -124,7 +133,7 @@ opcode pat_compile, i[], S
       endif
     elseif (imode == 1) then
       if (strcmp(Stmp, " ") == 0 || strcmp(Stmp, "[") == 0 || 
-          strcmp(Stmp, "]") == 0 || (indx + 1) == strlen(Spat)) then
+          strcmp(Stmp, "]") == 0) then
         Sval = strsub(Spat, istart, indx)
         ival = strtod(Sval)
         
@@ -143,7 +152,18 @@ opcode pat_compile, i[], S
 
     indx += 1
   od
+
+  if(imode == 1) then
+        Sval = strsub(Spat, istart, indx - 1)
+        ival = strtod(Sval)
+        
+        ipat[ipatindx] = ibeat
+        ipat[ipatindx + 1] = ibeatdur[istackindx]
+        ipat[ipatindx + 2] = ival
+        ipatindx += 3
+  endif
   
+  print ipatindx
 
   xout ipat
 
@@ -164,15 +184,21 @@ endop
 print pat_len("1 0 2")
 print pat_len("[ 1 0 ]  [3 4 5]")
 print pat_item_count("[ 1 0 ] 3 2[3 4 5]")
-printarray(pat_compile("[ 1 0 ] 3 2[3 4 5]"))
-prints pat_subpat("[ 1 0 ]  [3 4 5] ", 9)
+printarray(pat_compile("[ 1 0 ] 3 2 [3 4 5]"))
+printarray(pat_compile("0 1 2"))
+print(pat_len("[ 1 0 ] 3 2 [3 4 5]"))
+prints pat_subpat("[ 1 0 ]  [3 4 5]    ", 9)
 prints strsub("Test", 0,1)
 prints "TEST"
 */
 
+prints(strsub("[ 1 0 ]  [3 4 5] ", 10, 15))
+
 instr P1
   Spat = "0 [2 [4 5] 3 5] [4 4 5 6]"
-  if (p4 % (4 * pat_len(Spat)) == 0) then
+  /*if (p4 % (4 * pat_len(Spat)) == 0) then*/
     pat_perf(Spat, "Squine1", ampdbfs(-12), 0, 0)
-  endif
+  /*endif*/
 endin
+
+clear_instr("P1")
