@@ -154,7 +154,7 @@ opcode pat_compile, i[], S
   od
 
   if(imode == 1) then
-        Sval = strsub(Spat, istart, indx - 1)
+        Sval = strsub(Spat, istart, indx)
         ival = strtod(Sval)
         
         ipat[ipatindx] = ibeat
@@ -163,8 +163,6 @@ opcode pat_compile, i[], S
         ipatindx += 3
   endif
   
-  print ipatindx
-
   xout ipat
 
 endop
@@ -196,9 +194,9 @@ prints(strsub("[ 1 0 ]  [3 4 5] ", 10, 15))
 
 instr P1
   Spat = "0 [2 [4 5] 3 5] [4 4 5 6]"
-  /*if (p4 % (4 * pat_len(Spat)) == 0) then*/
+  if (p4 % (4 * pat_len(Spat)) == 0) then
     pat_perf(Spat, "Squine1", ampdbfs(-12), 0, 0)
-  /*endif*/
+  endif
 endin
 
 clear_instr("P1")
