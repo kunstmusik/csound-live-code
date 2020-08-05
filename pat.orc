@@ -82,12 +82,12 @@ opcode pat_subpat, S, Si
     indx += 1
   od
 
-  if(ibrackets > 0) then
-    Sout = "error"
-  else 
-    Sout = strsub(Spat, istart + 1, indx - 1)
-  endif
-  /*Sout = (ibrackets > 0) ?  "error" : strsub(Spat, istart + 1, indx - 1)*/
+  /*if(ibrackets > 0) then*/
+  /*  Sout = "error"*/
+  /*else */
+  /*  Sout = strsub(Spat, istart + 1, indx - 1)*/
+  /*endif*/
+  Sout = (ibrackets > 0) ?  "error" : strsub(Spat, istart + 1, indx - 1)
 
   xout Sout
 endop
