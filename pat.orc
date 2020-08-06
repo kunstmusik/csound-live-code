@@ -1,3 +1,30 @@
+;; internal pat format
+;; header: beat-len 
+;; cmd args
+;; 0 group len 
+;; 1 play: start dur val
+;; 2 rest: start dur _ 
+;; 
+
+;; 0 4, 0 3, 1 0 0 , 1 1 0  
+;; 0 3  (new group, len 3)  
+;; 0 play
+;; 1 rest
+
+opcode grow_array, i[], i[]
+  in_array[] xin
+  ilen = lenarray(in_array)
+
+  iout_array[] init ilen * 2
+
+  indx = 0
+  while (indx < ilen) do
+    iout_array[indx] = in_array[indx]
+    indx += 1
+  od
+
+  xout iout_array
+endop
 
 opcode pat_item_count, i, S
   Spat xin
@@ -92,6 +119,82 @@ opcode pat_subpat, S, Si
   xout Sout
 endop
 
+opcode pat_compile2, i[], S
+  Spat xin
+  icount = pat_len(Spat) 
+  istrlen = strlen(Spat)
+
+  ipat[] init 64 
+
+  print icount
+
+  ;; header
+  ipat[0] = icount 
+
+  ipatindx = 1
+ 
+  indx = 0
+  istart = 0
+  imode = 0
+
+  while (indx < istrlen) do
+
+    Stmp = strsub(Spat, indx, indx + 1)
+
+    if (imode == 0) then
+      if(strcmp(Stmp, " ") == 0) then
+        ;; ignore
+      elseif(strcmp(Stmp, "[") == 0) then
+
+        ilen = pat_len(pat_subpat(Spat, indx))
+        print ilen
+
+        if(ipatindx + 2 > lenarray(ipat)) then 
+          ipat = grow_array(ipat)
+        endif
+
+        ipat[ipatindx] = 0 ;; cmd: new group
+        ipat[ipatindx + 1] = ilen ;; cmd: new group
+        ipatindx += 2
+      elseif (strcmp(Stmp, "]") == 0) then
+        ;; ignore
+      else 
+        istart = indx
+        imode = 1
+
+      endif
+
+    elseif (imode == 1) then
+
+      if (strcmp(Stmp, " ") == 0 || strcmp(Stmp, "[") == 0 || 
+          strcmp(Stmp, "]") == 0) then
+        Sval = strsub(Spat, istart, indx)
+        ival = strtod(Sval)
+
+        if(ipatindx + 3 > lenarray(ipat)) then 
+          ipat = grow_array(ipat)
+        endif
+      
+        ipat[ipatindx] = 1 ;; cmd: play
+        ipat[ipatindx + 1] = 1 
+        ipat[ipatindx + 2] = ival
+        ipatindx += 3
+
+        indx -= 1
+        imode = 0
+
+      endif
+    endif
+
+    indx += 1
+  od
+
+  xout ipat
+
+endop
+
+
+
 opcode pat_compile, i[], S
   Spat xin
   icount = pat_item_count(Spat) 
@@ -182,7 +285,9 @@ endop
 print pat_len("1 0 2")
 print pat_len("[ 1 0 ]  [3 4 5]")
 print pat_item_count("[ 1 0 ] 3 2[3 4 5]")
-printarray(pat_compile("[ 1 0 ] 3 2 [3 4 5]"))
+
+printarray(pat_compile2("[ 1 0 ] 3 2 [3 4 5]"))
+
 printarray(pat_compile("0 1 2"))
 print(pat_len("[ 1 0 ] 3 2 [3 4 5]"))
 prints pat_subpat("[ 1 0 ]  [3 4 5]    ", 9)
@@ -200,3 +305,14 @@ instr P1
 endin
 
 clear_instr("P1")
+
+instr X 
+kvals1[] fillarray 1,2,3,4
+kvals2[] init 8
+
+printarray(kvals2)
+print(lenarray(kvals2))
+turnoff
+
+endin
+schedule("X", 0, 0.1)
