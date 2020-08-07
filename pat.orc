@@ -126,16 +126,18 @@ opcode pat_compile2, i[], S
 
   ipat[] init 64 
 
-  print icount
+  ;print icount
 
   ;; header
   ipat[0] = icount 
 
-  ipatindx = 1
+  ibeatindx = 1
+  ipatindx = 1 + icount
  
   indx = 0
   istart = 0
   imode = 0
+  igrpcount = 0
 
   while (indx < istrlen) do
 
@@ -147,17 +149,24 @@ opcode pat_compile2, i[], S
       elseif(strcmp(Stmp, "[") == 0) then
 
         ilen = pat_len(pat_subpat(Spat, indx))
-        print ilen
+        ;print ilen
 
         if(ipatindx + 2 > lenarray(ipat)) then 
           ipat = grow_array(ipat)
         endif
 
+        if(igrpcount == 0) then
+          ipat[ibeatindx] = ipatindx
+          ibeatindx += 1
+        endif
+
         ipat[ipatindx] = 0 ;; cmd: new group
         ipat[ipatindx + 1] = ilen ;; cmd: new group
         ipatindx += 2
+
+        igrpcount += 1
       elseif (strcmp(Stmp, "]") == 0) then
-        ;; ignore
+        igrpcount -= 1
       else 
         istart = indx
         imode = 1
@@ -169,16 +178,32 @@ opcode pat_compile2, i[], S
       if (strcmp(Stmp, " ") == 0 || strcmp(Stmp, "[") == 0 || 
           strcmp(Stmp, "]") == 0) then
         Sval = strsub(Spat, istart, indx)
-        ival = strtod(Sval)
 
         if(ipatindx + 3 > lenarray(ipat)) then 
           ipat = grow_array(ipat)
         endif
+
+        if(igrpcount == 0) then
+          ipat[ibeatindx] = ipatindx
+          ibeatindx += 1
+        endif
+
+        if(strcmp(Sval, "_") == 0) then
+          ipat[ipatindx] = 2 ;; cmd: rest 
+          ipat[ipatindx + 1] = 1 
+          ipat[ipatindx + 2] = 0 
+          ipatindx += 3
+
+        else 
+          ival = strtod(Sval)
+          ipat[ipatindx] = 1 ;; cmd: play
+          ipat[ipatindx + 1] = 1 
+          ipat[ipatindx + 2] = ival
+          ipatindx += 3
+
+
+        endif
       
-        ipat[ipatindx] = 1 ;; cmd: play
-        ipat[ipatindx + 1] = 1 
-        ipat[ipatindx + 2] = ival
-        ipatindx += 3
 
         indx -= 1
         imode = 0
@@ -193,6 +218,62 @@ opcode pat_compile2, i[], S
 
 endop
 
+opcode pat_perf2, 0, SSiooo
+  Spat, Sinstr, iamp, ioct, ibase, itick xin
+
+ 
+  if(itick <= 0) then
+    itick = now_tick()
+  endif
+
+  if(itick % 4 == 0) then
+    ibeat = itick / 4
+
+    print ibeat
+
+    ipat[] pat_compile2 Spat
+    ibeat = ibeat % ipat[0]
+
+    /*print ipat[0]*/
+
+    icount = 0
+    ipatindx = ipat[1 + ibeat] 
+    
+    /*print ipatindx*/
+
+    idurs[] init 16
+    idurs[0] = 1
+    idursindx = 0
+    istart = 0
+
+     
+
+    while (istart < 1 && ipatindx < lenarray(ipat)) do
+      icmd = ipat[ipatindx]
+
+      if(icmd == 0) then
+        ipatdur = idurs[idursindx]
+        idursindx += 1
+        idurs[idursindx] = ipatdur / ipat[ipatindx + 1]
+        ipatindx += 2
+
+      elseif (icmd == 1) then
+        idur = idurs[idursindx] * ipat[ipatindx + 1] 
+        print istart, idur
+        schedule(Sinstr, beats(istart), beats(idur), in_scale(ioct, ibase + ipat[ipatindx + 2]), iamp)
+        ipatindx += 3
+        istart += idur
+
+      else
+        idur = idurs[idursindx] * ipat[ipatindx + 1] 
+        ipatindx += 3
+        istart += idur
+      endif
+
+    od
+
+  endif
+endop
 
 
 opcode pat_compile, i[], S
@@ -270,6 +351,7 @@ opcode pat_compile, i[], S
 
 endop
 
+
 opcode pat_perf, 0, SSioo
   Spat, Sinstr, iamp, ioct, ibase xin
 
@@ -298,21 +380,10 @@ prints "TEST"
 prints(strsub("[ 1 0 ]  [3 4 5] ", 10, 15))
 
 instr P1
-  Spat = "0 [2 [4 5] 3 5] [4 4 5 6]"
-  if (p4 % (4 * pat_len(Spat)) == 0) then
-    pat_perf(Spat, "Squine1", ampdbfs(-12), 0, 0)
-  endif
-endin
-
-clear_instr("P1")
-
-instr X 
-kvals1[] fillarray 1,2,3,4
-kvals2[] init 8
-
-printarray(kvals2)
-print(lenarray(kvals2))
-turnoff
+  Spat = "0 [_ 2 _ 5] [4 4] 2"
+  pat_perf2(Spat, "Squine1", ampdbfs(-12), 0, 0)
 
 endin
-schedule("X", 0, 0.1)
+
+;clear_instr("P1")
+
