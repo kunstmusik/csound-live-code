@@ -119,12 +119,13 @@ opcode pat_subpat, S, Si
   xout Sout
 endop
 
-opcode pat_compile2, i[], S
+opcode pat_compile, i[], S
   Spat xin
+  ipat[] init 64 
+
   icount = pat_len(Spat) 
   istrlen = strlen(Spat)
 
-  ipat[] init 64 
 
   ;print icount
 
@@ -139,7 +140,7 @@ opcode pat_compile2, i[], S
   imode = 0
   igrpcount = 0
 
-  while (indx < istrlen) do
+  while (indx <= istrlen) do
 
     Stmp = strsub(Spat, indx, indx + 1)
 
@@ -176,7 +177,7 @@ opcode pat_compile2, i[], S
     elseif (imode == 1) then
 
       if (strcmp(Stmp, " ") == 0 || strcmp(Stmp, "[") == 0 || 
-          strcmp(Stmp, "]") == 0) then
+          strcmp(Stmp, "]") == 0 || indx == istrlen) then
         Sval = strsub(Spat, istart, indx)
 
         if(ipatindx + 3 > lenarray(ipat)) then 
@@ -201,7 +202,6 @@ opcode pat_compile2, i[], S
           ipat[ipatindx + 2] = ival
           ipatindx += 3
 
-
         endif
       
 
@@ -218,9 +218,10 @@ opcode pat_compile2, i[], S
 
 endop
 
-opcode pat_perf2, 0, SSiooo
-  Spat, Sinstr, iamp, ioct, ibase, itick xin
 
+
+opcode pat_perf, 0, i[]Siooo
+  ipat[], Sinstr, iamp, ioct, ibase, itick xin
  
   if(itick <= 0) then
     itick = now_tick()
@@ -229,45 +230,58 @@ opcode pat_perf2, 0, SSiooo
   if(itick % 4 == 0) then
     ibeat = itick / 4
 
-    print ibeat
+    /*print ibeat*/
 
-    ipat[] pat_compile2 Spat
     ibeat = ibeat % ipat[0]
 
     /*print ipat[0]*/
 
-    icount = 0
     ipatindx = ipat[1 + ibeat] 
     
     /*print ipatindx*/
 
+    igrpcount[] init 16
+    igrpcount[0] = 0    
     idurs[] init 16
     idurs[0] = 1
-    idursindx = 0
-    istart = 0
 
-     
+    igrpindx = 0
+    istart = 0
 
     while (istart < 1 && ipatindx < lenarray(ipat)) do
       icmd = ipat[ipatindx]
 
       if(icmd == 0) then
-        ipatdur = idurs[idursindx]
-        idursindx += 1
-        idurs[idursindx] = ipatdur / ipat[ipatindx + 1]
+        ipatdur = idurs[igrpindx]
+        igrpindx += 1
+        igrplen = ipat[ipatindx + 1] 
+        idurs[igrpindx] = ipatdur / igrplen  
+        igrpcount[igrpindx] = igrplen 
+
         ipatindx += 2
 
-      elseif (icmd == 1) then
-        idur = idurs[idursindx] * ipat[ipatindx + 1] 
-        print istart, idur
-        schedule(Sinstr, beats(istart), beats(idur), in_scale(ioct, ibase + ipat[ipatindx + 2]), iamp)
+      elseif (icmd == 1 || icmd == 2) then
+        idur = idurs[igrpindx] * ipat[ipatindx + 1] 
+        ;;print istart, idur
+        if(icmd == 1) then
+          schedule(Sinstr, beats(istart), beats(idur), 
+                   in_scale(ioct, ibase + ipat[ipatindx + 2]), iamp)
+        endif
         ipatindx += 3
         istart += idur
 
+        if(igrpindx > 0) then
+          icount = igrpcount[igrpindx] - 1
+          if(icount == 0) then
+            igrpindx -= 1
+          else
+            igrpcount[igrpindx] = icount
+          endif
+        endif
+
       else
-        idur = idurs[idursindx] * ipat[ipatindx + 1] 
+        prints("Error: Unknown command %d\n", icmd)
         ipatindx += 3
-        istart += idur
       endif
 
     od
@@ -276,91 +290,11 @@ opcode pat_perf2, 0, SSiooo
 endop
 
 
-opcode pat_compile, i[], S
-  Spat xin
-  icount = pat_item_count(Spat) 
+opcode pat_perf, 0, SSiooo
+  Spat, Sinstr, iamp, ioct, ibase, itick xin
 
-  ipat[] init (icount * 3)
-
-  ipatindx = 0
-  
-  imode = 0
-  indx = 0
-  ibeat = 0
-  ibeatdur[] init 16
-  ibeatdur[0] = 1
-  istackindx = 0
-  istart = 0
-
-  while (indx < strlen(Spat)) do
-
-    Stmp = strsub(Spat, indx, indx + 1)
-
-    if (imode == 0) then
-      if(strcmp(Stmp, " ") == 0) then
-        ;; ignore
-      elseif(strcmp(Stmp, "[") == 0) then
-        ilen = pat_len(pat_subpat(Spat, indx))
-        print ilen
-        if(ilen <= 0) then
-          indx = strlen(Spat)
-        else
-          inew_beat_dur = ibeatdur[istackindx] / ilen
-          istackindx += 1
-          ibeatdur[istackindx] = inew_beat_dur
-        endif
-      elseif(strcmp(Stmp, "]") == 0) then
-        istackindx -= 1
-      else
-        istart = indx
-        imode = 1
-      endif
-    elseif (imode == 1) then
-      if (strcmp(Stmp, " ") == 0 || strcmp(Stmp, "[") == 0 || 
-          strcmp(Stmp, "]") == 0) then
-        Sval = strsub(Spat, istart, indx)
-        ival = strtod(Sval)
-        
-        ipat[ipatindx] = ibeat
-        ipat[ipatindx + 1] = ibeatdur[istackindx]
-        ipat[ipatindx + 2] = ival
-        ipatindx += 3
-
-        ibeat += ibeatdur[istackindx]
-
-        indx -= 1
-        imode = 0
-      endif
-
-    endif
-
-    indx += 1
-  od
-
-  if(imode == 1) then
-        Sval = strsub(Spat, istart, indx)
-        ival = strtod(Sval)
-        
-        ipat[ipatindx] = ibeat
-        ipat[ipatindx + 1] = ibeatdur[istackindx]
-        ipat[ipatindx + 2] = ival
-        ipatindx += 3
-  endif
-  
-  xout ipat
-
-endop
-
-
-opcode pat_perf, 0, SSioo
-  Spat, Sinstr, iamp, ioct, ibase xin
-
-  indx = 0
   ipat[] pat_compile Spat
-  while (indx < lenarray(ipat)) do
-    schedule(Sinstr, beats(ipat[indx]), beats(ipat[indx + 1]), in_scale(ioct, ibase + ipat[indx + 2]), iamp)
-    indx += 3
-  od
+  pat_perf(ipat, Sinstr, iamp, ioct, ibase, itick)
 endop
 
 /* 
@@ -377,13 +311,33 @@ prints strsub("Test", 0,1)
 prints "TEST"
 */
 
-prints(strsub("[ 1 0 ]  [3 4 5] ", 10, 15))
+/*prints(strsub("[ 1 0 ]  [3 4 5] ", 10, 15))*/
+
+start("ReverbMixer")
+
+gipat1[] = pat_compile("0 0 [_ 5 _ 5] [4 4]")
 
 instr P1
-  Spat = "0 [_ 2 _ 5] [4 4] 2"
-  pat_perf2(Spat, "Squine1", ampdbfs(-12), 0, 0)
+  /*Spat = "0 0 [_ 5 _ 5] [4 4]"*/
+  /*pat_perf(Spat, "Bass", ampdbfs(-12), -1, 0)*/
+  pat_perf(gipat1, "Bass", ampdbfs(-12), -1, 0)
+
+  Spat = "[4 4] [_ _ 4 _] [4 3 7 4] _"
+  pat_perf(Spat, "Bass", ampdbfs(-12), ((p4 << 2) # p4) % 3)
+
+  hexplay("0", 
+      "BD", p3,
+      in_scale(-1, 0),
+      fade_in(5, 128) * ampdbfs(-9))
+
+  hexplay("2", 
+      "CHH", p3,
+      in_scale(-1, 0),
+      ampdbfs(-12))
 
 endin
+
+printarray(pat_compile("0 [_ _ _ 5] [4 4] 2"))
 
 ;clear_instr("P1")
 
