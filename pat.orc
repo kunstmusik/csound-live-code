@@ -189,7 +189,7 @@ opcode pat_compile, i[], S
           ibeatindx += 1
         endif
 
-        if(strcmp(Sval, "_") == 0) then
+        if(strcmp(Sval, "~") == 0) then
           ipat[ipatindx] = 2 ;; cmd: rest 
           ipat[ipatindx + 1] = 1 
           ipat[ipatindx + 2] = 0 
@@ -315,29 +315,27 @@ prints "TEST"
 
 start("ReverbMixer")
 
-gipat1[] = pat_compile("0 0 [_ 5 _ 5] [4 4]")
+gipat1[] = pat_compile("0 0 [~ 5 ~ 5] [4 4] ")
 
 instr P1
   /*Spat = "0 0 [_ 5 _ 5] [4 4]"*/
   /*pat_perf(Spat, "Bass", ampdbfs(-12), -1, 0)*/
   pat_perf(gipat1, "Bass", ampdbfs(-12), -1, 0)
 
-  Spat = "[4 4] [_ _ 4 _] [4 3 7 4] _"
+  Spat = "[4 4] [~ ~ 4 ~] [4 3 7 4] ~"
   pat_perf(Spat, "Bass", ampdbfs(-12), ((p4 << 2) # p4) % 3)
 
-  hexplay("0", 
-      "BD", p3,
-      in_scale(-1, 0),
-      fade_in(5, 128) * ampdbfs(-9))
+  hexdirt("2",
+      "808:1", 
+      fade_in(6, 128) * ampdbfs(-21))
 
-  hexplay("2", 
-      "CHH", p3,
-      in_scale(-1, 0),
-      ampdbfs(-12))
+  /*hexdirt("8",*/
+  /*    "bd", */
+  /*    fade_in(5, 128) * ampdbfs(-12))*/
 
 endin
 
-printarray(pat_compile("0 [_ _ _ 5] [4 4] 2"))
+printarray(pat_compile("0 [~ ~ ~ 5] [4 4] 2"))
 
 ;clear_instr("P1")
 
