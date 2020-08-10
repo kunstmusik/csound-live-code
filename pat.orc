@@ -26,67 +26,59 @@ opcode grow_array, i[], i[]
   xout iout_array
 endop
 
-opcode pat_item_count, i, S
-  Spat xin
-  indx = 0
-  icount = 0
-  imode = 0
-  ibrackets = 0
-
-  while (indx < strlen(Spat)) do
-    Stmp = strsub(Spat, indx, indx + 1)
-    if(imode == 0) then
-      if(strcmp(Stmp, "[") == 0 || strcmp(Stmp, "]") == 0) then
-        ;; ignore
-      elseif (strcmp(Stmp, " ") != 0) then
-          imode = 1 
-          icount += 1
-      endif
-    elseif (imode == 1) then
-      if(strcmp(Stmp, " ") == 0 || strcmp(Stmp, "[") == 0 || strcmp(Stmp, "]") == 0) then
-        imode = 0
-      endif
-    endif
-
-    indx += 1
-  od
-  xout icount 
-endop
-
 opcode pat_len, i, S
   Spat xin
   indx = 0
   icount = 0
   imode = 0
   ibrackets = 0
+  ialts = 0
+
   while (indx < strlen(Spat)) do
     Stmp = strsub(Spat, indx, indx + 1)
-    if(imode == 0) then
-      if(strcmp(Stmp, " ") != 0) then
+
+    if (strcmp(Stmp, "[") == 0) then
+      if((ialts + ibrackets) == 0 && imode == 1) then
         icount += 1
-        if (strcmp(Stmp, "[") == 0) then
-          ibrackets = 1
-          imode = 2
-        else
-          imode = 1 
-        endif
       endif
-    elseif (imode == 1) then
-      if(strcmp(Stmp, " ") == 0) then
-        imode = 0
+      ibrackets += 1
+      imode = 0
+
+    elseif (strcmp(Stmp, "]") == 0) then
+      ibrackets -= 1
+      if((ialts + ibrackets) == 0) then
+        icount += 1
       endif
+      imode = 0
+
+    elseif (strcmp(Stmp, "<") == 0) then
+      if((ialts + ibrackets) == 0 && imode == 1) then
+        icount += 1
+      endif
+      ialts += 1
+      imode = 0
+
+    elseif (strcmp(Stmp, ">") == 0) then
+      ialts -= 1
+      if((ialts + ibrackets) == 0) then
+        icount += 1
+      endif
+      imode = 0
+
+    elseif (strcmp(Stmp, " ") == 0) then
+      if((ialts + ibrackets) == 0 && imode == 1) then
+        icount += 1
+      endif
+      imode = 0
     else
-        if (strcmp(Stmp, "[") == 0) then
-          ibrackets += 1
-        elseif (strcmp(Stmp, "]") == 0) then
-          ibrackets -= 1
-        endif
-        if(ibrackets == 0) then
-          imode = 0
-        endif
+      imode = 1
     endif
+
     indx += 1
   od
+
+  icount += imode ;; in case was reading number value at end
+
   xout icount 
 endop
 
@@ -95,25 +87,26 @@ opcode pat_subpat, S, Si
 
   istart = indx
   indx += 1
-  ibrackets = 1
+  Sstart = strsub(Spat, istart, istart + 1)
+  ibrackets = strcmp(Sstart, "[") == 0 ? 1 : 0 
+  ialts = strcmp(Sstart, "<") == 0 ? 1 : 0 
   istrlen = strlen(Spat)
 
-  while (ibrackets > 0 && indx < istrlen) do
+  while ((ibrackets + ialts) > 0 && indx < istrlen) do
     Stmp = strsub(Spat, indx, indx + 1)
 
     if (strcmp(Stmp, "[") == 0) then
       ibrackets += 1
     elseif (strcmp(Stmp, "]") == 0) then
       ibrackets -= 1
+    elseif (strcmp(Stmp, "<") == 0) then
+      ialts += 1
+    elseif (strcmp(Stmp, ">") == 0) then
+      ialts -= 1
     endif
     indx += 1
   od
 
-  /*if(ibrackets > 0) then*/
-  /*  Sout = "error"*/
-  /*else */
-  /*  Sout = strsub(Spat, istart + 1, indx - 1)*/
-  /*endif*/
   Sout = (ibrackets > 0) ?  "error" : strsub(Spat, istart + 1, indx - 1)
 
   xout Sout
@@ -156,6 +149,7 @@ opcode pat_compile, i[], S
           ipat = grow_array(ipat)
         endif
 
+        ;; record top-level beat to speed up performance
         if(igrpcount == 0) then
           ipat[ibeatindx] = ipatindx
           ibeatindx += 1
@@ -184,6 +178,7 @@ opcode pat_compile, i[], S
           ipat = grow_array(ipat)
         endif
 
+        ;; record top-level beat to speed up performance
         if(igrpcount == 0) then
           ipat[ibeatindx] = ipatindx
           ibeatindx += 1
@@ -300,13 +295,15 @@ endop
 /* 
 print pat_len("1 0 2")
 print pat_len("[ 1 0 ]  [3 4 5]")
-print pat_item_count("[ 1 0 ] 3 2[3 4 5]")
 
-printarray(pat_compile2("[ 1 0 ] 3 2 [3 4 5]"))
+printarray(pat_compile("[ 1 0 ] 3 2 [3 4 5]"))
 
 printarray(pat_compile("0 1 2"))
 print(pat_len("[ 1 0 ] 3 2 [3 4 5]"))
 prints pat_subpat("[ 1 0 ]  [3 4 5]    ", 9)
+
+prints pat_subpat("[ 1 0 ]  <3 [4 5] 5>    ", 9)
+print pat_len("[ 1 <0 4>] <3 [4 5 ] 5> 4")
 prints strsub("Test", 0,1)
 prints "TEST"
 */
