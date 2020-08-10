@@ -1,4 +1,4 @@
-var cacheName = "csound-live-code-15";
+var cacheName = "csound-live-code-16";
 var filesToCache = [
   "/",
   "/index.html",
@@ -13,12 +13,7 @@ var filesToCache = [
   "/web/keymap/vim.js",
   "/web/keymap/emacs.js",
   "/web/cslivecode.js",
-  "/web/csound/CsoundNode.js",
   "/web/csound/CsoundObj.js",
-  "/web/csound/CsoundProcessor.js",
-  "/web/csound/CsoundScriptProcessorNode.js",
-  "/web/csound/libcsound-worklet.js",
-  "/web/csound/libcsound.js",
   "/livecode.orc",
   "/start.orc",
   "https://fonts.googleapis.com/css?family=Raleway|Roboto:400,700",

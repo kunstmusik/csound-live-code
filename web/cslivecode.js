@@ -15,7 +15,7 @@ let consoleOutput;
 /* UI ACTION FUNCTIONS */
 
 const updatePlayPauseUI = () => {
-  if (CSOUND_AUDIO_CONTEXT.state == "running") {
+  if (CsoundObj.CSOUND_AUDIO_CONTEXT.state == "running") {
     playPauseButton.className = "bar-btn fas fa-pause-circle";
     playPauseButton.title = "Pause Engine";
   } else {
@@ -182,7 +182,7 @@ const onRuntimeInitialized = () => {
       consoleOutput = document.getElementById("consoleOutput");
 
       const finishLoadCsObj = function() {
-        CSOUND_AUDIO_CONTEXT.resume().then(() => {
+        CsoundObj.CSOUND_AUDIO_CONTEXT.resume().then(() => {
           cs = new CsoundObj();
           restart();
 
@@ -197,7 +197,7 @@ const onRuntimeInitialized = () => {
         });
       };
 
-      if (CSOUND_AUDIO_CONTEXT.state != "running") {
+      if (CsoundObj.CSOUND_AUDIO_CONTEXT.state != "running") {
         ld.innerHTML = "Tap to start Csound";
         ld.addEventListener("click", function() {
           finishLoadCsObj();
@@ -218,10 +218,10 @@ const openHelp = () => {
 };
 
 const playPause = () => {
-  if (CSOUND_AUDIO_CONTEXT.state == "running") {
-    CSOUND_AUDIO_CONTEXT.suspend().then(updatePlayPauseUI);
+  if (CsoundObj.CSOUND_AUDIO_CONTEXT.state == "running") {
+    CsoundObj.CSOUND_AUDIO_CONTEXT.suspend().then(updatePlayPauseUI);
   } else {
-    CSOUND_AUDIO_CONTEXT.resume().then(updatePlayPauseUI);
+    CsoundObj.CSOUND_AUDIO_CONTEXT.resume().then(updatePlayPauseUI);
   }
 };
 
@@ -249,7 +249,7 @@ function layoutComplete() {
   });
 
   // Initialize Csound and load
-  CsoundObj.importScripts("./web/csound/").then(() => {
+  CsoundObj.initialize().then(() => {
     onRuntimeInitialized();
   });
   helpButton.addEventListener("click", openHelp);
