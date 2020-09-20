@@ -37,7 +37,7 @@ instr B2
   pan_verb_mix(asig, 0.5, 0.1)
 endin
   
-cause("B1", 0, 2, cpspch(6.00), ampdbfs(-12))
+; cause("B1", 0, 2, cpspch(6.00), ampdbfs(-12))
 
 instr P1
   hexplay("800f",
