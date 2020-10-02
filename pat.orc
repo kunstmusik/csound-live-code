@@ -317,18 +317,20 @@ gipat1[] = pat_compile("0 0 [~ 5 ~ 5] [4 4] ")
 instr P1
   /*Spat = "0 0 [_ 5 _ 5] [4 4]"*/
   /*pat_perf(Spat, "Bass", ampdbfs(-12), -1, 0)*/
+
+  /*xchnset("Bass.pan", random:i(0, 1))*/
+  /*xchnset("Bass.pan", 0.5)*/
   pat_perf(gipat1, "Bass", ampdbfs(-12), -1, 0)
 
   Spat = "[4 4] [~ ~ 4 ~] [4 3 7 4] ~"
   pat_perf(Spat, "Bass", ampdbfs(-12), ((p4 << 2) # p4) % 3)
 
-  hexdirt("2",
-      "808:1", 
-      fade_in(6, 128) * ampdbfs(-21))
+  Spat = "8 ~ 8 ~ [9 9 ] ~ 8 ~"
+  pat_perf(Spat, "Bass", ampdbfs(-12), -1 + ((p4 << 1) # p4) % 3)
 
-  /*hexdirt("8",*/
-  /*    "bd", */
-  /*    fade_in(5, 128) * ampdbfs(-12))*/
+  hexdirt("2", "808:1", ampdbfs(-21))
+
+  hexdirt("8", "bd", ampdbfs(-9))
 
 endin
 
