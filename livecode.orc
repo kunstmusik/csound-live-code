@@ -1180,13 +1180,9 @@ instr FBReverbMixer
   a3, a4 sbus_read 1
   
   al, ar reverbsc a3, a4, xchan:k("Reverb.fb", 0.7), xchan:k("Reverb.cut", 12000)
-  
-  
-  a1 = tanh(a1 + al) 
-  a2 = tanh(a2 + ar)
 
-  a1 += afb0
-  a2 += afb1
+  a1 = tanh(a1 + al + afb0) 
+  a2 = tanh(a2 + ar + afb1)
  
   kfb_amt = xchan:k("FB.amt", 0.9)
   kfb_dur = xchan:k("FB.dur", 4.2) * 1000 ;; time in ms
