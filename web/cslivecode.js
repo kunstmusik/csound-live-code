@@ -1,4 +1,7 @@
+import Csound from "https://unpkg.com/@csound/browser@6.16.0-beta1/dist/csound.esm.js";
+
 let cs;
+let context;
 let livecodeOrc = "";
 let fadeCounter = 5;
 
@@ -15,7 +18,7 @@ let consoleOutput;
 /* UI ACTION FUNCTIONS */
 
 const updatePlayPauseUI = () => {
-  if (CsoundObj.CSOUND_AUDIO_CONTEXT.state == "running") {
+  if (context.state == "running") {
     playPauseButton.className = "bar-btn fas fa-pause-circle";
     playPauseButton.title = "Pause Engine";
   } else {
@@ -100,16 +103,18 @@ const evalCodeAtMeasure = () => {
   flash(selectedText, "CodeMirror-highlight-delayed");
 };
 
-const restart = () => {
+const restart = async () => {
   consoleOutput.innerHTML = "";
-
-  cs.reset();
-  cs.setMessageCallback(csoundMsgCallback);
-  cs.setOption("-m0");
-  cs.setOption("-odac");
-  cs.setOption("-+msg_color=false");
-  cs.compileOrc("ksmps=32\n0dbfs=1\nnchnls=2\nnchnls_i=1\n" + livecodeOrc);
-  cs.start();
+  
+  await cs.stop();
+  await cs.reset();
+  //cs.setMessageCallback(csoundMsgCallback);
+  await cs.setOption("-m0");
+  await cs.setOption("-odac");
+  await cs.setOption("-+msg_color=false");
+  await cs.setOption("--daemon");
+  await cs.compileOrc("ksmps=32\n0dbfs=1\nnchnls=2\nnchnls_i=1\n" + livecodeOrc);
+  await cs.start();
 };
 
 const insertHexplay = () => {
@@ -174,16 +179,18 @@ const csoundMsgCallback = msg => {
   consoleOutput.innerHTML += msg + "\n";
 };
 
-const onRuntimeInitialized = () => {
+const onRuntimeInitialized = async () => {
   fetch("livecode.orc").then(function(response) {
-    return response.text().then(function(v) {
+    return response.text().then(async function(v) {
       livecodeOrc = v;
       let ld = document.getElementById("loadDiv");
       consoleOutput = document.getElementById("consoleOutput");
 
+      cs = await Csound({useWorker: false});
+      context = await cs.getAudioContext();
+
       const finishLoadCsObj = function() {
-        CsoundObj.CSOUND_AUDIO_CONTEXT.resume().then(() => {
-          cs = new CsoundObj();
+        context.resume().then(() => {
           restart();
 
           if (ld != null) {
@@ -197,7 +204,7 @@ const onRuntimeInitialized = () => {
         });
       };
 
-      if (CsoundObj.CSOUND_AUDIO_CONTEXT.state != "running") {
+      if (context.state != "running") {
         ld.innerHTML = "Tap to start Csound";
         ld.addEventListener("click", function() {
           finishLoadCsObj();
@@ -218,10 +225,10 @@ const openHelp = () => {
 };
 
 const playPause = () => {
-  if (CsoundObj.CSOUND_AUDIO_CONTEXT.state == "running") {
-    CsoundObj.CSOUND_AUDIO_CONTEXT.suspend().then(updatePlayPauseUI);
+  if (context.state == "running") {
+    context.suspend().then(updatePlayPauseUI);
   } else {
-    CsoundObj.CSOUND_AUDIO_CONTEXT.resume().then(updatePlayPauseUI);
+    context.resume().then(updatePlayPauseUI);
   }
 };
 
@@ -249,9 +256,7 @@ function layoutComplete() {
   });
 
   // Initialize Csound and load
-  CsoundObj.initialize().then(() => {
-    onRuntimeInitialized();
-  });
+  onRuntimeInitialized();
   helpButton.addEventListener("click", openHelp);
   playPauseButton.addEventListener("click", playPause);
   restartButton.addEventListener("click", restart);
