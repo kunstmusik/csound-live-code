@@ -1,4 +1,5 @@
-import Csound from "https://unpkg.com/@csound/browser@6.16.0-beta1/dist/csound.esm.js";
+import Csound from "https://unpkg.com/@csound/browser@6.16.0-beta2/dist/csound.esm.js";
+//import Csound from "./csound.dev.esm.js";
 
 let cs;
 let context;
