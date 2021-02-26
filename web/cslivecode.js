@@ -1,4 +1,4 @@
-import Csound from "https://unpkg.com/@csound/browser@6.16.0-beta2/dist/csound.esm.js";
+import Csound from "https://unpkg.com/@csound/browser@6.16.0-beta3/dist/csound.esm.js";
 //import Csound from "./csound.dev.esm.js";
 
 let cs;
@@ -109,7 +109,7 @@ const restart = async () => {
   
   await cs.stop();
   await cs.reset();
-  //cs.setMessageCallback(csoundMsgCallback);
+  await cs.on("message", csoundMsgCallback);
   await cs.setOption("-m0");
   await cs.setOption("-odac");
   await cs.setOption("-+msg_color=false");
