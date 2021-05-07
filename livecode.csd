@@ -3,7 +3,7 @@
 ;; 
 ;; Run this file using:
 ;;
-;; csound livecode.csd --port=10000 -o dac
+;; csound livecode.csd 
 ;; 
 ;; to start Csound in UDP server, ready for live coding. 
 ;; The session will be pre-loaded and initialized with

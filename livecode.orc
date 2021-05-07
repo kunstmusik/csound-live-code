@@ -270,10 +270,10 @@ endop
 
 ;; Event
 
-/** Wrapper opcode that calls schedule only if iamp > 0. */
+/** Wrapper opcode that calls schedule only if iamp > 0 and ifreq > 0. */
 opcode cause, 0, Siiii
   Sinstr, istart, idur, ifreq, iamp xin
-  if(iamp > 0) then
+  if(ifreq > 0 && iamp > 0) then
     schedule(Sinstr, istart, idur, ifreq, iamp)
   endif
 endop
@@ -323,7 +323,7 @@ endop
 opcode hexplay, 0, SiSiip
   Spat, itick, Sinstr, idur, ifreq, iamp xin
 
-  if(iamp > 0 && strlen(Sinstr) > 0 && hexbeat(Spat, itick) == 1) then
+  if(ifreq > 0 && iamp > 0 && strlen(Sinstr) > 0 && hexbeat(Spat, itick) == 1) then
     schedule(Sinstr, 0, idur, ifreq, iamp )
   endif
 endop
@@ -336,7 +336,7 @@ opcode hexplay, 0, SSiip
 
   itick = i(gk_clock_tick)
 
-  if(iamp > 0 && strlen(Sinstr) > 0 && hexbeat(Spat, itick) == 1) then
+  if(ifreq > 0 && iamp > 0 && strlen(Sinstr) > 0 && hexbeat(Spat, itick) == 1) then
     schedule(Sinstr, 0, idur, ifreq, iamp )
   endif
 endop
