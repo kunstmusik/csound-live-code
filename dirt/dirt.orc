@@ -104,13 +104,20 @@ instr dirt_play
   pan_verb_mix(asig, 0.5, 0.1)
 endin
 
-opcode hexdirt, 0, SSio
-  Spat, Samp, iamp, irate xin
+opcode hexdirt, 0, SiSio
+  Spat, itick, Samp, iamp, irate xin
   irate = (irate <= 0) ? 1 : irate
-  if(hexbeat(Spat) == 1) then
+  if(hexbeat(Spat, itick) == 1) then
     dirt(Samp, iamp, irate)
   endif
 endop
+
+opcode hexdirt, 0, SSio
+  Spat, Samp, iamp, irate xin
+  hexdirt(Spat, now_tick(), Samp, iamp, irate)
+endop
+
+
 
 ; load_dirt_samples() 
 ; dirt("bd", hexbeat("8") * ampdbfs(-12))
