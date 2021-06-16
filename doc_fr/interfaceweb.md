@@ -59,7 +59,7 @@ _Les raccourcis suivants fonctionnent avec OSX cmd- key ou ctrl-._
 
 |Raccourci | Description |
 | ------- | ------------|
-| ctrl-e  | évalue immédiatement l'ensemble du code |
+| ctrl-e  | évalue immédiatement le code sélectionné |
 | ctrl-enter  | évalue immédiatement le code sélectionné |
 | ctrl-shift-enter  | évalue le code toutes les 4 mesures |
 | ctrl-h  | insère un modèle du code hexplay() |
