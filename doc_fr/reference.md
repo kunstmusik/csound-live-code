@@ -314,6 +314,18 @@ Line (Ramp) oscillateur.  Donne une phase dans un intervale 0-1, retourne la val
 
 ---
 
+ival = **xoscd**(itick, kdurs[])
+
+Given a tick value and array of durations, returns new duration value for tick. 
+
+---
+
+ival = **xoscd**(kdurs[])
+
+Given an array of durations, returns new duration value for current clock tick. Useful with mod division and cycle for additive/subtractive rhythms.
+
+---
+
 ival = **dur\_seq**(itick, kdurs[])
 
 Étant donné une valeur de tick et un tableau de durées, retourne une nouvelle durée ou 0 selon que tick correspond à une nouvelle valeur de durée. Les valeurs
@@ -328,6 +340,18 @@ peuvent être positives ou négatives différentes de zéro. Les valeurs négati
 
 ---
 
+iiival = **melodic**(itick, kdurs[], kpchs[], kamps[])
+
+Experimental opcode for generating melodic lines given array of durations, pitches, and amplitudes. Durations follow dur\_seq practice that negative values are rests. Pitch and amp array indexing wraps according to their array lengths given index of non-rest duration value currently fired. 
+
+---
+
+iiival = **melodic**(kdurs[], kpchs[], kamps[])
+
+Experimental opcode for generating melodic lines given array of durations, pitches, and amplitudes. Durations follow dur\_seq practice that negative values are rests. Pitch and amp array indexing wraps according to their array lengths given index of non-rest duration value currently fired. 
+
+---
+
 Sval = **rotate**(Sval, irot)
 
 rotate - Rotation de la phrase autour d'un nombre irot de valeurs.
@@ -339,6 +363,13 @@ rotate - Rotation de la phrase autour d'un nombre irot de valeurs.
 Sval = **strrep**(Sval, inum)
 
 Répète une chaîne String donnée x nombre de fois. Par exemple, `Sval = strrep (" ab6a ", 2)` produira la valeur de "ab6aab6a". Utile pour travailler avec les chaînes en Hex Beat.
+
+---
+
+**xchnset**(SchanName, ival)
+
+Sets i-rate value into channel and sets initialization to true. Works together
+with xchan 
 
 ---
 
@@ -539,6 +570,26 @@ Opcode pour régler le signal panoramique, envoie les valeurs au mixeur et envoi
 
 ---
 
+**reverb\_mix**(al, ar, krvb)
+
+Utility opcode to send dry stereo to mixer and send amount
+of stereo signal to reverb. If ReverbMixer is not on, will output just
+panned signal using out opcode. 
+
+---
+
+**automate**(Schan, idur, istart, iend, itype)
+
+Automate channel value over time. Takes in "ChannelName", duration, start value, end value, and automation type (0=linear, else exponential). For exponential, signs of istart and end must match and neither can be zero. 
+
+---
+
+**fade\_out\_mix**(idur)
+
+Utility opcode for end of performances to fade out Mixer over given idur time. idur defaults to 30 seconds. *
+
+---
+
 aval = **saturate**(asig, ksat)
 
 Saturation avec tanh 
@@ -551,6 +602,8 @@ Saturation avec tanh
 | ---- | ---- | 
 |  ReverbMixer | Mixer Always-on avec une Reverb au canal. Utiliser start("ReverbMixer") pour l'activation. Utilisé avec pan\_verb\_mix to simplify signal-based live coding.  | 
 |  FBReverbMixer | Mixer Always-on avec une Reverb et un delay en feedback. Utiliser start("FBReverbMixer") pour l'activation. utilisé avec pan\_verb\_mix to simplify signal-based live coding.  | 
+|  ChnSet | Set a channel value at a given time. p4=ChannelName, p5=value | 
+|  Auto | Automation instrument for channels. Takes in "ChannelName", start value, end value, and automation type (0=linear, else exponential).  | 
 |  Sub1 | Substractive Synth, 3osc  | 
 |  Sub2 | Subtractive Synth, two saws, fifth freq apart  | 
 |  Sub3 | Subtractive Synth, three detuned saws, swells in  | 
@@ -558,11 +611,15 @@ Saturation avec tanh
 |  Sub5 | Subtractive Synth, detuned square/triangle  | 
 |  Sub6 | Subtractive Synth, saw, K35 filters  | 
 |  Sub7 | Subtractive Synth, saw + tri, K35 filters  | 
+|  Sub8 | Subtractive Synth, square + saw + tri, diode ladder filter  | 
 |  SynBrass | SynthBrass subtractive synth  | 
+|  SynHarp | Synth Harp subtracitve Synth  | 
 |  SSaw | SuperSaw sound using 9 bandlimited saws (3 sets of detuned saws at octaves) | 
 |  Mode1 | Modal Synthesis Instrument: Percussive/organ-y sound  | 
 |  Plk | Pluck sound using impulses, noise, and waveguides | 
+|  Organ1 | Wavetable Organ sound using additive synthesis  | 
 |  Organ2 | Organ sound based on M1 Organ 2 patch  | 
+|  Organ3 | Wavetable Organ using Flute 8' and Flute 4', wavetable based on Claribel Flute http://www.pykett.org.uk/the\_tonal\_structure\_of\_organ\_flutes.htm  |
 |  Bass | 303-style Bass sound  | 
 |  ms20_bass | MS20-style Bass Sound  | 
 |  VoxHumana | VoxHumana Patch  | 
@@ -570,8 +627,14 @@ Saturation avec tanh
 |  Noi | Filtered noise, exponential envelope  | 
 |  Wobble | Wobble patched based on Jacob Joaquin's "Tempo-Synced Wobble Bass"  | 
 |  Sine | Simple Sinewave instrument with exponential envelope  | 
+|  Square | Simple Square-wave instrument with exponential envelope  | 
+|  Saw | Simple Sawtooth-wave instrument with exponential envelope  | 
+|  Squine1 | Squinewave Synth, 2 osc  | 
+|  Form1 | Formant Synth, buzz source, soprano ah formants  | 
 |  Mono | Monophone synth using sawtooth wave and 4pole lpf. Use "start("Mono") to run the monosynth, then use MonoNote instrument to play the instrument.  | 
 |  MonoNote | Note playing instrument for Mono synth. Be careful to use this and not try to create multiple Mono instruments!  | 
+|  Click | Bandpass-filtered impulse glitchy click sound. p4 = center frequency (e.g., 3000, 6000)  | 
+|  NoiSaw | Highpass-filtered noise+saw sound. Use NoiSaw.cut channel to adjust cutoff.  | 
 |  Clap | Modified clap instrument by Istvan Varga (clap1.orc)  | 
 |  BD   | Bass Drum - From Iain McCurdy's TR-808.csd  | 
 |  SD   | Snare Drum - From Iain McCurdy's TR-808.csd  | 
