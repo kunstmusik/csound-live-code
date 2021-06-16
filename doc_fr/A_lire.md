@@ -9,7 +9,7 @@ Ce désir de traduction m'est venu de ma difficulté à me plonger dans cette po
 
 Par conséquent cette traduction est toujours en chantier et toujours à améliorer (vous pouvez y contribuer si cela vous dit !).
 
-J'ai fait le choix de laisser en l'état certains termes, certaines expressions que je ne savais pas comment traduire et qui ne le nécessite d'ailleurs pas forcément (en particulier des notions très techniques ou très savantes).
+J'ai fait le choix de laisser en l'état certains termes, certaines expressions que je ne savais pas comment traduire et qui ne le nécessitent d'ailleurs pas forcément (en particulier des notions très techniques ou très savantes).
 
 Certains fichiers composant la documentation en anglais ne sont pas reportés dans la documentation en français, je n'en ai pas vu la nécessité (c'est la cas de "cheatsheet" notamment), vous pouvez vous y reporter sans risque.
 
