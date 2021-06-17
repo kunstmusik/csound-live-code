@@ -149,7 +149,7 @@ Dans l'exemple précédent, des calculs numériques ont été utilisés pour dé
       fade_in(10, 128) * ampdbfs(-12))
 ```
 
-Le calcul vérifie si le `p4` (le tick actuel ou la 16e de noire) est égal à 13 (ce qui correspond au second hit du motif `c` hex) et, le cas échéant, à générer un 7, sinon un 0. Cela signifie que nous voulons que toutes les notes soient 0 sauf pour un 7 quand est sur le tick 13.
+Le calcul vérifie si le `p4` (hauteur de la note) est égal à 13 (ce qui correspond au second hit du motif hexadécimal `c`) et, le cas échéant, à générer un 7, sinon un 0 (aucun changement). Cela signifie que nous voulons que toutes les notes soient 0 sauf pour un 7 quand on est sur le tick 13.
 
 Une autre façon d’exprimer le même calcul consiste à utiliser `hexbeat()` pour générer un 1 ou un 0, puis à le multiplier par 7, comme suit:
 
