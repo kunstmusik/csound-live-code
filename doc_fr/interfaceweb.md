@@ -59,9 +59,9 @@ _Les raccourcis suivants fonctionnent avec OSX cmd- key ou ctrl-._
 
 |Raccourci | Description |
 | ------- | ------------|
-| ctrl-e  | évalue immédiatement le code sélectionné |
+| ctrl-e  | évalue immédiatement le code |
 | ctrl-enter  | évalue immédiatement le code sélectionné |
 | ctrl-shift-enter  | évalue le code toutes les 4 mesures |
 | ctrl-h  | insère un modèle du code hexplay() |
 | ctrl-j  | insère un modèle du code euclidplay() |
-| ctrl-;  | démarre une ligne de commentaire|
+| ctrl-;  | bouton on/off pour les commentaires |
