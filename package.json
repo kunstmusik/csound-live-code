@@ -1,0 +1,14 @@
+{
+    "name": "@kunstmusik/csound-live-code",
+    "version": "1.0.0",
+    "description": "Library for Live Coding with Csound",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/kunstmusik/csound-live-code.git"
+    },
+    "author": "Steven Yi <stevenyi@gmail.com>",
+    "license": "MIT",
+    "homepage" : "https://github.com/kunstmusik/csound-live-code",
+    "keywords" : ["csound"],
+    "files": ["README.md", "livecode.orc", "dirt/*"]
+  }

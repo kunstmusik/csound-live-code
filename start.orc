@@ -1,4 +1,5 @@
 ;; reset_clock()
+start("ReverbMixer")
 set_tempo(120)
 set_scale("min")
 

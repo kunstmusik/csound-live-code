@@ -1,0 +1,67 @@
+/* #root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+} */
+
+.App {
+  width:100vw;
+  height: 100vh;
+}
+
+.cm-editor {
+  font-family: Monaco, monospace;
+  font-size: 16px;
+}
+
+.CodeMirror-highlight {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.CodeMirror-highlight-delayed {
+  background: rgba(0, 192, 255, 0.5);
+}
+
+header {
+  height: 3em;
+  width: 100%;
+  background: #272822;
+  border-bottom: 1px solid #333333;
+  color: #ccc;
+  box-sizing: border-box;
+  padding-top: 0.75em;
+  padding-left: 1em;
+  padding-right: 1em;
+}
+
+header > h1 {
+  font-family: "Raleway", sans-serif;
+  font-size: 1em;
+  display: inline-block;
+  /*color: #505050;*/
+}
+
+header > nav {
+  /*padding-top: 0.5em;*/
+  margin-left: 1em;
+  font-family: "Roboto", sans-serif;
+  /*height: 1.5em;*/
+  background: transparent;
+  border-radius: 0px;
+  display: inline-block;
+}
+
+header > nav > i {
+  margin-right: 0.2em;
+  font-size: 1.5em;
+}
+
+.bar-btn {
+  font-size: 1.5em;
+  cursor: pointer;
+}
+
+.bar-btn:hover {
+  color: aliceblue;
+}
