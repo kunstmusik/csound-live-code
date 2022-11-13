@@ -19,7 +19,7 @@ export const flash = (
     class: color,
   });
 
-  console.log(flashMark);
+  // console.log(flashMark);
 
   editor.dispatch({
     effects: addMarks.of([flashMark.range(txt.from, txt.to)]),
