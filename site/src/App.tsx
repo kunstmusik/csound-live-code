@@ -64,15 +64,6 @@ function App() {
               ";; Select this code and press ctrl-e to evaluate\n" + startOrc
             }
             theme={okaidia}
-            basicSetup={{
-              // closeBracketsKeymap: false,
-               defaultKeymap: false
-              // searchKeymap: false,
-              // foldKeymap: false,
-              // completionKeymap: false,
-              // historyKeymap: false,
-              // lintKeymap: false,
-            }}
             extensions={[
               history(),
               Prec.highest(
