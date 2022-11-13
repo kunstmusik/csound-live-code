@@ -438,10 +438,10 @@
   resolved "https://registry.yarnpkg.com/@types/webmidi/-/webmidi-2.0.6.tgz#c9b1428bbc5d5f49cc6201eae0dc5e2b3fd23e0e"
   integrity sha512-sfS0A5IryqmBrUpcGPipEPeFdpqmZzP6b6lZFxHKgz5n2Vhzh4yJ5P2TvoDUhDjqJyv0Y25ng0Qodgo2Vu08ug==
 
-"@uiw/codemirror-extensions-basic-setup@4.12.4":
-  version "4.12.4"
-  resolved "https://registry.yarnpkg.com/@uiw/codemirror-extensions-basic-setup/-/codemirror-extensions-basic-setup-4.12.4.tgz#aec0ad943b0a3ec7e3959a62fea68d619255878e"
-  integrity sha512-owSCcRBtS2wYjxgBFkuIjfjWJHsR8AxgsQtqPpHB/6U0zCLuzKS/OM5ZRS2T3rdOizg0hCPztVvmshWeKjF+qw==
+"@uiw/codemirror-extensions-basic-setup@4.13.2":
+  version "4.13.2"
+  resolved "https://registry.yarnpkg.com/@uiw/codemirror-extensions-basic-setup/-/codemirror-extensions-basic-setup-4.13.2.tgz#c745f57f1f9e7d14ab54fe1b706cd983a51519b6"
+  integrity sha512-ATJA7WaZ5g7/0teNBQRIalK3RxfU9X7hviwh6BOelaeJrJjkY6x+jVaACYywP1GStsIKcjNCumakpmRPO9w4sQ==
   dependencies:
     "@codemirror/autocomplete" "^6.0.0"
     "@codemirror/commands" "^6.0.0"
@@ -451,32 +451,32 @@
     "@codemirror/state" "^6.0.0"
     "@codemirror/view" "^6.0.0"
 
-"@uiw/codemirror-theme-okaidia@^4.12.4":
-  version "4.12.4"
-  resolved "https://registry.yarnpkg.com/@uiw/codemirror-theme-okaidia/-/codemirror-theme-okaidia-4.12.4.tgz#8f4c9254db6857f79d216d5a8ac08ec397f230c6"
-  integrity sha512-HjUYunXrxxelmgu8vFSJCU33o6I0X/9eq/ItaqHH5J5bdeoxNv+6wMzxoWFMhv47YOjd+eNGvZ5epg6DbzkHng==
+"@uiw/codemirror-theme-okaidia@^4.13.2":
+  version "4.13.2"
+  resolved "https://registry.yarnpkg.com/@uiw/codemirror-theme-okaidia/-/codemirror-theme-okaidia-4.13.2.tgz#5474395329b4d841c3fcbd19ce2d953f8c5c242f"
+  integrity sha512-fiXk4lP+ctFN1xxx/unG3KKoi0ldZocdgFs+abypC4186/Ts8gYl0xQeDZVPoR+8ieicolsfXlNnpHnDCSD1sw==
   dependencies:
-    "@uiw/codemirror-themes" "4.12.4"
+    "@uiw/codemirror-themes" "4.13.2"
 
-"@uiw/codemirror-themes@4.12.4", "@uiw/codemirror-themes@^4.12.4":
-  version "4.12.4"
-  resolved "https://registry.yarnpkg.com/@uiw/codemirror-themes/-/codemirror-themes-4.12.4.tgz#d8d06a26045104bb6a666f2eb5646d6830f1663e"
-  integrity sha512-ekySMFlXaJ4u0TCz/caHG8HqJPT0+viUA2ZQ4yZ+F1z2Lk9HgMS/1YfRj8vHuEUPNXc9Fsy5qxwTp7I1hEanEg==
+"@uiw/codemirror-themes@4.13.2", "@uiw/codemirror-themes@^4.13.2":
+  version "4.13.2"
+  resolved "https://registry.yarnpkg.com/@uiw/codemirror-themes/-/codemirror-themes-4.13.2.tgz#ae27b700a52190a51323f3eb50531a80ddecb8f7"
+  integrity sha512-IPkHzt5SjLjXRPGmFOpRjXzRA9VWomJjWYETq21jXTTnFtZeEjAuhucgKMydt11ALUyGjwTzdReTA9yt9VNskA==
   dependencies:
     "@codemirror/language" "^6.0.0"
     "@codemirror/state" "^6.0.0"
     "@codemirror/view" "^6.0.0"
 
-"@uiw/react-codemirror@^4.12.4":
-  version "4.12.4"
-  resolved "https://registry.yarnpkg.com/@uiw/react-codemirror/-/react-codemirror-4.12.4.tgz#26c36e7957bc51894bc6526b3922645215ad46d5"
-  integrity sha512-92TAvN2z5snPjPtJDLmbqrqsXXYFYlBnWraXZuDc1XGaw80tB26ZkdEW79CD2QM4Y9LhFIt+sauwlmiAVDs/5A==
+"@uiw/react-codemirror@^4.13.2":
+  version "4.13.2"
+  resolved "https://registry.yarnpkg.com/@uiw/react-codemirror/-/react-codemirror-4.13.2.tgz#06e3aaba2fc6fef15aec6c15f3e08bbcb1e87c31"
+  integrity sha512-sMfb8F82yLSqyq1gEUlr14E4KGXDfvsCnkGLLwJZqsq/TvJTRVcy0GX87wn3GXBtGhNp5TvGFUDaCnFzbU4bIQ==
   dependencies:
     "@babel/runtime" "^7.18.6"
     "@codemirror/commands" "^6.1.0"
     "@codemirror/state" "^6.1.1"
     "@codemirror/theme-one-dark" "^6.0.0"
-    "@uiw/codemirror-extensions-basic-setup" "4.12.4"
+    "@uiw/codemirror-extensions-basic-setup" "4.13.2"
     codemirror "^6.0.0"
 
 "@vitejs/plugin-react@^2.1.0":
