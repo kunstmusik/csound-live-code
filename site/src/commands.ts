@@ -62,25 +62,25 @@ export const evalCode = (csound: CsoundObj):Command => {
 
 export const createKeymap = (csound: CsoundObj):KeyBinding[] => {
   const simpleMap:{[key:string]: Command | StateCommand} = {
-    "Ctrl-E": evalCode(csound),
-    "Cmd-E": evalCode(csound),
+    "Ctrl-e": evalCode(csound),
+    "Cmd-e": evalCode(csound),
     "Ctrl-Enter": evalCode(csound),
     "Cmd-Enter": evalCode(csound),
-    //   "Shift-Ctrl-Enter": evalCodeAtMeasure,
-    //   "Shift-Cmd-Enter": evalCodeAtMeasure,
-    "Ctrl-H": insertHexplay,
-    "Cmd-H": insertHexplay,
-    "Ctrl-J": insertEuclidplay,
-    "Cmd-J": insertEuclidplay,
+    "Ctrl-h": insertHexplay,
+    "Cmd-h": insertHexplay,
+    "Ctrl-j": insertEuclidplay,
+    "Cmd-j": insertEuclidplay,
     "Ctrl-;": toggleComment,
     "Cmd-;": toggleComment,
-    "Ctrl-Alt-C": toggleComment,
-    "Cmd-Alt-C": toggleComment,
+    "Ctrl-Alt-c": toggleComment,
+    "Cmd-Alt-c": toggleComment,
+    //   "Shift-Ctrl-Enter": evalCodeAtMeasure,
+    //   "Shift-Cmd-Enter": evalCodeAtMeasure,
   };
 
   const keyMap = Object.keys(simpleMap).map(k => {
     const cmd = simpleMap[k];
-    return { key: k, run: cmd};
+    return { key: k, mac: k, run: cmd, preventDefault: true};
   })
   return keyMap;
 };
