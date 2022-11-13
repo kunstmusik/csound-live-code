@@ -3,8 +3,9 @@ import "./App.css";
 import { Csound, CsoundObj } from "@csound/browser";
 import { restartCsound } from "./actions";
 import CodeMirror, { minimalSetup } from "@uiw/react-codemirror";
+import { keymap, EditorView } from "@codemirror/view";
+import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { okaidia } from "@uiw/codemirror-theme-okaidia";
-import { keymap } from "@codemirror/view";
 import { Prec } from "@codemirror/state";
 import { StreamLanguage } from "@codemirror/language";
 import { basicSetup } from "codemirror";
@@ -63,11 +64,28 @@ function App() {
               ";; Select this code and press ctrl-e to evaluate\n" + startOrc
             }
             theme={okaidia}
+            basicSetup={{
+              // closeBracketsKeymap: false,
+               defaultKeymap: false
+              // searchKeymap: false,
+              // foldKeymap: false,
+              // completionKeymap: false,
+              // historyKeymap: false,
+              // lintKeymap: false,
+            }}
             extensions={[
-              Prec.highest(keymap.of(createKeymap(csound))),
+              history(),
+              Prec.highest(
+                keymap.of([
+                  ...createKeymap(csound),
+                  ...defaultKeymap,
+                  ...historyKeymap,
+                ])
+              ),
               StreamLanguage.define(csoundMode),
-              basicSetup,
-              flashPlugin
+              // basicSetup,
+
+              flashPlugin,
             ]}
           ></CodeMirror>
         </div>
@@ -78,12 +96,10 @@ function App() {
             height: "100%",
             alignItems: "center",
             justifyContent: "center",
-            display: "flex"
+            display: "flex",
           }}
         >
-          <button onClick={initialize}>
-            Start
-          </button>
+          <button onClick={initialize}>Start</button>
         </div>
       )}
     </div>
