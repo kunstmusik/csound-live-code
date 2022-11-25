@@ -79,3 +79,7 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}

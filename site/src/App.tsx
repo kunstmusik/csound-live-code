@@ -1,21 +1,25 @@
-import { useState } from "react";
-import "./App.css";
-import { Csound, CsoundObj } from "@csound/browser";
-import { restartCsound } from "./actions";
-import CodeMirror, { minimalSetup } from "@uiw/react-codemirror";
-import { keymap, EditorView } from "@codemirror/view";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
-import { okaidia } from "@uiw/codemirror-theme-okaidia";
-import { Prec } from "@codemirror/state";
 import { StreamLanguage } from "@codemirror/language";
-import { basicSetup } from "codemirror";
-import { createKeymap } from "./commands";
+import { Prec } from "@codemirror/state";
+import { keymap } from "@codemirror/view";
+import { Csound, CsoundObj } from "@csound/browser";
+import { okaidia } from "@uiw/codemirror-theme-okaidia";
+import CodeMirror from "@uiw/react-codemirror";
+import { useState } from "react";
 import startOrc from "../../start.orc?raw";
+import { restartCsound } from "./actions";
+import "./App.css";
+import { createKeymap } from "./commands";
 
 // @ts-ignore
-import { csoundMode } from "./mode/csound";
-import Header from "./Header";
+import { Button, Center, ChakraProvider, createLocalStorageManager, VStack } from "@chakra-ui/react";
 import { flashPlugin } from "./flash";
+import Header from "./Header";
+import { csoundMode } from "./mode/csound";
+import theme from "./Theme";
+
+const manager = createLocalStorageManager("csound-live-code-color-mode")
+
 
 function App() {
   const [running, setRunning] = useState(false);
@@ -53,9 +57,9 @@ function App() {
   };
 
   return (
-    <div className="App">
+    <ChakraProvider theme={theme} colorModeManager={manager}>
       {running && csound ? (
-        <div>
+        <VStack maxH="100vh" spacing="0">
           <Header csound={csound} />
           <CodeMirror
             width="100%"
@@ -79,21 +83,13 @@ function App() {
               flashPlugin,
             ]}
           ></CodeMirror>
-        </div>
+        </VStack>
       ) : (
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            alignItems: "center",
-            justifyContent: "center",
-            display: "flex",
-          }}
-        >
-          <button onClick={initialize}>Start</button>
-        </div>
+        <Center h="100vh">
+          <Button onClick={initialize}>Start</Button>
+        </Center>
       )}
-    </div>
+    </ChakraProvider>
   );
 }
 

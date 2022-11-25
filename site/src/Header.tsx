@@ -1,37 +1,17 @@
+import { HStack, IconButton, Spacer } from "@chakra-ui/react";
 import { CsoundObj } from "@csound/browser";
 
+import { FaPauseCircle, FaQuestionCircle, FaRedoAlt } from "react-icons/fa";
+
 const Header = ({csound}:{csound:CsoundObj}) => {
-   return     <header>
+   return     <HStack w="100%" p="2" backgroundColor="#272822" borderBottom="1px solid gray">
    <h1>csound-live-code</h1>
-   <nav>
-     <i
-       id="playPauseButton"
-       className="bar-btn fas fa-pause-circle"
-       title="Pause Engine"
-     ></i>
-     <i
-       id="restartButton"
-       className="bar-btn fas fa-redo-alt"
-       title="Restart Engine"
-     ></i>
-     <i
-       id="evalNowButton"
-       className="bar-btn fas fa-code"
-       title="Evaluate Now"
-     ></i>
-     <i
-       id="evalMeasureButton"
-       className="bar-btn fas fa-code"
-       title="Evaluate at Measure"
-     ></i>
-   </nav>
-   <i
-     id="helpButton"
-     className="bar-btn fas fa-question-circle"
-     style={{float:"right"}}
-     title="Open Documentation in new Window"
-   ></i>
- </header>
+   <IconButton aria-label="Pause Engine" icon={<FaPauseCircle/>} fontSize="24px"/>
+   <IconButton aria-label="Reestart Engine" icon={<FaRedoAlt/>} fontSize="24px"/>
+   <Spacer/>
+   
+   <IconButton aria-label="Open Documentation in new Window" icon={<FaQuestionCircle/>} fontSize="24px"/>
+ </HStack>
 }
 
 export default Header;
