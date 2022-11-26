@@ -3,6 +3,8 @@ import {
   HStack,
   IconButton,
   Input,
+  InputGroup,
+  InputLeftAddon,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -10,34 +12,24 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Spacer,
-  Text,
-  useDisclosure,
-  VStack,
+  Spacer, useDisclosure
 } from "@chakra-ui/react";
 import { CsoundObj } from "@csound/browser";
-import { ReactCodeMirrorRef } from "@uiw/react-codemirror";
-import { MutableRefObject, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   FaDownload,
   FaPauseCircle,
   FaPlayCircle,
   FaQuestionCircle,
-  FaRedoAlt,
+  FaRedoAlt
 } from "react-icons/fa";
 import { openHelp, restartCsound, saveDocument } from "./actions";
 
 const d = new Date();
 const dateHeader = `${d.getFullYear()}-${d.getMonth()}-${d.getDay()}`;
 
-const Header = ({
-  csound,
-  code,
-}: {
-  csound: CsoundObj;
-  code: string;
-}) => {
+const Header = ({ csound, code }: { csound: CsoundObj; code: string }) => {
   const [running, setRunning] = useState(true);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [filename, setFilename] = useState(`${dateHeader}_project.orc`);
@@ -108,23 +100,27 @@ const Header = ({
         <ModalContent backgroundColor="#222222">
           <ModalHeader>Save File</ModalHeader>
           <ModalCloseButton />
-          <ModalBody >
-            <VStack>
-              <Text>Name of file</Text>
-              <Input w="full" value={filename} onChange={(evt) => setFilename(evt.target.value)}/>
-            </VStack>
-            </ModalBody>
+          <ModalBody>
+            <InputGroup>
+              <InputLeftAddon>Name of file</InputLeftAddon>
+              <Input
+                w="full"
+                value={filename}
+                onChange={(evt) => setFilename(evt.target.value)}
+              />
+            </InputGroup>
+          </ModalBody>
 
           <ModalFooter>
             <Button
               colorScheme="blue"
               mr={3}
               onClick={() => {
-                  saveDocument(filename, code);
-                  onClose();
+                saveDocument(filename, code);
+                onClose();
               }}
             >
-              Save 
+              Save
             </Button>
           </ModalFooter>
         </ModalContent>
