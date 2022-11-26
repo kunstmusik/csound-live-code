@@ -14,3 +14,8 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   </React.StrictMode>
   </>
 )
+
+// always ask before unloading page in case of accidental refresh or other navigation
+window.onbeforeunload = function() {
+  return "Are you sure?";
+};
