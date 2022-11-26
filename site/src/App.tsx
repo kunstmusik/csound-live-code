@@ -4,8 +4,8 @@ import { Prec } from "@codemirror/state";
 import { keymap } from "@codemirror/view";
 import { Csound, CsoundObj } from "@csound/browser";
 import { okaidia } from "@uiw/codemirror-theme-okaidia";
-import CodeMirror from "@uiw/react-codemirror";
-import { useEffect, useState } from "react";
+import CodeMirror, { ReactCodeMirrorRef } from "@uiw/react-codemirror";
+import { useEffect, useRef, useState } from "react";
 import startOrc from "../../start.orc?raw";
 import { restartCsound } from "./actions";
 import "./App.css";
@@ -18,7 +18,7 @@ import {
   ChakraProvider,
   createLocalStorageManager,
   Text,
-  VStack
+  VStack,
 } from "@chakra-ui/react";
 import { flashPlugin } from "./flash";
 import Header from "./Header";
@@ -37,6 +37,11 @@ function App() {
   const [running, setRunning] = useState<RunState>(RunState.LOADING);
   const [csound, setCsound] = useState<CsoundObj>();
   const [audioContext, setAudioContext] = useState<AudioContext>();
+  const [code, setCode] = useState(
+    ";; Select this code and press ctrl-e to evaluate\n" + startOrc
+  );
+
+  const refs = useRef<ReactCodeMirrorRef>({});
 
   useEffect(() => {
     (async () => {
@@ -69,15 +74,15 @@ function App() {
 
   return (
     <ChakraProvider theme={theme} colorModeManager={manager}>
-      { csound && running == RunState.RUNNING ? (
+      {csound && running == RunState.RUNNING ? (
         <VStack maxH="100vh" spacing="0">
-          <Header csound={csound} />
+          <Header csound={csound} code={code} />
           <CodeMirror
+            ref={refs}
             width="100%"
             height="100%"
-            value={
-              ";; Select this code and press ctrl-e to evaluate\n" + startOrc
-            }
+            value={code}
+            onChange={setCode}
             theme={okaidia}
             extensions={[
               history(),
@@ -99,11 +104,11 @@ function App() {
         <Center h="100vh">
           <Button onClick={finishLoadCsObj}>Start</Button>
         </Center>
-      ) : 
+      ) : (
         <Center h="100vh">
-          <Text>Loading...</Text> 
+          <Text>Loading...</Text>
         </Center>
-    }
+      )}
     </ChakraProvider>
   );
 }
