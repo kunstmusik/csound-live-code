@@ -5,60 +5,71 @@ import { keymap } from "@codemirror/view";
 import { Csound, CsoundObj } from "@csound/browser";
 import { okaidia } from "@uiw/codemirror-theme-okaidia";
 import CodeMirror from "@uiw/react-codemirror";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import startOrc from "../../start.orc?raw";
 import { restartCsound } from "./actions";
 import "./App.css";
 import { createKeymap } from "./commands";
 
 // @ts-ignore
-import { Button, Center, ChakraProvider, createLocalStorageManager, VStack } from "@chakra-ui/react";
+import {
+  Button,
+  Center,
+  ChakraProvider,
+  createLocalStorageManager,
+  Text,
+  VStack
+} from "@chakra-ui/react";
 import { flashPlugin } from "./flash";
 import Header from "./Header";
 import { csoundMode } from "./mode/csound";
 import theme from "./Theme";
 
-const manager = createLocalStorageManager("csound-live-code-color-mode")
+const manager = createLocalStorageManager("csound-live-code-color-mode");
 
+enum RunState {
+  LOADING,
+  REQUIRES_START,
+  RUNNING,
+}
 
 function App() {
-  const [running, setRunning] = useState(false);
+  const [running, setRunning] = useState<RunState>(RunState.LOADING);
   const [csound, setCsound] = useState<CsoundObj>();
   const [audioContext, setAudioContext] = useState<AudioContext>();
 
-  const initialize = async () => {
-    // let ld = document.getElementById("loadDiv");
-    // const consoleOutput = document.getElementById("consoleOutput");
-    const cs = await Csound({ useWorker: false });
-    if (!cs) {
-      alert("Error loading csound, please refresh and try again.");
-      return;
-    }
-    setCsound(cs);
-    const context = await cs.getAudioContext();
-    setAudioContext(context);
+  useEffect(() => {
+    (async () => {
+      const cs = await Csound({ useWorker: false });
+      if (!cs) {
+        alert("Error loading csound, please refresh and try again.");
+        return;
+      }
+      setCsound(cs);
+      const context = await cs.getAudioContext();
+      setAudioContext(context);
 
-    const finishLoadCsObj = function () {
-      context?.resume().then(() => {
+      if (context?.state === "running") {
         restartCsound(cs);
-        setRunning(true);
+        setRunning(RunState.RUNNING);
+      } else {
+        setRunning(RunState.REQUIRES_START);
+      }
+    })();
+  }, []);
 
-        // editor.refresh();
-        // editor.focus();
-        // editor.setCursor(0, 0);
-
-        // updatePlayPauseUI();
+  const finishLoadCsObj = function () {
+    if (audioContext && csound) {
+      audioContext?.resume().then(() => {
+        restartCsound(csound);
+        setRunning(RunState.RUNNING);
       });
-    };
-
-    if (context?.state === "running") {
-      finishLoadCsObj();
     }
   };
 
   return (
     <ChakraProvider theme={theme} colorModeManager={manager}>
-      {running && csound ? (
+      { csound && running == RunState.RUNNING ? (
         <VStack maxH="100vh" spacing="0">
           <Header csound={csound} />
           <CodeMirror
@@ -84,11 +95,15 @@ function App() {
             ]}
           ></CodeMirror>
         </VStack>
-      ) : (
+      ) : running === RunState.REQUIRES_START ? (
         <Center h="100vh">
-          <Button onClick={initialize}>Start</Button>
+          <Button onClick={finishLoadCsObj}>Start</Button>
         </Center>
-      )}
+      ) : 
+        <Center h="100vh">
+          <Text>Loading...</Text> 
+        </Center>
+    }
     </ChakraProvider>
   );
 }

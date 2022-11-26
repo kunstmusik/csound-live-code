@@ -13,6 +13,7 @@
     "@csound/browser": "^6.18.0-beta1",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
+    "@fontsource/raleway": "^4.5.11",
     "@uiw/codemirror-theme-okaidia": "^4.13.2",
     "@uiw/codemirror-themes": "^4.13.2",
     "@uiw/react-codemirror": "^4.13.2",
