@@ -6,7 +6,6 @@ import './index.css'
 import theme from './Theme'
 import "@fontsource/raleway/600.css";
 
-console.log(theme.config.initialColorMode);
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <>
   <React.StrictMode>

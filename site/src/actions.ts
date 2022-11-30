@@ -4,7 +4,7 @@ import liveCodeOrc from "../../livecode.orc?raw";
 
 export const restartCsound = async (csound: CsoundObj) => {
   // consoleOutput.innerHTML = "";
-  console.log(csound);
+  // console.log(csound);
   if (!csound) return;
 
   await csound.stop();

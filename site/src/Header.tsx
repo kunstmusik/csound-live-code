@@ -12,24 +12,39 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Spacer, useDisclosure
+  Spacer,
+  Tooltip,
+  useDisclosure,
 } from "@chakra-ui/react";
 import { CsoundObj } from "@csound/browser";
 import { useEffect, useState } from "react";
+import screenfull from "screenfull";
 
 import {
   FaDownload,
+  FaExpand,
   FaPauseCircle,
   FaPlayCircle,
   FaQuestionCircle,
-  FaRedoAlt
+  FaRedoAlt,
+  FaTerminal,
 } from "react-icons/fa";
 import { openHelp, restartCsound, saveDocument } from "./actions";
 
 const d = new Date();
 const dateHeader = `${d.getFullYear()}-${d.getMonth()}-${d.getDay()}`;
 
-const Header = ({ csound, code }: { csound: CsoundObj; code: string }) => {
+const Header = ({
+  csound,
+  code,
+  showConsole,
+  setShowConsole,
+}: {
+  csound: CsoundObj;
+  code: string;
+  showConsole: boolean;
+  setShowConsole: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
   const [running, setRunning] = useState(true);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [filename, setFilename] = useState(`${dateHeader}_project.orc`);
@@ -56,44 +71,81 @@ const Header = ({ csound, code }: { csound: CsoundObj; code: string }) => {
       borderBottom="1px solid #333333"
     >
       <h1>csound-live-code</h1>
-      <IconButton
-        aria-label="Pause Engine"
-        icon={running ? <FaPauseCircle /> : <FaPlayCircle />}
-        fontSize="22px"
-        size="sm"
-        onClick={async () => {
-          if (running) {
-            await csound.pause();
-          } else {
-            await csound.resume();
-          }
-        }}
-      />
-      <IconButton
-        aria-label="Restart Engine"
-        icon={<FaRedoAlt />}
-        fontSize="22px"
-        size="sm"
-        onClick={() => {
-          restartCsound(csound);
-        }}
-      />
-      <IconButton
-        aria-label="Download ORC"
-        icon={<FaDownload />}
-        fontSize="22px"
-        size="sm"
-        onClick={onOpen}
-      />
+      <Tooltip hasArrow label={running ? "Pause Engine" : "Play Engine"}>
+        <IconButton
+          aria-label="Pause Engine"
+          icon={running ? <FaPauseCircle /> : <FaPlayCircle />}
+          fontSize="22px"
+          size="sm"
+          onClick={async () => {
+            if (running) {
+              await csound.pause();
+            } else {
+              await csound.resume();
+            }
+          }}
+        />
+      </Tooltip>
+
+      <Tooltip hasArrow label={"Restart Engine"}>
+        <IconButton
+          aria-label="Restart Engine"
+          icon={<FaRedoAlt />}
+          fontSize="22px"
+          size="sm"
+          onClick={() => {
+            restartCsound(csound);
+          }}
+        />
+      </Tooltip>
+
+      <Tooltip hasArrow label={"Download ORC"}>
+        <IconButton
+          aria-label="Download ORC"
+          icon={<FaDownload />}
+          fontSize="22px"
+          size="sm"
+          onClick={onOpen}
+        />
+      </Tooltip>
+
+      <Tooltip hasArrow label={"Toggle Console"}>
+        <IconButton
+          aria-label="Toggle Console"
+          icon={<FaTerminal />}
+          fontSize="22px"
+          size="sm"
+          onClick={() => {setShowConsole(!showConsole)}}
+        />
+      </Tooltip>
+      {screenfull.isEnabled && (
+        <Tooltip hasArrow label={"Toggle Fullscreen"}>
+          <IconButton
+            aria-label="Toggle Fullscreen"
+            icon={<FaExpand />}
+            fontSize="22px"
+            size="sm"
+            onClick={() => {
+              if (screenfull.isFullscreen) {
+                screenfull.exit();
+              } else {
+                screenfull.request();
+              }
+            }}
+          />
+        </Tooltip>
+      )}
       <Spacer />
 
-      <IconButton
-        aria-label="Open Documentation in new Window"
-        icon={<FaQuestionCircle />}
-        fontSize="22px"
-        size="sm"
-        onClick={openHelp}
-      />
+      <Tooltip hasArrow label={"Open Documentation"}>
+        <IconButton
+          aria-label="Open Documentation in new Window"
+          icon={<FaQuestionCircle />}
+          fontSize="22px"
+          size="sm"
+          onClick={openHelp}
+        />
+      </Tooltip>
 
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
