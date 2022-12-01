@@ -24,7 +24,7 @@ import {
 import ConsoleOutput from "./ConsoleOutput";
 import { flashPlugin } from "./flash";
 import Header from "./Header";
-import { csoundMode } from "./mode/csound";
+import { csoundMode } from "./mode/csound/csound";
 import theme from "./Theme";
 
 const manager = createLocalStorageManager("csound-live-code-color-mode");
@@ -110,7 +110,8 @@ function App() {
                       ...historyKeymap,
                     ])
                   ),
-                  StreamLanguage.define(csoundMode),
+                  csoundMode(),
+                  // StreamLanguage.define(csoundMode),
                   // basicSetup,
 
                   flashPlugin,
