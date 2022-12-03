@@ -55,7 +55,7 @@ function App() {
       }
       setCsound(cs);
       const context = await cs.getAudioContext();
-      setAudioContext(context);
+      setAudioContext(context as AudioContext);
 
       let consoleOutput = "";
 
