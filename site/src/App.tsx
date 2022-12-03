@@ -1,5 +1,4 @@
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
-import { StreamLanguage } from "@codemirror/language";
 import { Prec } from "@codemirror/state";
 import { keymap } from "@codemirror/view";
 import { Csound, CsoundObj } from "@csound/browser";
