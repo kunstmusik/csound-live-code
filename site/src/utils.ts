@@ -35,7 +35,7 @@ export const getEvalText = (editor: EditorView) => {
     let text = state.sliceDoc(from, to);
     if (from === to) {
       let prevBlockMark = findLineWithBlock(editor, doc.lineAt(from).number, -1, 0);
-      let nextBlockMark = findLineWithBlock(editor,  doc.lineAt(from).number, 1, doc.lines);
+      let nextBlockMark = findLineWithBlock(editor,  doc.lineAt(from).number, 1, doc.lines + 1);
 
       if (
         prevBlockMark != null &&
