@@ -14,8 +14,10 @@ export const restartCsound = async (csound: CsoundObj) => {
   await csound.setOption("-odac");
   await csound.setOption("-+msg_color=false");
   await csound.setOption("--daemon");
+  // await csound.setOption("--limiter=1");
+  const ac = await csound.getAudioContext();
   await csound.compileOrc(
-    "ksmps=32\n0dbfs=1\nnchnls=2\nnchnls_i=1\n" + liveCodeOrc
+    `sr=${ac?.sampleRate}\nksmps=32\n0dbfs=1\nnchnls=2\nnchnls_i=1\n${liveCodeOrc}`
   );
   await csound.start();
 };
@@ -30,7 +32,7 @@ export const saveDocument = (fileName: string, fileContents: string) => {
   const orcFileName = fileName.toLowerCase().endsWith(".orc")
     ? fileName
     : fileName + ".orc";
-  const blob = new Blob([fileContents], {type: "text/plain;charset=utf-8"});
+  const blob = new Blob([fileContents], { type: "text/plain;charset=utf-8" });
 
   saveAs(blob, orcFileName);
 };
