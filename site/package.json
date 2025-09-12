@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@chakra-ui/react": "^2.4.1",
-    "@csound/browser": "^7.0.0-beta3",
+    "@csound/browser": "^7.0.0-beta7",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
     "@fontsource/raleway": "^4.5.11",

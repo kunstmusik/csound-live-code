@@ -1069,10 +1069,10 @@
     style-mod "^4.0.0"
     w3c-keyname "^2.2.4"
 
-"@csound/browser@^7.0.0-beta3":
-  version "7.0.0-beta3"
-  resolved "https://registry.yarnpkg.com/@csound/browser/-/browser-7.0.0-beta3.tgz#749bad570569b00679c94af6f65c77760f36788d"
-  integrity sha512-tNC8flrNFQnaYynaOdm9ztkTQkePCs7mUM+y8iEviXUwhKR2d+1RVqwFcaU1B5x6n5SIpxF5MT+saLWclvOKEA==
+"@csound/browser@^7.0.0-beta7":
+  version "7.0.0-beta7"
+  resolved "https://registry.yarnpkg.com/@csound/browser/-/browser-7.0.0-beta7.tgz#efbd7c5f3279279904f4a8b8cee0aae125690db8"
+  integrity sha512-dlYxWvY4oJTThonPHpQMGhy+IGT2Fo0enTwlK8jpJ6sYGxYTHqi0DKIdEy7zmqUTvt7WXUsnbj/nxtV7JyVzcQ==
   dependencies:
     eventemitter3 "^4.0.7"
     google-closure-compiler "^20221102.0.1"
