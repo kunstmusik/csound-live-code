@@ -5,28 +5,16 @@ import { Csound, CsoundObj } from "@csound/browser";
 import { okaidia } from "@uiw/codemirror-theme-okaidia";
 import CodeMirror, { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import { useEffect, useRef, useState } from "react";
+import SplitterLayout from "react-splitter-layout";
+import "react-splitter-layout/lib/index.css";
 import startOrc from "../../start.orc?raw";
 import { restartCsound } from "./actions";
-import "./App.css";
 import { createKeymap } from "./commands";
 
-// @ts-ignore
-import {
-  Box,
-  Button,
-  Center,
-  ChakraProvider,
-  createLocalStorageManager,
-  Text,
-  VStack
-} from "@chakra-ui/react";
 import ConsoleOutput from "./ConsoleOutput";
 import { flashPlugin } from "./flash";
 import Header from "./Header";
 import { csoundMode } from "./mode/csound/csound";
-import theme from "./Theme";
-
-const manager = createLocalStorageManager("csound-live-code-color-mode");
 
 enum RunState {
   LOADING,
@@ -83,53 +71,89 @@ function App() {
   };
 
   return (
-    <ChakraProvider theme={theme} colorModeManager={manager}>
+    <div className="flex flex-col h-screen w-screen bg-bg-dark text-text-main overflow-hidden">
       {csound && running == RunState.RUNNING ? (
-        <VStack maxH="100vh" spacing="0">
+        <>
           <Header
             csound={csound}
             code={code}
             showConsole={showConsole}
             setShowConsole={setShowConsole}
           />
-          <Box w="full" h="full" overflow="auto">
-              <CodeMirror
-                ref={refs}
-                width="100%"
-                height="100%"
-                value={code}
-                onChange={setCode}
-                theme={okaidia}
-                extensions={[
-                  history(),
-                  Prec.highest(
-                    keymap.of([
-                      ...createKeymap(csound),
-                      ...defaultKeymap,
-                      ...historyKeymap,
-                    ])
-                  ),
-                  csoundMode(),
-                  // StreamLanguage.define(csoundMode),
-                  // basicSetup,
-
-                  flashPlugin,
-                ]}
-              ></CodeMirror>
-          </Box>
-
-          {showConsole && <ConsoleOutput output={consoleOutput}/>}
-        </VStack>
+          <div className="flex-1 relative overflow-hidden">
+            {showConsole ? (
+                <SplitterLayout 
+                    vertical 
+                    percentage 
+                    secondaryInitialSize={30} 
+                    primaryMinSize={10} 
+                    secondaryMinSize={10}
+                >
+                    <div className="w-full h-full overflow-auto">
+                         <CodeMirror
+                            ref={refs}
+                            width="100%"
+                            height="100%"
+                            value={code}
+                            onChange={setCode}
+                            theme={okaidia}
+                            extensions={[
+                              history(),
+                              Prec.highest(
+                                keymap.of([
+                                  ...createKeymap(csound),
+                                  ...defaultKeymap,
+                                  ...historyKeymap,
+                                ])
+                              ),
+                              csoundMode(),
+                              flashPlugin,
+                            ]}
+                          />
+                    </div>
+                    <ConsoleOutput output={consoleOutput}/>
+                </SplitterLayout>
+            ) : (
+                <div className="w-full h-full overflow-auto">
+                    <CodeMirror
+                    ref={refs}
+                    width="100%"
+                    height="100%"
+                    value={code}
+                    onChange={setCode}
+                    theme={okaidia}
+                    extensions={[
+                        history(),
+                        Prec.highest(
+                        keymap.of([
+                            ...createKeymap(csound),
+                            ...defaultKeymap,
+                            ...historyKeymap,
+                        ])
+                        ),
+                        csoundMode(),
+                        flashPlugin,
+                    ]}
+                    />
+                </div>
+            )}
+          </div>
+        </>
       ) : running === RunState.REQUIRES_START ? (
-        <Center h="100vh">
-          <Button onClick={finishLoadCsObj}>Start</Button>
-        </Center>
+        <div className="flex items-center justify-center h-screen">
+          <button 
+            onClick={finishLoadCsObj}
+            className="px-4 py-2 bg-[#333333] hover:bg-[#444444] text-[#cccccc] text-base rounded-md shadow-lg transition-colors"
+            >
+            Start
+          </button>
+        </div>
       ) : (
-        <Center h="100vh">
-          <Text color="#666666">Loading...</Text>
-        </Center>
+        <div className="flex items-center justify-center h-screen">
+          <p className="text-gray-400">Loading...</p>
+        </div>
       )}
-    </ChakraProvider>
+    </div>
   );
 }
 

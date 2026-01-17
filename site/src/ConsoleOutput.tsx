@@ -1,23 +1,26 @@
-import { Box, VStack } from "@chakra-ui/react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export const ConsoleOutput = ({output}:{output:string}) => {
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const wrapper = document.querySelector("#consoleWrapper")!;
-
-    // if(wrapper.scrollHeight - wrapper.scrollTop < 20) {
-        wrapper.scrollTo(wrapper.scrollLeft, wrapper.scrollHeight);
-    // }
+    if (wrapperRef.current) {
+        wrapperRef.current.scrollTo(wrapperRef.current.scrollLeft, wrapperRef.current.scrollHeight);
+    }
   }, [output])
 
   return (
-    <VStack w="full" h="300px" minH="300px">
-      <Box className="headerTab" w="full">Console</Box>
-      <Box id="consoleWrapper" overflow="auto" w="full" p="5">
-        <pre id="consoleOutput">${output}</pre>
-      </Box>
-    </VStack>
+    <div className="flex flex-col w-full h-full bg-bg-dark border-t border-border-dark">
+      <div className="w-full px-4 py-1.5 bg-border-dark text-white font-sans text-sm font-bold select-none">
+        Console
+      </div>
+      <div 
+        ref={wrapperRef}
+        className="flex-1 w-full p-5 overflow-auto bg-[#111111]"
+      >
+        <pre className="font-mono text-xs text-white whitespace-pre-wrap">{output}</pre>
+      </div>
+    </div>
   );
 };
 

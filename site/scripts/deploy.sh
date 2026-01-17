@@ -4,7 +4,7 @@
 set -e
 
 # build
-yarn build
+bun run build
 
 # navigate into the build output directory
 cd dist

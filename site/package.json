@@ -10,16 +10,15 @@
     "deploy": "sh scripts/deploy.sh"
   },
   "dependencies": {
-    "@chakra-ui/react": "^2.4.1",
     "@csound/browser": "^7.0.0-beta7",
-    "@emotion/react": "^11.10.5",
-    "@emotion/styled": "^11.10.5",
     "@fontsource/raleway": "^4.5.11",
     "@lezer/generator": "^1.1.3",
+    "@radix-ui/react-tooltip": "^1.2.8",
+    "@tailwindcss/postcss": "^4.1.18",
     "@uiw/codemirror-theme-okaidia": "^4.13.2",
     "@uiw/codemirror-themes": "^4.13.2",
     "@uiw/react-codemirror": "^4.13.2",
-    "emotion-theming": "^11.0.0",
+    "clsx": "^2.1.1",
     "file-saver": "^2.0.5",
     "framer-motion": "^7.6.12",
     "m-react-splitters": "^1.2.0",
@@ -29,6 +28,7 @@
     "react-split": "^2.0.14",
     "react-splitter-layout": "^4.0.0",
     "screenfull": "^6.0.2",
+    "tailwind-merge": "^3.4.0",
     "throttle-debounce": "^5.0.0"
   },
   "devDependencies": {
@@ -37,8 +37,11 @@
     "@types/react-dom": "^18.0.6",
     "@types/screenfull": "^4.1.0",
     "@types/throttle-debounce": "^5.0.0",
-    "@vitejs/plugin-react": "^2.1.0",
+    "@vitejs/plugin-react": "^5.1.2",
+    "autoprefixer": "^10.4.23",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
     "typescript": "^4.6.4",
-    "vite": "^3.1.0"
+    "vite": "^7.3.1"
   }
 }
