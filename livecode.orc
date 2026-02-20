@@ -3,35 +3,23 @@
   Author: Steven Yi
 */ 
 
-instr S1
-  ifreq = p4
-  iamp = p5
-endin
-
-instr P1
-  ibeat = p4
-endin
-
 ;; TIME
 
 gk_tempo init 120 
 
 
 /** Set tempo of global clock to itempo value in beats per minute. */
-opcode set_tempo,0,i
-  itempo xin
+opcode set_tempo(itempo):void
   gk_tempo init itempo
 endop
 
 /** Returns tempo of global clock in beats per minute. */
-opcode get_tempo,i,0
+opcode get_tempo():i
   xout i(gk_tempo)
 endop
 
 /** Adjust tempo of global clock towards by inewtempo by incr amount. */
-opcode go_tempo, 0, ii
-  inewtempo, incr xin
-
+opcode go_tempo(inewtempo, incr):void
   icurtempo = i(gk_tempo)
   itemp init icurtempo 
 
@@ -57,31 +45,33 @@ gk_now init 0
 
 /** Returns value of now beat time
    (Code used from Thorin Kerr's LivecodeLib.csd) */
-opcode now, i, 0
+opcode now():i
   xout i(gk_now)
 endop
 
 /** Returns current clock tick at init time */
-opcode now_tick, i, 0
+opcode now_tick():i
   xout i(gk_clock_tick)
 endop
 
+/** Returns current clock tick at perf time */
+opcode now_tick():k
+  xout gk_clock_tick
+endop
+
 /** Returns duration of time in given number of beats (quarter notes) */
-opcode beats, i, i
-  inumbeats xin
+opcode beats(inumbeats):i
   ibeatdur = divz(60, i(gk_tempo), -1)
   xout ibeatdur * inumbeats
 endop
 
 /** Returns duration of time in given number of measures (4 quarter notes) */
-opcode measures, i, i
-  inummeasures xin
+opcode measures(inummeasures):i
   xout beats(inummeasures * 4)
 endop
 
 /** Returns duration of time in given number of ticks (16th notes) */
-opcode ticks, i, i
-  inumbeats xin
+opcode ticks(inumbeats):i
   ibeatdur = divz(60, i(gk_tempo), -1)
   ibeatdur = ibeatdur / 4
   xout ibeatdur * inumbeats
@@ -90,8 +80,7 @@ endop
 /** Returns time from now for next beat, rounding to align
     on beat boundary. 
    (Code used from Thorin Kerr's LivecodeLib.csd) */
-opcode next_beat, i, p
-  ibeatcount xin
+opcode next_beat(ibeatcount:p):i
   inow = now()
   ibc = frac(ibeatcount)
   inudge = int(ibeatcount)
@@ -101,7 +90,7 @@ endop
 
 /** Returns time from now for next measure, rounding to align to measure  
     boundary. */
-opcode next_measure, i,0
+opcode next_measure():i
   inow = now() % 4
   ival = 4 - inow 
   if(ival < 0.25) then
@@ -112,7 +101,7 @@ opcode next_measure, i,0
 endop
 
 /** Reset clock so that next tick starts at 0 */
-opcode reset_clock, 0, 0
+opcode reset_clock():void
   gk_clock_internal init 0 
   gk_clock_tick init -1 
   gk_now init -(ksmps / sr)
@@ -120,8 +109,7 @@ endop
 
 /** Adjust clock by iadjust number of beats.
     Value may be positive or negative. */
-opcode adjust_clock, 0, i 
-  iadjust xin
+opcode adjust_clock(iadjust):void
   gk_now init i(gk_now) + iadjust 
 endop
 
@@ -150,8 +138,7 @@ endin
 /** Given a random chance value between 0 and 1, calculates a random value and
 returns 1 if value is less than chance value. For example, giving a value of 0.7,
 it can read as "70 percent of time, return 1; else 0" */
-opcode choose, i, i
-  iamount xin
+opcode choose(iamount):i
   ival = 0
 
   if(random(0,1) < limit:i(iamount, 0, 1)) then
@@ -163,8 +150,7 @@ endop
 ;; Array Functions
 
 /** Cycles through karray using index. */
-opcode cycle, i, ik[]
-  indx, kvals[] xin
+opcode cycle(indx, kvals[]):i
   ival = i(kvals, indx % lenarray(kvals))
   xout ival
 endop
@@ -172,8 +158,7 @@ endop
 
 /** Checks to see if item exists within array. Returns 1 if
   true and 0 if false. */
-opcode contains, i, ii[]
-  ival, iarr[] xin
+opcode contains(ival, iarr[]):i
   indx = 0
   iret = 0
   while (indx < lenarray:i(iarr)) do
@@ -189,8 +174,7 @@ endop
 
 /** Checks to see if item exists within array. Returns 1 if
   true and 0 if false. */
-opcode contains, i, ik[]
-  ival, karr[] xin
+opcode contains(ival, karr[]):i
   indx = 0
   iret = 0
   while (indx < lenarray:i(karr)) do
@@ -206,8 +190,7 @@ endop
 
 /** Create a new array by removing all instances of a
 given number from an existing array. */ 
-opcode remove, k[], ik[]
-  ival, karr[] xin
+opcode remove(ival, karr[]):k[]
  
   ifound = 0
   indx = 0
@@ -236,32 +219,28 @@ opcode remove, k[], ik[]
 endop
 
 /** Returns random item from karray. */
-opcode rand, i, k[]
-  kvals[] xin
+opcode rand(kvals[]):i
   indx = int(random(0, lenarray(kvals)))
   ival = i(kvals, indx)
   xout ival
 endop
 
 /** Returns random item from String array. */
-opcode rand, S, S[]
-  Svals[] xin
+opcode rand(Svals[]):S
   indx = int(random(0, lenarray(Svals)))
   Sval = Svals[indx]
   xout Sval
 endop
 
 /** Returns random item from karray. */
-opcode randk, k, k[]
-  kvals[] xin
+opcode randk(kvals[]):k
   kndx = int(random:k(0, lenarray:k(kvals)))
   kval = kvals[kndx]
   xout kval
 endop
 
 /** Returns random item from karray. */
-opcode randk, S, S[]
-  Svals[] xin
+opcode randk(Svals[]):S
   kndx = int(random:k(0, lenarray:k(Svals)))
   Sval = Svals[kndx]
   xout Sval
@@ -271,8 +250,7 @@ endop
 ;; Event
 
 /** Wrapper opcode that calls schedule only if iamp > 0 and ifreq > 0. */
-opcode cause, 0, Siiii
-  Sinstr, istart, idur, ifreq, iamp xin
+opcode cause(Sinstr, istart, idur, ifreq, iamp):void
   if(ifreq > 0 && iamp > 0) then
     schedule(Sinstr, istart, idur, ifreq, iamp)
   endif
@@ -284,12 +262,9 @@ endop
 itick (defaults to current now_tick()), returns value 1 if
 the given tick matches a hit in the hexadecimal beat, or 
 returns 0 otherwise. */
-opcode hexbeat, i, So
-  Spat, itick xin
+opcode hexbeat(Spat, itick:o):i 
 
-  if(itick <= 0) then
-    itick = now_tick()
-  endif
+  tick:i = (itick <= 0) ? now_tick() : itick
 
   istrlen = strlen(Spat)
 
@@ -299,11 +274,11 @@ opcode hexbeat, i, So
     ;; 4 bits/beats per hex value
     ipatlen = strlen(Spat) * 4
     ;; get beat within pattern length
-    itick = itick % ipatlen
+    tick = tick % ipatlen
     ;; figure which hex value to use from string
-    ipatidx = int(itick / 4)
+    ipatidx = int(tick / 4)
     ;; figure out which bit from hex to use
-    ibitidx = itick % 4 
+    ibitidx = tick % 4 
     
     ;; convert individual hex from string to decimal/binary
     ibeatPat = strtol(strcat("0x", strsub(Spat, ipatidx, ipatidx + 1))) 
@@ -320,9 +295,7 @@ endop
 /** Given hex beat pattern, use given itick to fire 
   events for given instrument, duration, frequency, and
   amplitude */
-opcode hexplay, 0, SiSiip
-  Spat, itick, Sinstr, idur, ifreq, iamp xin
-
+opcode hexplay(Spat, itick, Sinstr, idur, ifreq, iamp:p):void
   if(ifreq > 0 && iamp > 0 && strlen(Sinstr) > 0 && hexbeat(Spat, itick) == 1) then
     schedule(Sinstr, 0, idur, ifreq, iamp )
   endif
@@ -331,12 +304,11 @@ endop
 /** Given hex beat pattern, use global clock to fire 
   events for given instrument, duration, frequency, and
   amplitude */
-opcode hexplay, 0, SSiip
-  Spat, Sinstr, idur, ifreq, iamp xin
+opcode hexplay(Spat, Sinstr, idur, ifreq, iamp:p):void
 
-  itick = i(gk_clock_tick)
+  tick:i = i(gk_clock_tick)
 
-  if(ifreq > 0 && iamp > 0 && strlen(Sinstr) > 0 && hexbeat(Spat, itick) == 1) then
+  if(ifreq > 0 && iamp > 0 && strlen(Sinstr) > 0 && hexbeat(Spat, tick) == 1) then
     schedule(Sinstr, 0, idur, ifreq, iamp )
   endif
 endop
@@ -346,17 +318,16 @@ endop
 itick (defaults to current now_tick()), returns value 1 if
 the given tick matches a hit in the octal beat, or 
 returns 0 otherwise. */
-opcode octalbeat, i, Si
-  Spat, itick xin
+opcode octalbeat(Spat, itick):i
 
   ;; 3 bits/beats per octal value
   ipatlen = strlen(Spat) * 4
   ;; get beat within pattern length
-  itick = itick % ipatlen
+  tick:i = itick % ipatlen
   ;; figure which octal value to use from string
-  ipatidx = int(itick / 3)
+  ipatidx = int(tick / 3)
   ;; figure out which bit from octal to use
-  ibitidx = itick % 3 
+  ibitidx = tick % 3 
   
   ;; convert individual octal from string to decimal/binary
   ibeatPat = strtol(strcat("0", strsub(Spat, ipatidx, ipatidx + 1))) 
@@ -366,16 +337,14 @@ opcode octalbeat, i, Si
 
 endop
 
-opcode octalplay, 0, SiSiip
-  Spat, ibeat, Sinstr, idur, ifreq, iamp xin
+opcode octalplay(Spat, ibeat, Sinstr, idur, ifreq, iamp:p):void
 
   if(octalbeat(Spat, ibeat) == 1) then
     schedule(Sinstr, 0, idur, ifreq, iamp )
   endif
 endop
 
-opcode octalplay, 0, SSiip
-  Spat, Sinstr, idur, ifreq, iamp xin
+opcode octalplay(Spat, Sinstr, idur, ifreq, iamp:p):void
 
   itick = i(gk_clock_tick)
 
@@ -387,30 +356,26 @@ endop
 ;; Phase Functions
 
 /** Given count and period, return phase value in range [0-1) */
-opcode phs, i, ii
-  icount, iperiod xin
+opcode phs(icount, iperiod):i
   xout (icount % iperiod) / iperiod 
 endop
 
 /** Given period in ticks, return current phase of global
   clock in range [0-1) */
-opcode phs, i, i
-  iticks xin
+opcode phs(iticks):i
   xout (i(gk_clock_tick) % iticks) / iticks
 endop
 
 /** Given period in beats, return current phase of global
   clock in range [0-1) */
-opcode phsb, i, i
-  ibeats xin
+opcode phsb(ibeats):i
   iticks = ibeats * 4
   xout (i(gk_clock_tick) % iticks) / iticks
 endop
 
 /** Given period in measures, return current phase of global
   clock in range [0-1) */
-opcode phsm, i, i
-  imeasures xin
+opcode phsm(imeasures):i
   iticks = imeasures * 4 * 4
   xout (i(gk_clock_tick) % iticks) / iticks
 endop
@@ -418,8 +383,7 @@ endop
 
 ;; Iterative Euclidean Beat Generator
 ;; Returns string of 1 and 0's
-opcode euclid_str, S, ii
-  ihits, isteps xin
+opcode euclid_str(ihits, isteps):S
 
   Sleft = "1"
   Sright = "0"
@@ -461,20 +425,16 @@ endop
 itick (defaults to current now_tick()), returns value 1 if
 the given tick matches a hit in the euclidean rhythm, or 
 returns 0 otherwise. */
-opcode euclid, i, iio
-  ihits, isteps, itick  xin
+opcode euclid(ihits, isteps, itick:o):i
 
-  if(itick <= 0) then
-    itick = now_tick()
-  endif
+  tick:i = (itick <= 0) ? now_tick() : itick 
 
   Sval = euclid_str(ihits, isteps)
-  indx = itick % strlen(Sval)
+  indx = tick % strlen(Sval)
   xout strtol(strsub(Sval, indx, indx + 1))
 endop
 
-opcode euclidplay, 0, iiiSiip
-  ihits, isteps, itick, Sinstr, idur, ifreq, iamp xin
+opcode euclidplay(ihits, isteps, itick, Sinstr, idur, ifreq, iamp:p):void
 
   if(euclid(ihits, isteps, itick) == 1) then
     schedule(Sinstr, 0, idur, ifreq, iamp)
@@ -482,8 +442,7 @@ opcode euclidplay, 0, iiiSiip
 endop
 
 
-opcode euclidplay, 0, iiSiip
-  ihits, isteps, Sinstr, idur, ifreq, iamp xin
+opcode euclidplay(ihits, isteps, Sinstr, idur, ifreq, iamp:p):void
 
   itick = i(gk_clock_tick)
 
@@ -495,33 +454,28 @@ endop
 ;; Phase-based Oscillators 
 
 /** Returns cosine of given phase (0-1.0) */
-opcode xcos, i,i
-  iphase  xin
+opcode xcos(iphase):i
   xout cos(2 * $M_PI * iphase)
 endop
 
 /** Range version of xcos, similar to Impromptu's cosr */
-opcode xcos, i,iii
-  iphase, ioffset, irange  xin
+opcode xcos(iphase, ioffset, irange):i
   xout ioffset + (cos(2 * $M_PI * iphase) * irange)
 endop
 
 /** Returns sine of given phase (0-1.0) */
-opcode xsin, i,i
-  iphase  xin
+opcode xsin(iphase):i
   xout sin(2 * $M_PI * iphase)
 endop
 
 /** Range version of xsin, similar to Impromptu's sinr */
-opcode xsin, i,iii
-  iphase, ioffset, irange  xin
+opcode xsin(iphase, ioffset, irange):i
   xout ioffset + (sin(2 * $M_PI * iphase) * irange)
 endop
 
 /** Non-interpolating oscillator. Given phase in range 0-1, 
 returns value within the give k-array table. */
-opcode xosc, i, ik[]
-  iphase, kvals[]  xin
+opcode xosc(iphase, kvals[]):i
   indx = int(lenarray:i(kvals) * (iphase % 1))  
   xout i(kvals, indx)
 endop
@@ -529,15 +483,13 @@ endop
 
 /** Non-interpolating oscillator. Given phase duration in beats, 
 returns value within the give k-array table. (shorthand for xosc(phsb(ibeats), karr) )*/
-opcode xoscb, i,ik[]
-  ibeats, kvals[] xin
+opcode xoscb(ibeats, kvals[]):i
   xout xosc(phsb(ibeats), kvals)
 endop
 
 /** Non-interpolating oscillator. Given phase duration in measures, 
 returns value within the give k-array table. (shorthand for xosc(phsm(ibeats), karr) )*/
-opcode xoscm, i, ik[]
-  ibeats, kvals[] xin
+opcode xoscm(ibeats, kvals[]):i
   xout xosc(phsm(ibeats), kvals)
 endop
 
@@ -545,8 +497,7 @@ endop
 /** Linearly-interpolating oscillator. Given phase in range 0-1, 
 returns value intepolated within the two closest points of phase within k-array
 table. */
-opcode xosci, i, ik[]
-  iphase, kvals[]  xin
+opcode xosci(iphase, kvals[]):i
   ilen = lenarray:i(kvals)
   indx = ilen * (iphase % 1)
   ibase = int(indx)  
@@ -561,30 +512,26 @@ endop
 /** Linearly-interpolating oscillator. Given phase duration in beats, 
 returns value intepolated within the two closest points of phase within k-array
 table. (shorthand for xosci(phsb(ibeats), karr) )*/
-opcode xoscib, i,ik[]
-  ibeats, kvals[] xin
+opcode xoscib(ibeats, kvals[]):i
   xout xosci(phsb(ibeats), kvals)
 endop
 
 /** Linearly-interpolating oscillator. Given phase duration in measures, 
 returns value intepolated within the two closest points of phase within k-array
 table. (shorthand for xosci(phsm(ibeats), karr) )*/
-opcode xoscim, i,ik[]
-  ibeats, kvals[] xin
+opcode xoscim(ibeats, kvals[]):i
   xout xosci(phsm(ibeats), kvals)
 endop
 
 /** Line (Ramp) oscillator. Given phase in range 0-1, return interpolated value between given istart and iend. */
-opcode xlin, i, iii
-  iphase, istart, iend xin
+opcode xlin(iphase, istart, iend):i
   xout istart + (iend - istart) * iphase
 endop
 
 ;; Duration Sequences
 
 /** Given a tick value and array of durations, returns new duration value for tick. */
-opcode xoscd, i, ik[]
-  itick, kdurs[] xin
+opcode xoscd(itick, kdurs[]):i
   indx = 0
   isum = 0
   ilen = lenarray:i(kdurs)
@@ -595,7 +542,7 @@ opcode xoscd, i, ik[]
     indx += 1
   od
 
-  itick = itick % isum
+  tick:i = itick % isum
   indx = 0
   ival = 0
   icur = 0
@@ -603,7 +550,7 @@ opcode xoscd, i, ik[]
   while (indx < ilen) do
     itemp = i(kdurs, indx) 
 
-    if(itick < icur + itemp) then
+    if(tick < icur + itemp) then
       ival = itemp 
       indx += ilen
     else
@@ -619,16 +566,14 @@ opcode xoscd, i, ik[]
 
 
 /** Given an array of durations, returns new duration value for current clock tick. Useful with mod division and cycle for additive/subtractive rhythms. */
-opcode xoscd, i, k[]
-  kdurs[] xin
+opcode xoscd(kdurs[]):i
   xout xoscd(now_tick(), kdurs)
 endop
 
 
 /** Given a tick value and array of durations, returns new duration or 0 depending upon whether tick hits a new duration value. Values
 may be positive or negative, but not zero. Negative values can be interpreted as rest durations. */
-opcode dur_seq, i, ik[]
-  itick, kdurs[] xin
+opcode dur_seq(itick, kdurs[]):i
   ival = 0
   icur = 0
   ilen = lenarray:i(kdurs)
@@ -643,14 +588,14 @@ opcode dur_seq, i, ik[]
   ;print itotal
 
   indx = 0
-  itick = itick % itotal
+  tick:i = itick % itotal
 
   while (indx < ilen) do
     itemp = i(kdurs, indx) 
-    if(icur == itick) then
+    if(icur == tick) then
       ival = itemp 
       indx += ilen
-    elseif (icur > itick) then
+    elseif (icur > tick) then
       indx += ilen 
     else
       icur += abs(itemp)
@@ -666,14 +611,12 @@ endop
  * whether current clock tick hits a new duration value. Values
 may be positive or negative, but not zero. Negative values can be interpreted
 as rest durations. */
-opcode dur_seq, i, k[]
-  kdurs[] xin
+opcode dur_seq(kdurs[]):i
   xout dur_seq(now_tick(), kdurs)
 endop
 
 /** Experimental opcode for generating melodic lines given array of durations, pitches, and amplitudes. Durations follow dur_seq practice that negative values are rests. Pitch and amp array indexing wraps according to their array lengths given index of non-rest duration value currently fired. */ 
-opcode melodic, iii, ik[]k[]k[]
-  itick, kdurs[], kpchs[], kamps[] xin
+opcode melodic(itick, kdurs[], kpchs[], kamps[]):(i,i,i)
 
   idur = dur_seq(itick, kdurs)
   ipch = 0
@@ -688,7 +631,7 @@ opcode melodic, iii, ik[]k[]k[]
     indx += 1
   od
 
-  itick = itick % itotal
+  tick:i = itick % itotal
 
   if(idur > 0) then
     indx = 0
@@ -698,9 +641,9 @@ opcode melodic, iii, ik[]k[]k[]
     while (indx < ilen) do
       itemp = i(kdurs, indx) 
 
-      if(icur == itick) then
+      if(icur == tick) then
         indx += ilen
-      elseif (icur > itick) then
+      elseif (icur > tick) then
         indx += ilen 
       else
         if (itemp > 0) then
@@ -721,8 +664,7 @@ opcode melodic, iii, ik[]k[]k[]
 endop
 
 /** Experimental opcode for generating melodic lines given array of durations, pitches, and amplitudes. Durations follow dur_seq practice that negative values are rests. Pitch and amp array indexing wraps according to their array lengths given index of non-rest duration value currently fired. */ 
-opcode melodic, iii, k[]k[]k[]
-  kdurs[], kpchs[], kamps[] xin
+opcode melodic(kdurs[], kpchs[], kamps[]):(i,i,i)
   idur, ipch, iamp = melodic(now_tick(), kdurs, kpchs, kamps)
   xout idur, ipch, iamp
 endop
@@ -733,19 +675,17 @@ endop
   rotate - Rotates string by irot number of values.  
   (Inspired by rotate from Charlie Roberts' Gibber.)
 */
-opcode rotate, S, Si
-  Sval, irot xin
+opcode rotate(Sval, irot):S
 
   ilen = strlen(Sval)
-  irot = irot % ilen
-  Sout = strcat(strsub(Sval, irot, ilen), strsub(Sval, 0, irot))
+  rotAmt:i = irot % ilen
+  Sout = strcat(strsub(Sval, rotAmt, ilen), strsub(Sval, 0, rotAmt))
   xout Sout
 endop
 
 
 /** Repeats a given String x number of times. For example, `Sval = strrep("ab6a", 2)` will produce the value of "ab6aab6a". Useful in working with Hex beat strings.  */
-opcode strrep, S, Si
-  Sval, inum xin
+opcode strrep(Sval, inum):S
     
   Sout = Sval
   indx = 1
@@ -762,8 +702,7 @@ endop
 
 /** Sets i-rate value into channel and sets initialization to true. Works together 
   with xchan */
-opcode xchnset, 0, Si
-  SchanName, ival xin
+opcode xchnset(SchanName, ival):void
   Sinit = sprintf("%s_initialized", SchanName)
   chnset(1, Sinit)
   chnset(ival, SchanName)
@@ -778,8 +717,7 @@ endop
   Opcode is overloaded to return i- or k- value. Be sure to use xchan:i or xchan:k
   to specify which value to use. 
 */
-opcode xchan, i,Si
-  SchanName, initVal xin
+opcode xchan(SchanName, initVal):i
    
   Sinit = sprintf("%s_initialized", SchanName)
   if(chnget:i(Sinit) == 0) then
@@ -798,8 +736,7 @@ endop
   Opcode is overloaded to return i- or k- value. Be sure to use xchan:i or xchan:k
   to specify which value to use. 
 */
-opcode xchan, k,Si
-  SchanName, initVal xin
+opcode xchan(SchanName, initVal):k
     
   Sinit = sprintf("%s_initialized", SchanName)
   if(chnget:i(SchanName) == 0) then
@@ -819,22 +756,19 @@ gi_scale_base = 60
 gi_chord_offset = 0
 
 /** Set root note of scale in MIDI note number. */
-opcode set_root, 0,i 
-  iscale_root xin
+opcode set_root(iscale_root):void
   gi_scale_base = iscale_root
 endop
 
 /** Calculate frequency from root note of scale, using 
 octave and pitch class. */
-opcode from_root, i, ii
-  ioct, ipc xin
+opcode from_root(ioct, ipc):i
   ival = gi_scale_base + (ioct * 12) + ipc
   xout cpsmidinn(ival)
 endop
 
 /** Set the global scale.  Currently supports "maj" for major and "min" for minor scales. */
-opcode set_scale, 0,S
-  Scale xin
+opcode set_scale(Scale):void
   if(strcmp("maj", Scale) == 0) then
     gi_cur_scale = gi_scale_major
   else
@@ -844,48 +778,47 @@ endop
 
 /** Calculate frequency from root note of scale, using 
 octave and scale degree. */
-opcode in_scale, i, ii
-  ioct, idegree xin
+opcode in_scale(ioct, idegree):i
 
-  ibase = gi_scale_base + (ioct * 12)
+  oct:i = ioct
+
+  ibase = gi_scale_base + (oct * 12)
 
   idegrees = lenarray(gi_cur_scale)
 
-  ioct = int(idegree / idegrees)
+  oct = int(idegree / idegrees)
   indx = idegree % idegrees
 
   if(indx < 0) then
-    ioct -= 1
+    oct -= 1
     indx += idegrees
   endif
 
-  xout cpsmidinn(ibase + (ioct * 12) + gi_cur_scale[int(indx)]) 
+  xout cpsmidinn(ibase + (oct * 12) + gi_cur_scale[int(indx)]) 
 endop
 
 /** Calculate frequency from root note of scale, using 
 octave and scale degree. (k-rate version of opcode) */
-opcode in_scale, k, kk 
-  koct, kdegree xin
+opcode in_scale(koct, kdegree):k
 
   kbase = gi_scale_base + (koct * 12)
 
   idegrees = lenarray(gi_cur_scale)
 
-  koct = int(kdegree / idegrees)
+  oct:k = int(kdegree / idegrees)
   kndx = kdegree % idegrees
 
   if(kndx < 0) then
-    koct -= 1
+    oct -= 1
     kndx += idegrees
   endif
 
-  xout cpsmidinn(kbase + (koct * 12) + gi_cur_scale[int(kndx)]) 
+  xout cpsmidinn(kbase + (oct * 12) + gi_cur_scale[int(kndx)]) 
 endop
 
 /** Quantizes given MIDI note number to the given scale 
     (Base on pc:quantize from Extempore) */
-opcode pc_quantize, i, ii[]
-  ipitch_in, iscale[] xin
+opcode pc_quantize(ipitch_in, iscale[]):i
   inotenum = round:i(ipitch_in)
   ipc = inotenum % 12
   iout = inotenum
@@ -908,8 +841,7 @@ endop
 
 /** Quantizes given MIDI note number to the current active scale 
     (Base on pc:quantize from Extempore) */
-opcode pc_quantize, i, i
-  ipitch_in xin
+opcode pc_quantize(ipitch_in):i
   ival = pc_quantize(ipitch_in, gi_cur_scale)
   xout ival
 endop  
@@ -926,47 +858,42 @@ gi_chord_dim7[] = array(0,3,6,9)
 gi_chord_aug[] = array(0,4,8)
 gi_chord_current[] = gi_chord_maj 
 
-opcode set_chord, 0, ii[]
-  ichord_root, ichord_intervals[] xin
+opcode set_chord(ichord_root, ichord_intervals[]):void
   gi_chord_base = ichord_root
   gi_chord_current = ichord_intervals
 endop
 
-opcode set_chord, 0, S 
-  Schord xin
+opcode set_chord(Schord):void
 endop
 
-opcode in_chord, i, ii
-  ioct, idegree xin
+opcode in_chord(ioct, idegree):i
 
   ibase = gi_scale_base + (ioct * 12) + gi_chord_base
 
   idegrees = lenarray(gi_chord_current)
 
-  ioct = int(idegree / idegrees)
+  oct:i = int(idegree / idegrees)
   indx = idegree % idegrees
 
   if(indx < 0) then
-    ioct -= 1
+    oct -= 1
     indx += idegrees
   endif
 
-  xout cpsmidinn(ibase + (ioct * 12) + gi_chord_current[indx]) 
+  xout cpsmidinn(ibase + (oct * 12) + gi_chord_current[indx]) 
 endop
 
 ;; AUDIO
 
 /** Utility opcode for declicking an audio signal. Should only be used in instruments that have positive p3 duration. */
-opcode declick, a, a
-  ain xin
+opcode declick(ain):a
   aenv = linseg:a(0, 0.01, 1, p3 - 0.02, 1, 0.01, 0, 0.01, 0)
   xout ain * aenv
 endop
 
 /** Custom non-interpolating oscil that takes in kfrequency and array to use as oscillator table
 data. Outputs k-rate signal. */
-opcode oscil, k, kk[]
-  kfreq, kin[] xin
+opcode oscil(kfreq, kin[]):k
   ilen = lenarray(kin)
   kphs = phasor:k(kfreq)
   kout = kin[int(kphs * ilen) % ilen]
@@ -989,15 +916,13 @@ endin
   temporal recursion instruments as they may be non-running but scheduled in the
   event system. In those situations, try using clear_instr to overwrite the
   instrument definition. */
-opcode kill, 0,S
-  Sinstr xin
+opcode kill(Sinstr):void
   schedule("KillImpl", 0, 0.01, Sinstr)
 endop
 
 /** Redefines instr to empty body. Useful for killing
   temporal recursion or clock callback functions */
-opcode clear_instr, 0,S
-  Sinstr xin
+opcode clear_instr(Sinstr):void
   Sinstr_body = sprintf("instr %s\nendin\n", Sinstr)
   ires = compilestr(Sinstr_body)
   prints(sprintf("Cleared instrument definition: %s\n", 
@@ -1007,8 +932,7 @@ endop
 /** Starts running a named instrument for indefinite time using p2=0 and p3=-1. 
   Will first turnoff any instances of existing named instrument first.  Useful
   when livecoding always-on audio and control signal process instruments. */
-opcode start, 0,S
-  Sinstr xin
+opcode start(Sinstr):void
 
   if (nstrnum(Sinstr) > 0) then
     kill(Sinstr)
@@ -1017,8 +941,7 @@ opcode start, 0,S
 endop
 
 /** Stops a running named instrument, allowing for release segments to operate. */
-opcode stop, 0,S
-  Sinstr xin
+opcode stop(Sinstr):void
 
   if (nstrnum(Sinstr) > 0) then
     schedule(-nstrnum(Sinstr), 0, 0)
@@ -1031,8 +954,7 @@ instr CodeEval
 endin
 
 /** Evaluate code at a given time */
-opcode eval_at_time, 0, Si 
-  Scode, istart xin
+opcode eval_at_time(Scode, istart):void
   iblock init ksmps / sr
   ;; adjust one block of time difference since this is
   ;; will need to be added as an event back on to the scheduler
@@ -1046,14 +968,12 @@ gi_fade_range init -30
 
 
 /** Sets the range in db to fade over. By default, range is -30 (i.e., fades from -30dbfs to 0dbfs) */
-opcode set_fade_range, 0, i
-  irange xin
+opcode set_fade_range(irange):void
   gi_fade_range init irange
 endop
 
 /** Given a fade channel identifier (number) and number of ticks to fade over time, advances from current fade channel value towards 0dbfs (1.0) using the globally set fade range. (By default starts fading in from -30dBfs and stops at 0dbfs.) */
-opcode fade_in, i, ii
-  ident, inumticks xin
+opcode fade_in(ident, inumticks):i
   Schan = sprintf("fade_chan_%d", ident)
   ival = chnget:i(Schan)
   if(ival < 1.0) then
@@ -1068,8 +988,7 @@ opcode fade_in, i, ii
 endop
 
 /** Given a fade channel identifier (number) and number of ticks to fade over time, advances from current fade channel value towards 0 using the globally set fade range. (By default starts fading out from 0dBfs and stops at -30dbfs.) */
-opcode fade_out, i, ii
-  ident, inumticks xin
+opcode fade_out(ident, inumticks):i
   Schan = sprintf("fade_chan_%d", ident)
 
   ival = chnget:i(Schan)
@@ -1087,19 +1006,17 @@ opcode fade_out, i, ii
 endop
 
 /** Read value from fade channel. Useful if copy/pasting then wanting to just read from fade and control in the original code. */
-opcode fade_read, i, i
-  ident xin
+opcode fade_read(ident):i
   Schan = sprintf("fade_chan_%d", ident)
   iret = chnget:i(Schan)
   xout iret 
 endop
 
 /**  Set value for fade channel to given value. Should be in range 0-1.0.  (Typically one sets to either 0 or 1.) */
-opcode set_fade, 0,ii
-  ident, ival xin
+opcode set_fade(ident, ival):void
   Schan = sprintf("fade_chan_%d", ident)
-  ival = limit:i(ival, 0, 1.0) 
-  chnset(ival, Schan)
+  val:i = limit:i(ival, 0, 1.0) 
+  chnset(val, Schan)
 endop
 
 ;; Stereo Audio Bus
@@ -1107,30 +1024,26 @@ endop
 ga_sbus[] init 16, 2
 
 /** Write two audio signals into stereo bus at given index */
-opcode sbus_write, 0,iaa
-  ibus, al, ar xin
+opcode sbus_write(ibus, al, ar):void
   ga_sbus[ibus][0] = al
   ga_sbus[ibus][1] = ar
 endop
 
 /** Mix two audio signals into stereo bus at given index */
-opcode sbus_mix, 0,iaa
-  ibus, al, ar xin
+opcode sbus_mix(ibus, al, ar):void
   ga_sbus[ibus][0] = ga_sbus[ibus][0] + al
   ga_sbus[ibus][1] = ga_sbus[ibus][1] + ar
 endop
 
 /** Clear audio signals from bus channel */
-opcode sbus_clear, 0, i
-  ibus xin
+opcode sbus_clear(ibus):void
   aclear init 0
   ga_sbus[ibus][0] = aclear
   ga_sbus[ibus][1] = aclear
 endop
 
 /** Read audio signals from bus channel */
-opcode sbus_read, aa, i
-  ibus xin
+opcode sbus_read(ibus):(a,a)
   aclear init 0
   al = ga_sbus[ibus][0] 
   ar = ga_sbus[ibus][1] 
@@ -1204,8 +1117,7 @@ endin
 /** Utility opcode to pan signal, send dry to mixer, and send amount 
     of signal to reverb. If ReverbMixer is not on, will output just 
     panned signal using out opcode. */
-opcode pan_verb_mix, 0,akk
-  asig, kpan, krvb xin
+opcode pan_verb_mix(asig, kpan, krvb):void
    ;; Panning and send to mixer
   al, ar pan2 asig, kpan
  
@@ -1220,8 +1132,7 @@ endop
 /** Utility opcode to send dry stereo to mixer and send amount 
     of stereo signal to reverb. If ReverbMixer is not on, will output just 
     panned signal using out opcode. */
-opcode reverb_mix, 0, aak
-  al, ar, krvb xin
+opcode reverb_mix(al, ar, krvb):void
  
   if(gi_reverb_mixer_on == 1) then
     sbus_mix(0, al, ar)
@@ -1258,8 +1169,7 @@ instr Auto
 endin
 
 /** Automate channel value over time. Takes in "ChannelName", duration, start value, end value, and automation type (0=linear, else exponential). For exponential, signs of istart and end must match and neither can be zero. */ 
-opcode automate, 0, Siiii
-  Schan, idur, istart, iend, itype xin
+opcode automate(Schan, idur, istart, iend, itype):void
   schedule("Auto", 0, idur, Schan, istart, iend, itype)
 endop
 
@@ -1269,18 +1179,16 @@ instr FadeOutMix
 endin
 
 /** Utility opcode for end of performances to fade out Mixer over given idur time. idur defaults to 30 seconds. **/
-opcode fade_out_mix, 0, o
-  idur xin
-  idur = (idur <= 0 ? 30 : idur)
-  schedule("FadeOutMix", 0, idur) 
-  schedule("ChnSet", idur + 0.1, 0, "Mix.amp", 0)
+opcode fade_out_mix(idur:o):void
+  dur:i = (idur <= 0 ? 30 : idur)
+  schedule("FadeOutMix", 0, dur) 
+  schedule("ChnSet", dur + 0.1, 0, "Mix.amp", 0)
 endop
 
 ;; DSP
 
 /** Saturation using tanh */
-opcode saturate, a, ak
-  asig, ksat xin
+opcode saturate(asig, ksat):a
   xout tanh(asig * ksat) / tanh(ksat)
 endop
 
