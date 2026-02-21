@@ -10,5 +10,8 @@
     "license": "MIT",
     "homepage" : "https://github.com/kunstmusik/csound-live-code",
     "keywords" : ["csound"],
-    "files": ["README.md", "livecode.orc", "dirt/*"]
+    "files": ["README.md", "livecode.orc", "dirt/*"],
+    "scripts": {
+      "docs:build": "uv run doc/generate_docs.py"
+    }
   }
