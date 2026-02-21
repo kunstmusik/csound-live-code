@@ -280,6 +280,7 @@ const csoundInfoPanel = (view) => {
                 const operatorName = findOperatorName(view, treeRoot);
                 const synopsis =
                     operatorName &&
+                    window.csoundSynopsis &&
                     window.csoundSynopsis.find(
                         (value) => value.opname === operatorName
                     );
