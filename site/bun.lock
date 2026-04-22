@@ -5,7 +5,7 @@
     "": {
       "name": "site",
       "dependencies": {
-        "@csound/browser": "^7.0.0-beta30",
+        "@csound/browser": "7.0.0-beta31",
         "@fontsource/raleway": "^4.5.11",
         "@kunstmusik/codemirror-lang-csound": "^1.0.0",
         "@radix-ui/react-tooltip": "^1.2.8",
@@ -100,7 +100,7 @@
 
     "@codemirror/view": ["@codemirror/view@6.39.11", "", { "dependencies": { "@codemirror/state": "^6.5.0", "crelt": "^1.0.6", "style-mod": "^4.1.0", "w3c-keyname": "^2.2.4" } }, "sha512-bWdeR8gWM87l4DB/kYSF9A+dVackzDb/V56Tq7QVrQ7rn86W0rgZFtlL3g3pem6AeGcb9NQNoy3ao4WpW4h5tQ=="],
 
-    "@csound/browser": ["@csound/browser@7.0.0-beta30", "", { "dependencies": { "eventemitter3": "^4.0.7", "google-closure-compiler": "20260211.0.0", "google-closure-library": "^20221102.0.0", "pako": "^2.1.0", "ramda": "^0.28.0", "rimraf": "^3.0.2", "standardized-audio-context": "^25.3.35", "text-encoding-shim": "^1.0.5", "unmute-ios-audio": "^3.3.0", "web-midi-api": "^2.1.8" } }, "sha512-d/s+/bnV5tBogbslONe4EodA4wFbFEZLPjoN9Y/HOKuWB5f+gNuugskfnOL9RQuS87pdCD/rGyZzdhwpTkekOw=="],
+    "@csound/browser": ["@csound/browser@7.0.0-beta31", "", { "dependencies": { "eventemitter3": "^4.0.7", "google-closure-compiler": "20260211.0.0", "google-closure-library": "^20221102.0.0", "pako": "^2.1.0", "ramda": "^0.28.0", "rimraf": "^3.0.2", "standardized-audio-context": "^25.3.35", "text-encoding-shim": "^1.0.5", "unmute-ios-audio": "^3.3.0", "web-midi-api": "^2.1.8" } }, "sha512-HNtn4zdrmw/EV+Q+aazcInVYawWOXj93SkpNqk2e9FhmMiiDmylFcDnaYrSiMKJ0p0C54fmhhyls/wAmwnUg0g=="],
 
     "@emotion/is-prop-valid": ["@emotion/is-prop-valid@0.8.8", "", { "dependencies": { "@emotion/memoize": "0.7.4" } }, "sha512-u5WtneEAr5IDG2Wv65yhunPSMLIpuKsbuOktRojfrEiEvRyC85LgPMZI63cr7NUqT8ZIGdSVg8ZKGxIug4lXcA=="],
 

@@ -10,7 +10,7 @@
     "deploy": "sh scripts/deploy.sh"
   },
   "dependencies": {
-    "@csound/browser": "^7.0.0-beta30",
+    "@csound/browser": "7.0.0-beta31",
     "@fontsource/raleway": "^4.5.11",
     "@kunstmusik/codemirror-lang-csound": "^1.0.0",
     "@radix-ui/react-tooltip": "^1.2.8",
