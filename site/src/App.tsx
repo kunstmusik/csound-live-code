@@ -2,6 +2,7 @@ import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { Prec } from "@codemirror/state";
 import { keymap } from "@codemirror/view";
 import { Csound, CsoundObj } from "@csound/browser";
+import { csound as csoundLanguage } from "@kunstmusik/codemirror-lang-csound";
 import { okaidia } from "@uiw/codemirror-theme-okaidia";
 import CodeMirror, { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import { useEffect, useRef, useState } from "react";
@@ -14,7 +15,6 @@ import { createKeymap } from "./commands";
 import ConsoleOutput from "./ConsoleOutput";
 import { flashPlugin } from "./flash";
 import Header from "./Header";
-import { csoundMode } from "./mode/csound/csound";
 
 enum RunState {
   LOADING,
@@ -106,7 +106,7 @@ function App() {
                                   ...historyKeymap,
                                 ])
                               ),
-                              csoundMode(),
+                              csoundLanguage(),
                               flashPlugin,
                             ]}
                           />
@@ -131,7 +131,7 @@ function App() {
                             ...historyKeymap,
                         ])
                         ),
-                        csoundMode(),
+                        csoundLanguage(),
                         flashPlugin,
                     ]}
                     />
