@@ -12,7 +12,7 @@
   "dependencies": {
     "@csound/browser": "7.0.0-beta31",
     "@fontsource/raleway": "^4.5.11",
-    "@kunstmusik/codemirror-lang-csound": "^1.0.0",
+    "@kunstmusik/codemirror-lang-csound": "^1.0.2",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@tailwindcss/postcss": "^4.1.18",
     "@uiw/codemirror-theme-okaidia": "^4.13.2",
